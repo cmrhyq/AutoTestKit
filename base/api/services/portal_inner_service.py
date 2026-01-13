@@ -174,7 +174,7 @@ class PanJiPortalInnerService(BaseService):
             base_url=base_url or self.DEFAULT_BASE_URL,
             logger=logger
         )
-        self.logger.info(f"Initializing PanJi InnerAPI Service with base_url: {self.base_url}")
+        self.logger.info(f"Initializing PanJi Portal InnerAPI Service with base_url: {self.base_url}")
 
     # ==================== 用户相关接口 ====================
 

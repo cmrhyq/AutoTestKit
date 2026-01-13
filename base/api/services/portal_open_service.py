@@ -94,7 +94,7 @@ class PanJiPortalOpenService(BaseService):
             base_url=base_url or self.DEFAULT_BASE_URL,
             logger=logger
         )
-        self.logger.info(f"Initializing PanJi OpenAPI Service with base_url: {self.base_url}")
+        self.logger.info(f"Initializing PanJi Portal OpenAPI Service with base_url: {self.base_url}")
 
     def get_token(self, panji_sign: PortalUserEntity) -> Dict[str, Any]:
         """
@@ -131,11 +131,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Getting First Field Info")
         url = "/openapi/portal/restApi/firstFieldInfo/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.get(endpoint=url, headers=headers)
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def get_second_field_info(self) -> Dict[str, Any]:
@@ -147,11 +143,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Getting Second Field Info")
         url = "/openapi/portal/restApi/secondFieldInfo/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.get(endpoint=url, headers=headers)
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def create_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -160,10 +152,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Create cluster plane")
         url = "/openapi/portal/restApi/cluster/add"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "prodInstName": cluster_info.prod_inst_name,
             "prodInstCode": cluster_info.prod_inst_name,
@@ -179,7 +167,7 @@ class PanJiPortalOpenService(BaseService):
             "cellName": "a",
             "envName": "生产环境"
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def query_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -188,14 +176,10 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Query cluster plane")
         url = "/openapi/portal/restApi/cluster/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         params = {
             "prodInstName": cluster_info.prod_inst_name,
         }
-        response = self.get(endpoint=url, params=params, headers=headers)
+        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
         return response.json()
 
     def update_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -204,10 +188,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Update cluster plane")
         url = "/openapi/portal/restApi/cluster/update"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "instanceId": cluster_info.instance_id,
             "prodInstCode": cluster_info.prod_inst_name,
@@ -219,7 +199,7 @@ class PanJiPortalOpenService(BaseService):
             "planeCode": "multest",
             "planeName": "multest"
         }
-        response = self.patch(endpoint=url, json=body, headers=headers)
+        response = self.patch(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def delete_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -228,14 +208,10 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Delete cluster plane")
         url = "/openapi/portal/restApi/cluster/delete"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         params = {
             "instanceId": cluster_info.instance_id,
         }
-        response = self.delete(endpoint=url, params=params, headers=headers)
+        response = self.delete(endpoint=url, params=params, headers=_get_default_headers())
         return response.json()
 
     def query_bind_cluster_list(self) -> Dict[str, Any]:
@@ -244,11 +220,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Query bind cluster list")
         url = "/openapi/portal/restApi/bindCluster/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.get(endpoint=url, headers=headers)
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def tenant_bind_cluster(self) -> Dict[str, Any]:
@@ -257,10 +229,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Tenant bind cluster plane cell")
         url = "/openapi/portal/restApi/tenantCluster/addBatch"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = [
             {
                 "clusterInstanceId": "348",
@@ -269,7 +237,7 @@ class PanJiPortalOpenService(BaseService):
                 "tenantId": "1"
             }
         ]
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def query_tenant_info_by_username(self, username: str) -> Dict[str, Any]:
@@ -278,11 +246,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Query tenant info by username: {username}")
         url = f"/openapi/portal/restApi/v1/user/{username}/tenants"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.get(endpoint=url, headers=headers)
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def get_menu_permission_data(self) -> Dict[str, Any]:
@@ -291,11 +255,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Get menu permission data")
         url = "/openapi/portal/restApi/menu/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.get(endpoint=url, headers=headers)
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def sync_user_api(self, user_info: PortalUserEntity) -> Dict[str, Any]:
@@ -304,10 +264,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Sync user information")
         url = "/openapi/portal/restApi/sync/user"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "sourceCode": "1",
             "phone": user_info.phone,
@@ -325,7 +281,7 @@ class PanJiPortalOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def user_bind_tenant(self, user_info: PortalUserEntity) -> Dict[str, Any]:
@@ -334,10 +290,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Bind tenant")
         url = "/openapi/portal/restApi/addTenantUsers"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "tenantId": "1",
             "userIdJsonStr": [
@@ -348,7 +300,7 @@ class PanJiPortalOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def user_bind_role(self, user_info: PortalUserEntity) -> Dict[str, Any]:
@@ -357,10 +309,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Bind role")
         url = "/openapi/portal/restApi/addRoleMember"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "tenantId": "1",
             "roleId": "1",
@@ -371,7 +319,7 @@ class PanJiPortalOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def query_system(self, system_code: str) -> Dict[str, Any]:
@@ -380,15 +328,11 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Query system")
         url = "/openapi/portal/restApi/system/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "systemEnvironment": "PROD",
             "systemName": system_code
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def create_system(self, system: OpenSystemEntity):
@@ -397,10 +341,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Create system")
         url = "/openapi/portal/restApi/system/add"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "systemName": system.system_name,
             "systemCode": system.system_code,
@@ -414,7 +354,7 @@ class PanJiPortalOpenService(BaseService):
             "createId": system.create_id,
             "userName": system.username
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def system_resource_allocation(self, username: str, code_list: BasicCodeEntity):
@@ -423,10 +363,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"System resource allocation")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/allocate"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "memory": 1073741824,
             "cpu": 1,
@@ -435,7 +371,7 @@ class PanJiPortalOpenService(BaseService):
             },
             "username": username
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def system_resource_quota_detail(self, code_list: BasicCodeEntity):
@@ -444,11 +380,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"System resource quota detail")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/detail"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.get(endpoint=url, headers=headers)
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def create_application(self, app_code: str, app_name: str, app_type: str, workload_type: str, system_id: str):
@@ -462,10 +394,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Create application")
         url = "/openapi/portal/restApi/application/add"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "applicationSourceCode": app_code,
             "applicationSourceName": app_name,
@@ -475,7 +403,7 @@ class PanJiPortalOpenService(BaseService):
             "systemId": system_id,
             "microServiceCode": ""
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def update_system(self, system: OpenSystemEntity):
@@ -484,10 +412,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Update system")
         url = "/openapi/portal/restApi/system/update"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "systemId": system.system_id,
             "systemName": system.system_name,
@@ -522,7 +446,7 @@ class PanJiPortalOpenService(BaseService):
             "tenantName": "平台运营租户",
             "isAuthorized": "true"
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def user_system_authorization(self, user_id_list: list[str], system_id_list: list[str]):
@@ -533,10 +457,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"User system authorization")
         url = "/openapi/portal/restApi/batchAuthorization"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "authorizedType": "1",
             "type": "1",
@@ -546,7 +466,7 @@ class PanJiPortalOpenService(BaseService):
             "objectIdList": user_id_list,
             "entityIdList": system_id_list
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def update_application(self, app_id: str, system_id: str):
@@ -557,10 +477,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Update application")
         url = "/openapi/portal/restApi/application/update"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "applicationSourceId": app_id,
             "applicationSourceCode": "cs20241212yy",
@@ -571,7 +487,7 @@ class PanJiPortalOpenService(BaseService):
             "environment": "PROD",
             "workloadType": "Deployment"
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def user_application_authorization(self, user_id_list: list[str], application_id_list: list[str]):
@@ -582,10 +498,6 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"User application authorization")
         url = "/openapi/portal/restApi/batchAuthorization"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "authorizedType": "1",
             "type": "2",
@@ -595,7 +507,7 @@ class PanJiPortalOpenService(BaseService):
             "objectIdList": user_id_list,
             "entityIdList": application_id_list
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def query_application_list(self, app_code: str):
@@ -605,17 +517,13 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Query application list")
         url = "/openapi/portal/restApi/application/list"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "pageNum": "1",
             "pageSize": "1",
             "applicationSourceName": app_code,
             "applicationSourceType": "web_type"
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def query_application_detail(self, app_id: str):
@@ -625,14 +533,10 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Query application detail")
         url = f"/openapi/portal/restApi/application/detail"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         params = {
             "applicationSourceId", app_id
         }
-        response = self.get(endpoint=url, params=params, headers=headers)
+        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
         return response.json()
 
     def system_resource_quota_remove(self, code_list: BasicCodeEntity):
@@ -641,11 +545,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"System resource quota remove")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/delete"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.post(endpoint=url, headers=headers)
+        response = self.post(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def delete_application(self, app_id: str):
@@ -655,14 +555,10 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Delete application")
         url = "/openapi/portal/restApi/application/delete"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "ids": app_id
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def system_quota_delete(self, code: BasicCodeEntity):
@@ -671,11 +567,7 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"System quota release delete")
         url = f"/openapi/elastic-compute/v2/cells/{code.cell_code}/tenants/{code.tenant_code}/systems/{code.system_code}/quota/delete"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
-        response = self.post(endpoint=url, headers=headers)
+        response = self.post(endpoint=url, headers=_get_default_headers())
         return response.json()
 
     def delete_system(self, system_id: str, system_code: str):
@@ -687,14 +579,10 @@ class PanJiPortalOpenService(BaseService):
         """
         self.logger.info(f"Delete application")
         url = "/openapi/portal/restApi/system/delete"
-        cache = DataCache.get_instance()
-        headers = {
-            "Authorization": cache.get("token"),
-        }
         body = {
             "ids": system_id,
             "systemCode": system_code,
             "tenantCode": "tenant_admin"
         }
-        response = self.post(endpoint=url, json=body, headers=headers)
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
