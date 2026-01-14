@@ -1,8 +1,51 @@
 import logging
+from dataclasses import dataclass
 from typing import Dict, Any
 
 from base import BaseService
 from core import DataCache
+
+
+@dataclass
+class Ingress(object):
+    """
+    name: ingress网关名称
+    code: ingress网关编码
+    sysCode: 系统编码
+    sysName: 系统名称
+    unitCode: 单元编码
+    unitName: 单元名称
+    planeCode: 平面编码
+    planeName: 平面名称
+    """
+    name: str = None
+    code: str = None
+    sysCode: str = None
+    sysName: str = None
+    unitCode: str = None
+    unitName: str = None
+    planeCode: str = None
+    planeName: str = None
+
+@dataclass
+class IngressConfig(object):
+    """
+    name: ingress网关名称
+    code: ingress网关编码
+    sysCode: 系统编码
+    unitCode: 单元编码
+    planeCode: 平面编码
+    softLoadCode:
+    softControllerId:
+    """
+    name: str = None
+    code: str = None
+    sysCode: str = None
+    unitCode: str = None
+    planeCode: str = None
+    serviceName: str = None
+    softLoadCode: str = None
+    softControllerId: str = None
 
 
 def _get_default_headers() -> Dict[str, str]:
@@ -32,57 +75,111 @@ class PanJiMicroservicesOpenService(BaseService):
 
     # ==================== ingressnginx Ingress网关实例相关接口 ====================
 
-    def add_ingress_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_ingress_instance(self, data: Ingress) -> Dict[str, Any]:
         """
         新增ingress网关实例
         Args:
-            data: Dict 网关实例数据
+            data: Ingress 网关实例数据，数据类参数全必填
         """
         self.logger.info("Add ingress gateway instance")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/add"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "name": data.name,
+            "code": data.code,
+            "systemCode": data.sysCode,
+            "systemName": data.sysName,
+            "unitName": data.unitName,
+            "unitCode": data.unitCode,
+            "planeName": data.planeName,
+            "planeCode": data.planeCode,
+            "deployType": "Deployment",
+            "replicas": 1,
+            "svcExportType": "NodePort",
+            "containerExportType": "HostIP",
+            "dualStack": "Y",
+            "servicePortInfos": [
+                {
+                    "protocol": "TCP",
+                    "port": "81",
+                    "hostPort": "30021"
+                }
+            ]
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def get_ingress_instance_by_code(self, code: str, system_code: str, unit_code: str) -> Dict[str, Any]:
+    def get_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据编码查询ingress网关实例详情
         Args:
-            code: str 网关实例编码
-            system_code: str 系统编码
-            unit_code: str 单元编码
+            data: Ingress 网关数据类，必填：
+            - code: str 网关实例编码
+            - system_code: str 系统编码
+            - unit_code: str 单元编码
         """
-        self.logger.info(f"Get ingress instance by code: {code}")
+        self.logger.info(f"Get ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/detailCode"
-        payload = {"code": code, "systemCode": system_code, "unitCode": unit_code}
+        payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
-    def delete_ingress_instance_by_code(self, code: str, system_code: str, unit_code: str) -> Dict[str, Any]:
+    def delete_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据网关实例编码删除网关实例
         Args:
-            code: str 网关实例编码
-            system_code: str 系统编码
-            unit_code: str 单元编码
+            data: Ingress 网关数据类，必填：
+            - code: str 网关实例编码
+            - system_code: str 系统编码
+            - unit_code: str 单元编码
         """
-        self.logger.info(f"Delete ingress instance by code: {code}")
+        self.logger.info(f"Delete ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/deleteCode"
-        payload = {"code": code, "systemCode": system_code, "unitCode": unit_code}
+        payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
-    def add_ingress_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
         """
         新增ingress网关配置
         Args:
-            data: Dict 网关配置数据
+            data: IngressConfig 网关配置数据，必填
+            - name: ingress网关名称
+            - code: ingress网关编码
+            - sysCode: 系统编码
+            - unitCode: 单元编码
+            - softControllerId
         """
         self.logger.info("Add ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/add"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "systemCode": data.sysCode,
+            "softControllerId": data.softControllerId,
+            "unitCode": data.unitCode,
+            "name": data.name,
+            "namespace": data.sysCode,
+            "serviceInfo": [],
+            "id": 10086,
+            "protocolType": "HTTP(S)",
+            "params": [],
+            "softLoadCode": data.code,
+            "httpRules": [
+                {
+                    "serviceInfo": [
+                        {
+                            "path": "/",
+                            "port": "8080",
+                            "name": data.serviceName,
+                            "hostPort": "http"
+                        }
+                    ]
+                }
+            ],
+            "softLoadName": data.name
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def list_ingress_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
         """
         查询ingress网关配置列表
         Args:
@@ -90,21 +187,58 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("List ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/list"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "name": data.name,
+            "softLoadCode": data.softLoadCode,
+            "systemCode": data.sysCode,
+            "unitCode": data.unitCode
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def update_ingress_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
         """
         更新ingress网关配置
         Args:
-            data: Dict 更新数据
+            data: IngressConfig 网关配置数据，必填
+            - name: ingress网关名称
+            - code: ingress网关编码
+            - sysCode: 系统编码
+            - unitCode: 单元编码
+            - softControllerId
         """
         self.logger.info("Update ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "systemCode": data.sysCode,
+            "softControllerId": data.softControllerId,
+            "unitCode": data.unitCode,
+            "name": data.name,
+            "namespace": data.sysCode,
+            "serviceInfo": [],
+            "id": 1,
+            "protocolType": "HTTP(S)",
+            "params": [],
+            "softLoadCode": data.code,
+            "httpRules": [
+                {
+                    "domain": "www.ingress.com",
+                    "serviceInfo": [
+                        {
+                            "path": "/",
+                            "port": "8080",
+                            "name": data.serviceName,
+                            "hostPort": "http"
+                        }
+                    ]
+                }
+            ],
+            "softLoadName": data.name
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def get_ingress_config_detail(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_ingress_config_detail(self, data: IngressConfig) -> Dict[str, Any]:
         """
         ingress网关配置详情
         Args:
@@ -112,10 +246,37 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("Get ingress gateway config detail")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/detail"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "name": data.name,
+            "softLoadCode": data.softLoadCode,
+            "systemCode": data.sysCode,
+            "unitCode": data.unitCode
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def delete_ingress_config_by_code(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_ingress_by_service_name(self, data: IngressConfig) -> Dict[str, Any]:
+        """
+        ingress网关配置通过service获取配置详情
+        Args:
+            data: 网关配置，必填：
+            -
+        """
+        self.logger.info("Get ingress by service name")
+        url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/getIngressByServiceName"
+        body = {
+            "systemCode": data.sysCode,
+            "softControllerId": data.softControllerId,
+            "unitCode": data.unitCode,
+            "name": data.name,
+            "planeCode": data.planeCode,
+            "serviceName": data.serviceName,
+            "softLoadCode": data.softLoadCode
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        return response.json()
+
+    def delete_ingress_config_by_code(self, data: IngressConfig) -> Dict[str, Any]:
         """
         ingress网关配置删除接口
         Args:
@@ -123,7 +284,13 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("Delete ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/deleteCode"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "name": data.name,
+            "softLoadCode": data.softLoadCode,
+            "systemCode": data.sysCode,
+            "unitCode": data.unitCode
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     # ==================== msingressgw Nginx参数模板相关接口 ====================
@@ -220,31 +387,33 @@ class PanJiMicroservicesOpenService(BaseService):
 
     # ==================== msingressksr Ingress网关实例启停扩缩容接口 ====================
 
-    def start_ingress_instance_by_code(self, code: str, system_code: str, unit_code: str) -> Dict[str, Any]:
+    def start_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据网关实例编码启动ingress网关实例
         Args:
-            code: str 网关实例编码
-            system_code: str 系统编码
-            unit_code: str 单元编码
+            data: Ingress 网关数据类，必填：
+            - code: str 网关实例编码
+            - system_code: str 系统编码
+            - unit_code: str 单元编码
         """
-        self.logger.info(f"Start ingress instance by code: {code}")
+        self.logger.info(f"Start ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/startCode"
-        payload = {"code": code, "systemCode": system_code, "unitCode": unit_code}
+        payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
-    def stop_ingress_instance_by_code(self, code: str, system_code: str, unit_code: str) -> Dict[str, Any]:
+    def stop_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据网关实例编码停止ingress网关实例
         Args:
-            code: str 网关实例编码
-            system_code: str 系统编码
-            unit_code: str 单元编码
+            data: Ingress 网关数据类，必填：
+            - code: str 网关实例编码
+            - system_code: str 系统编码
+            - unit_code: str 单元编码
         """
-        self.logger.info(f"Stop ingress instance by code: {code}")
+        self.logger.info(f"Stop ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/stopCode"
-        payload = {"code": code, "systemCode": system_code, "unitCode": unit_code}
+        payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
