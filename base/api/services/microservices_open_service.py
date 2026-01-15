@@ -47,6 +47,27 @@ class IngressConfig(object):
     softLoadCode: str = None
     softControllerId: str = None
 
+@dataclass
+class NginxParam(object):
+    """
+    id: 参数模板编号
+    code: 参数模板编码
+    name: 参数模板名称
+    type: 参数模板类型
+    desc: 参数模板描述
+    status: 状态
+    loadType: 加载类型
+    defaultValue: 默认值启用
+    """
+    id: int = 1
+    code: str = None
+    name: str = None
+    type: str = "App"
+    desc: str = None
+    status: str = "online"
+    loadType: str = "nginx"
+    defaultValue: str = "false"
+
 
 def _get_default_headers() -> Dict[str, str]:
     """获取默认请求头"""
@@ -295,7 +316,7 @@ class PanJiMicroservicesOpenService(BaseService):
 
     # ==================== msingressgw Nginx参数模板相关接口 ====================
 
-    def add_nginx_param(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_nginx_param(self, data: NginxParam) -> Dict[str, Any]:
         """
         新增nginx参数模板
         Args:
@@ -303,7 +324,17 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("Add nginx param template")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/add"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "loadType": data.loadType,
+            "code": data.code,
+            "defaultValue": data.defaultValue,
+            "name": data.name,
+            "id": data.id,
+            "type": data.type,
+            "desc": data.desc,
+            "status": data.status,
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def update_nginx_param(self, data: Dict[str, Any]) -> Dict[str, Any]:
