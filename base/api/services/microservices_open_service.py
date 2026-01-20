@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Any
 
 from base import BaseService
@@ -67,6 +67,73 @@ class NginxParam(object):
     status: str = "online"
     loadType: str = "nginx"
     defaultValue: str = "false"
+
+@dataclass
+class NginxParamStatus(object):
+    """
+    id: 参数模板编号
+    page:
+    type: 参数模板类型
+    keyword:
+    rows:
+    status: 需要更新成的状态
+    """
+    id: int
+    keyword: str
+    page: int = 1
+    type: str = "App"
+    rows: int = 1
+    status: str = "online"
+
+@dataclass
+class IngressIns(object):
+    """
+    keyword: 查询关键字
+    systemCode: 系统编码
+    unitCode: 单元编码
+    planeCode: 平面编码
+    page: 页数
+    rows: 行数
+    """
+    keyword: str
+    systemCode: str
+    unitCode: str
+    planeCode: str
+    page: int = 1
+    rows: int = 1
+
+@dataclass
+class GatewayInstance(object):
+    """
+    name: 网关名称
+    sysCode: 系统编码
+    cellCode: 单元编码
+    planeCode: 平面编码
+    clusterId: 集群编号
+    channel: 频道
+    dualStack:
+    exposeType: 服务曝光类型
+    maxBodySize:
+    nodes: 节点相关配置
+    numTrustedProxies:
+    portMaps: 端口映射配置, [{"nodePort":"${nodePort}","port":8080,"protocol":"http"}]
+    replicas: 分片数
+    """
+    name: str = None
+    sysCode: str = None
+    cellCode: str = None
+    planeCode: str = None
+    clusterId: str = ""
+    channel: str = ""
+    dualStack: str = "N"
+    exposeType: str = "NODEPORT"
+    maxBodySize: int = 1
+    nodes: list = field(default_factory=list)
+    numTrustedProxies: int = 0
+    portMaps: list = field(default_factory=list)
+    replicas: int = 1
+
+
 
 
 def _get_default_headers() -> Dict[str, str]:
@@ -320,7 +387,7 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         新增nginx参数模板
         Args:
-            data: Dict 参数模板数据
+            data: NginxParam 参数模板数据
         """
         self.logger.info("Add nginx param template")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/add"
@@ -337,15 +404,25 @@ class PanJiMicroservicesOpenService(BaseService):
         response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def update_nginx_param(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_nginx_param(self, data: NginxParam) -> Dict[str, Any]:
         """
         修改nginx参数模板
         Args:
-            data: Dict 更新数据
+            data: NginxParam 更新数据
         """
         self.logger.info("Update nginx param template")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "loadType": data.loadType,
+            "code": data.code,
+            "defaultValue": data.defaultValue,
+            "name": data.name,
+            "id": data.id,
+            "type": data.type,
+            "desc": data.desc,
+            "status": data.status
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def query_all_nginx_param(self, param_type: str = "All") -> Dict[str, Any]:
@@ -359,26 +436,42 @@ class PanJiMicroservicesOpenService(BaseService):
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
-    def update_nginx_param_status(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_nginx_param_status(self, data: NginxParamStatus) -> Dict[str, Any]:
         """
         nginx参数模板上线/下线接口
         Args:
-            data: Dict 状态更新数据
+            data: NginxParamStatus 状态更新数据
         """
         self.logger.info("Update nginx param status")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/updateStatus"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "id": data.id,
+            "page": data.page,
+            "type": data.type,
+            "keyword": data.keyword,
+            "rows": data.rows,
+            "status": data.status
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
-    def list_nginx_param(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_nginx_param(self, data: NginxParamStatus) -> Dict[str, Any]:
         """
         分页查询nginx参数模板列表
         Args:
-            data: Dict 分页查询参数
+            data: NginxParamStatus 分页查询参数
         """
         self.logger.info("List nginx param templates")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/list"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "id": data.id,
+            "page": data.page,
+            "type": data.type,
+            "keyword": data.keyword,
+            "rows": data.rows,
+            "status": data.status
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def delete_nginx_param_by_code(self, code: str, param_type: str) -> Dict[str, Any]:
@@ -394,15 +487,23 @@ class PanJiMicroservicesOpenService(BaseService):
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
-    def list_ingress_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_ingress_instance(self, data: IngressIns) -> Dict[str, Any]:
         """
         查询ingress网关实例信息-分页
         Args:
-            data: Dict 分页查询参数
+            data: IngressIns 分页查询参数
         """
         self.logger.info("List ingress instances")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/list"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "systemCode": "${sysCode}",
+            "unitCode": "${unitCode}",
+            "planeCode": "${planeCode}",
+            "page": 1,
+            "keyword": "ingress",
+            "rows": 1
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def update_ingress_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -429,7 +530,11 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info(f"Start ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/startCode"
-        payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
+        payload = {
+            "code": data.code,
+            "systemCode": data.sysCode,
+            "unitCode": data.unitCode
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
@@ -444,7 +549,11 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info(f"Stop ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/stopCode"
-        payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
+        payload = {
+            "code": data.code,
+            "systemCode": data.sysCode,
+            "unitCode": data.unitCode
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
@@ -458,13 +567,17 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info(f"Scale ingress instance: {instance_id}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/scale"
-        payload = {"id": instance_id, "deployType": deploy_type, "replicas": replicas}
+        payload = {
+            "id": instance_id,
+            "deployType": deploy_type,
+            "replicas": replicas
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
 
     # ==================== msistiogateway Istio网关相关接口 ====================
 
-    def add_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_gateway_instance(self, data: GatewayInstance) -> Dict[str, Any]:
         """
         新增入口网关实例
         Args:
@@ -472,7 +585,22 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("Add gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/add"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        body = {
+            "cellCode": data.cellCode,
+            "channel": data.channel,
+            "clusterId": data.clusterId,
+            "dualstack": data.dualStack,
+            "exposeType": data.exposeType,
+            "maxBodySize": data.maxBodySize,
+            "name": data.name,
+            "nodes": data.nodes,
+            "numTrustedProxies": data.numTrustedProxies,
+            "planeCode": data.planeCode,
+            "portMaps": data.portMaps,
+            "replicas": data.replicas,
+            "sysCode": data.sysCode
+        }
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def get_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
