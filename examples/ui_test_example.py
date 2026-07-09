@@ -25,7 +25,7 @@ from playwright.sync_api import Page
 
 from base.ui.pages.example_page import ExamplePage, SearchPage
 from core.log.logger import TestLogger
-from core.allure.allure_helper import AllureHelper
+from core.reporting.allure_helper import AllureHelper
 from core.cache.data_cache import DataCache
 
 

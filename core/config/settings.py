@@ -28,8 +28,8 @@ class Settings:
     TEST_ENV: str = system.get("test_env", "test")
     # 项目根目录
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
-    # 项目数据目录
-    PROJECT_CONFIG_DIR: Path = os.path.join(PROJECT_ROOT, "config")
+    # 项目配置目录
+    PROJECT_CONFIG_DIR: Path = Path(__file__).parent.parent.parent / "config"
     
     # ==================== 浏览器配置 ====================
     # 浏览器类型：chromium, firefox, webkit
@@ -37,25 +37,25 @@ class Settings:
     # 是否使用无头模式运行浏览器
     HEADLESS: bool = system.get("headless", "false") == "true"
     # 浏览器操作超时时间（毫秒）
-    BROWSER_TIMEOUT: int = system.get("browser_timeout", 30000)
+    BROWSER_TIMEOUT: int = int(system.get("browser_timeout", 30000))
     # 页面加载超时时间（毫秒）
-    PAGE_LOAD_TIMEOUT: int = system.get("page_load_timeout", 30000)
+    PAGE_LOAD_TIMEOUT: int = int(system.get("page_load_timeout", 30000))
     # 浏览器启动参数
     BROWSER_ARGS: list = system.get("browser_args", "").split(",") if system.get("browser_args") else []
     # 视口大小
-    VIEWPORT_WIDTH: int = system.get("viewport_width", 1920)
-    VIEWPORT_HEIGHT: int = system.get("viewport_height", 1080)
+    VIEWPORT_WIDTH: int = int(system.get("viewport_width", 1920))
+    VIEWPORT_HEIGHT: int = int(system.get("viewport_height", 1080))
     # 是否启用浏览器开发者工具
     DEVTOOLS: bool = system.get("devtools", "false") == "true"
 
     # ==================== API 配置 ====================
     API_BASE_URL: str = env.get("api_base_url", "http://localhost:8000")
     # API 请求超时时间（秒）
-    API_TIMEOUT: int = system.get("api_timeout", 30)
+    API_TIMEOUT: int = int(system.get("api_timeout", 30))
     # API 连接超时时间（秒）
-    API_CONNECT_TIMEOUT: int = system.get("api_connect_timeout", 10)
+    API_CONNECT_TIMEOUT: int = int(system.get("api_connect_timeout", 10))
     # API 读取超时时间（秒）
-    API_READ_TIMEOUT: int = system.get("api_read_timeout", 30)
+    API_READ_TIMEOUT: int = int(system.get("api_read_timeout", 30))
     # 是否验证 SSL 证书
     VERIFY_SSL: bool = system.get("api_verify_ssl", "true") == "true"
 
@@ -90,14 +90,6 @@ class Settings:
         "parallel_dist_mode", "loadscope"
     )
     
-    # ==================== 重试配置 ====================
-    # 最大重试次数
-    MAX_RETRIES: int = system.get("max_retries", 3)
-    # 重试延迟时间（秒）
-    RETRY_DELAY: int = system.get("retry_delay", 1)
-    # 是否启用失败重试
-    ENABLE_RETRY: bool = system.get("enable_retry", "false") == "true"
-    
     # ==================== Allure 报告配置 ====================
     # Allure 结果目录
     ALLURE_RESULTS_DIR: str = system.get("allure_results_dir", "report/allure-results")
@@ -114,7 +106,7 @@ class Settings:
     # 截图格式：png, jpeg
     SCREENSHOT_FORMAT: Literal["png", "jpeg"] = system.get("screenshot_format", "png")
     # 截图质量（仅对 jpeg 有效，1-100）
-    SCREENSHOT_QUALITY: int = system.get("screenshot_quality", 80)
+    SCREENSHOT_QUALITY: int = int(system.get("screenshot_quality", 80))
     
     # ==================== 配置验证方法 ====================
     
@@ -149,13 +141,6 @@ class Settings:
                     errors.append(f"PARALLEL_WORKERS must be 'auto' or a positive integer, got: {cls.PARALLEL_WORKERS}")
             except ValueError:
                 errors.append(f"PARALLEL_WORKERS must be 'auto' or a valid integer, got: {cls.PARALLEL_WORKERS}")
-        
-        # 验证重试配置
-        if cls.MAX_RETRIES < 0:
-            errors.append(f"MAX_RETRIES must be non-negative, got: {cls.MAX_RETRIES}")
-        
-        if cls.RETRY_DELAY < 0:
-            errors.append(f"RETRY_DELAY must be non-negative, got: {cls.RETRY_DELAY}")
         
         # 验证截图质量
         if not (1 <= cls.SCREENSHOT_QUALITY <= 100):
@@ -192,11 +177,6 @@ class Settings:
                 "enabled": cls.ENABLE_PARALLEL,
                 "workers": cls.PARALLEL_WORKERS,
                 "dist_mode": cls.PARALLEL_DIST_MODE,
-            },
-            "retry": {
-                "enabled": cls.ENABLE_RETRY,
-                "max_retries": cls.MAX_RETRIES,
-                "delay": cls.RETRY_DELAY,
             },
             "allure": {
                 "results_dir": cls.ALLURE_RESULTS_DIR,

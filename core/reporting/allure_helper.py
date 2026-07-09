@@ -295,7 +295,7 @@ class AllureHelper:
 
 
 # 便捷函数：创建测试步骤
-def allure_step(step_name: str) -> contextmanager:
+def allure_step(step_name: str) -> Generator[None, None, None]:
     """
     创建 Allure 测试步骤的便捷函数
     

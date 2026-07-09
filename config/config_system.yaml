@@ -54,13 +54,11 @@ enable_parallel: true
 # 并行执行分发策略：loadscope, loadfile, loadgroup, load
 parallel_dist_mode: loadscope
 
-# ======================= 重试配置 =======================
-# 最大重试次数
-max_retries: 3
-# 重试延迟时间（秒）
-retry_delay: 1
-# 是否启用失败重试 (true/false)
-enable_retry: false
+# ======================= 用例失败重跑配置（pytest-rerunfailures） =======================
+# 用例失败重跑次数，0 表示不重跑
+rerun_count: 2
+# 用例失败重跑延迟时间（秒）
+rerun_delay: 1
 
 # ======================= Allure 报告配置 =======================
 # Allure 结果目录
