@@ -6,9 +6,16 @@
 """
 
 import os
+import re
 import yaml
 from typing import Dict, Any, Optional
 from pathlib import Path
+
+try:
+    from jinja2 import Template, Environment, BaseLoader, UndefinedError
+    HAS_JINJA2 = True
+except ImportError:
+    HAS_JINJA2 = False
 
 from core.config.system_config import system_manager
 
@@ -104,14 +111,77 @@ class EnvironmentManager:
         return self._config
     
     def _load_yaml(self, file_path: Path) -> Dict[str, Any]:
-        """加载 YAML 配置文件"""
+        """加载 YAML 配置文件，支持 jinja2 变量渲染"""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f) or {}
+                raw_content = f.read()
+            
+            # 如果安装了 jinja2，先进行变量渲染
+            if HAS_JINJA2:
+                raw_content = self._render_template(raw_content)
+            
+            return yaml.safe_load(raw_content) or {}
         except yaml.YAMLError as e:
             raise ValueError(f"YAML 格式错误 {file_path}: {e}")
         except ImportError:
             raise ImportError("需要安装 PyYAML: pip install pyyaml")
+    
+    def _render_template(self, content: str) -> str:
+        """
+        使用 jinja2 渲染配置模板中的变量
+        
+        支持两种变量语法：
+        - jinja2 标准语法: {{ var_name }}
+        - 简化语法: ${var_name}（自动转换为 jinja2 语法）
+        
+        变量来源（优先级从高到低）：
+        1. 环境变量 CONFIG_<KEY>
+        2. 系统环境变量
+        3. system_config 中的配置项
+        
+        使用示例（在 YAML 配置文件中）：
+            useraccount: auto${param}-user
+            api_url: {{ api_host }}:{{ api_port }}
+            
+        对应的环境变量：
+            CONFIG_PARAM=test → useraccount: autotest-user
+        """
+        # 将 ${var} 语法转换为 jinja2 的 {{ var }} 语法
+        content = re.sub(r'\$\{(\w+)\}', r'{{ \1 }}', content)
+        
+        # 构建渲染上下文：合并 system_config + 环境变量
+        context = {}
+        
+        # 1. 从 system_config 加载基础变量
+        sys_config = system_manager.get_config()
+        if hasattr(sys_config, 'config') and sys_config.config:
+            context.update(sys_config.config)
+        
+        # 2. 从环境变量加载（优先级更高）
+        for key, value in os.environ.items():
+            if key.startswith("CONFIG_"):
+                config_key = key[7:].lower()
+                context[config_key] = value
+            else:
+                # 所有环境变量都可用，小写形式
+                context[key.lower()] = value
+        
+        try:
+            from jinja2 import DebugUndefined
+            env = Environment(loader=BaseLoader(), undefined=DebugUndefined)
+            template = env.from_string(content)
+            rendered = template.render(**context)
+            # 检查是否有未渲染的变量（DebugUndefined 会保留 {{ undefined }} 形式）
+            if "{{ " in rendered:
+                import logging
+                logging.warning(
+                    f"Configuration contains unresolved template variables. "
+                    f"Check your environment variables or config files."
+                )
+            return rendered
+        except Exception:
+            # 渲染失败时返回原始内容，不中断流程
+            return content
     
     def _apply_env_overrides(self, config_data: Dict[str, Any]) -> Dict[str, Any]:
         """

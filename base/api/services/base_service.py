@@ -192,9 +192,9 @@ class BaseService:
         method: str,
         url: str,
         **kwargs
-    ) -> Response | None:
+    ) -> Response:
         """
-        发送 HTTP 请求，支持自动重试
+        发送 HTTP 请求，支持自动重试（指数退避）
         
         Args:
             method: HTTP 方法
@@ -207,23 +207,27 @@ class BaseService:
         Raises:
             RequestException: 请求失败且重试次数用尽
         """
-        max_retries = Settings.MAX_RETRIES if Settings.ENABLE_RETRY else 0
-        retry_delay = Settings.RETRY_DELAY
+        max_retries = 3  # API 请求最大重试次数（固定值）
+        retry_delay = 1  # 初始重试延迟（秒），每次重试翻倍（指数退避）
         
         last_exception = None
         
         for attempt in range(max_retries + 1):
             try:
 
+                # 设置 User-Agent，仅在有 json 参数时自动设置 Content-Type
                 if "headers" in kwargs:
-                    # 合并会话头和请求头
                     headers = kwargs['headers']
-                    headers['Content-Type'] = 'application/json'
-                    headers['User-Agent'] = get_random_pc_ua()
-                    kwargs['headers'] = headers
                 else:
-                    headers = {'Content-Type': 'application/json', 'User-Agent': get_random_pc_ua()}
-                    kwargs['headers'] = headers
+                    headers = {}
+                
+                headers.setdefault('User-Agent', get_random_pc_ua())
+                
+                # 仅当传入 json 参数且未手动指定 Content-Type 时才设置
+                if 'json' in kwargs and 'Content-Type' not in headers:
+                    headers['Content-Type'] = 'application/json'
+                
+                kwargs['headers'] = headers
 
                 # 记录请求信息
                 self._log_request(method, url, **kwargs)

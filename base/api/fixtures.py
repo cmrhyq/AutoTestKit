@@ -50,7 +50,7 @@ def api_cache():
 
 @pytest.fixture(scope="session")
 def api_env():
-    env = env_manager.get_env_config()
+    env = env_manager.get_config()
     return env
 
 
@@ -115,7 +115,7 @@ def authenticated_service(api_logger, api_env):
         auth_type = 'basic'
         auth_credentials = {
             'username': api_env.get("basic_auth_username"),
-            'password': api_env.get("basic_auth_username")
+            'password': api_env.get("basic_auth_password")
         }
         api_logger.info("Using Basic authentication")
     elif api_env.get("api_key"):

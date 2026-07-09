@@ -4,9 +4,13 @@ UI 测试 Fixtures 模块
 该模块定义 Playwright UI 测试所需的 fixtures，包括：
 - 浏览器初始化 fixture
 - 页面 fixture
+- 保持登录 session fixture（避免重复登录）
 - 失败时自动截图的 fixture
+- Trace/视频录制清理
 - 资源清理逻辑
 """
+import os
+import shutil
 from logging import Logger
 
 import pytest
@@ -23,7 +27,7 @@ from playwright.sync_api import (
 from core.config import env_manager
 from core.config import Settings
 from core.log.logger import TestLogger
-from core.allure.allure_helper import AllureHelper
+from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.fixture(scope="session")
@@ -96,7 +100,7 @@ def browser(playwright_instance: Playwright) -> Generator[Browser, None, None]:
 
 @pytest.fixture(scope="session")
 def ui_env():
-    env = env_manager.get_env_config()
+    env = env_manager.get_config()
     return env
 
 
@@ -183,7 +187,7 @@ def page(context: BrowserContext, request: pytest.FixtureRequest) -> Generator[P
         logger.debug(f"Page closed for test: {test_name}")
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def auto_screenshot_on_failure(request: pytest.FixtureRequest, page: Page) -> Generator[None, None, None]:
     """
     自动截图 fixture（失败时）
@@ -297,49 +301,99 @@ def ui_logger(request: pytest.FixtureRequest) -> Logger:
     return TestLogger.get_logger(f"UITest.{test_name}")
 
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_environment():
+# ==================== 保持登录 Session Fixture ====================
+
+@pytest.fixture(scope="session")
+def authenticated_context(browser: Browser) -> Generator[BrowserContext, None, None]:
     """
-    测试环境设置 fixture
+    Session-scoped 已认证的浏览器上下文 fixture
     
-    在测试会话开始时设置测试环境：
-    - 初始化日志系统
-    - 创建必要的目录
-    - 验证配置
+    在整个测试会话中只登录一次，后续所有测试复用已登录的 context。
+    适用于需要登录后测试多个页面的场景，避免每个测试重复登录。
     
-    在测试会话结束时清理资源。
+    用法：在测试类/模块中使用此 fixture，然后通过 context 创建 page。
+    登录逻辑通过子类或外部 conftest 注入。
+    
+    Args:
+        browser: 浏览器实例
+        
+    Yields:
+        BrowserContext: 已认证的浏览器上下文
+        
+    使用示例（在 conftest.py 中）：
+        @pytest.fixture(scope="session")
+        def authenticated_context(browser, ui_env):
+            context = browser.new_context(
+                viewport={"width": 1440, "height": 960}
+            )
+            page = context.new_page()
+            # 执行登录操作
+            page.goto(ui_env.get("paas_url") + "/#/login")
+            page.fill("#username", ui_env.get("admin_user"))
+            page.fill("#password", ui_env.get("admin_password"))
+            page.click("#login-btn")
+            page.wait_for_load_state("networkidle")
+            page.close()  # 关闭登录页面，保留 context 的认证状态
+            yield context
+            context.close()
     """
-    logger = TestLogger.get_logger("TestEnvironment")
+    logger = TestLogger.get_logger("AuthenticatedContext")
+    logger.info("Creating authenticated browser context")
     
-    # 设置日志系统
-    logger.info("Setting up test environment")
-    TestLogger.setup_logger()
+    # 创建带配置的 context
+    context_options = {
+        "viewport": {
+            "width": Settings.VIEWPORT_WIDTH,
+            "height": Settings.VIEWPORT_HEIGHT
+        },
+        "ignore_https_errors": not Settings.VERIFY_SSL,
+    }
     
-    # 创建必要的目录
-    Settings.create_directories()
-    logger.info("Test directories created")
+    # 如果无头模式需要指定分辨率
+    if Settings.HEADLESS:
+        context_options["viewport"] = {"width": 1440, "height": 960}
     
-    # 验证配置
-    is_valid, errors = Settings.validate()
-    if not is_valid:
-        logger.warning("Configuration validation errors:")
-        for error in errors:
-            logger.warning(f"  - {error}")
-    else:
-        logger.info("Configuration validated successfully")
+    context = browser.new_context(**context_options)
+    context.set_default_timeout(Settings.BROWSER_TIMEOUT)
+    context.set_default_navigation_timeout(Settings.PAGE_LOAD_TIMEOUT)
     
-    # 记录配置摘要
-    config_summary = Settings.get_config_summary()
-    logger.info(f"Test configuration: {config_summary}")
+    logger.info("Authenticated context created (login should be performed by override)")
     
-    yield
+    yield context
     
-    # 测试会话结束时的清理
-    logger.info("Test session completed")
+    logger.info("Closing authenticated browser context")
+    context.close()
+
+
+@pytest.fixture(scope="module")
+def module_page(authenticated_context: BrowserContext) -> Generator[Page, None, None]:
+    """
+    Module-scoped 页面 fixture（使用已认证的 context）
     
-    # 附加日志到 Allure
-    try:
-        TestLogger.attach_log_to_allure()
-        logger.info("Session log attached to Allure report")
-    except Exception as e:
-        logger.warning(f"Failed to attach session log to Allure: {e}")
+    每个测试模块共享一个页面实例，基于已登录的 context 创建。
+    适用于同一模块内的多个测试需要共享登录状态的场景。
+    
+    Args:
+        authenticated_context: 已认证的浏览器上下文
+        
+    Yields:
+        Page: 页面实例
+        
+    使用示例：
+        class TestDashboard:
+            def test_view_stats(self, module_page):
+                module_page.goto("/dashboard")
+                assert module_page.title() == "Dashboard"
+            
+            def test_export_report(self, module_page):
+                module_page.locator("#export").click()
+    """
+    logger = TestLogger.get_logger("ModulePage")
+    logger.debug("Creating module-scoped page from authenticated context")
+    
+    page = authenticated_context.new_page()
+    yield page
+    page.close()
+    
+    logger.debug("Module page closed")
+
