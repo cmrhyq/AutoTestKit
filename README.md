@@ -75,79 +75,89 @@ playwright install
 
 ### 3. 新增配置
 
-在根目录新建.env文件并写入以下内容
-```dotenv
-# ==================== 测试环境配置 ====================
-# 测试环境，这个环境可以自定义，但是定义前得保证 data/ 目录下有相应的环境配置文件
-TEST_ENV=test
+在config目录新建config_system.yaml文件并写入以下内容
+```yaml
+# ======================= 测试环境配置 =======================
+# 测试环境：dev, test, staging, prod
+test_env: test
 
-# ==================== 浏览器配置 ====================
+# ======================= 浏览器配置 =======================
 # 浏览器类型：chromium, firefox, webkit
-BROWSER_TYPE=chromium
+browser_type: chromium
 # 是否使用无头模式运行浏览器 (true/false)
-HEADLESS=false
+headless: false
 # 浏览器操作超时时间（毫秒）
-BROWSER_TIMEOUT=30000
+browser_timeout: 30000
 # 页面加载超时时间（毫秒）
-PAGE_LOAD_TIMEOUT=30000
+page_load_timeout: 30000
 # 浏览器启动参数（逗号分隔）
-BROWSER_ARGS=
+browser_args:
 # 视口宽度
-VIEWPORT_WIDTH=1920
+viewport_width: 1920
 # 视口高度
-VIEWPORT_HEIGHT=1080
+viewport_height: 1080
 # 是否启用浏览器开发者工具 (true/false)
-DEVTOOLS=false
+devtools: false
 
-# ==================== 日志配置 ====================
+# ======================= API 配置 =======================
+# API 请求超时时间（秒）
+api_timeout: 30
+# API 连接超时时间（秒）
+api_connect_timeout: 10
+# API 读取超时时间（秒）
+api_read_timeout: 30
+# 是否验证 SSL 证书
+api_verify_ssl: true
+
+# ======================= 日志配置 =======================
 # 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_LEVEL=DEBUG
+log_level: DEBUG
 # 日志目录
-LOG_DIR=logs
+log_dir: logs
 # 日志文件名格式
-LOG_FILE_FORMAT=test_{timestamp}.log
+log_file_format: test_{timestamp}.log
 # 是否在控制台输出日志 (true/false)
-LOG_TO_CONSOLE=true
+log_to_console: true
 # 是否输出日志到文件 (true/false)
-LOG_TO_FILE=true
+log_to_file: true
 # 日志格式
-LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 # 日志时间格式
-LOG_DATE_FORMAT=%Y-%m-%d %H:%M:%S
+log_date_format: "%Y-%m-%d %H:%M:%S"
 
-# ==================== 并行执行配置 ====================
+# ======================= 并行执行配置 =======================
 # 并行 worker 数量：auto 表示自动检测 CPU 核心数，或指定具体数字
-PARALLEL_WORKERS=auto
+parallel_workers: auto
 # 是否启用并行执行 (true/false)
-ENABLE_PARALLEL=true
+enable_parallel: true
 # 并行执行分发策略：loadscope, loadfile, loadgroup, load
-PARALLEL_DIST_MODE=loadscope
+parallel_dist_mode: loadscope
 
-# ==================== 重试配置 ====================
+# ======================= 重试配置 =======================
 # 最大重试次数
-MAX_RETRIES=3
+max_retries: 3
 # 重试延迟时间（秒）
-RETRY_DELAY=1
+retry_delay: 1
 # 是否启用失败重试 (true/false)
-ENABLE_RETRY=false
+enable_retry: false
 
-# ==================== Allure 报告配置 ====================
+# ======================= Allure 报告配置 =======================
 # Allure 结果目录
-ALLURE_RESULTS_DIR=report/allure-results
+allure_results_dir: report/allure-results
 # Allure 报告目录
-ALLURE_REPORT_DIR=report/allure-report
+allure_report_dir: report/allure-report
 # 是否清理旧的 Allure 结果 (true/false)
-ALLURE_CLEAN_RESULTS=true
+allure_clean_results: true
 
-# ==================== 截图配置 ====================
+# ======================= 截图配置 =======================
 # 截图保存目录
-SCREENSHOT_DIR=screenshots
+screenshot_dir: screenshots
 # 是否在失败时自动截图 (true/false)
-SCREENSHOT_ON_FAILURE=true
+screenshot_on_failure: true
 # 截图格式：png, jpeg
-SCREENSHOT_FORMAT=png
+screenshot_format: png
 # 截图质量（仅对 jpeg 有效，1-100）
-SCREENSHOT_QUALITY=80
+screenshot_quality: 80
 ```
 
 ### 3. 运行测试
@@ -480,16 +490,16 @@ pytest
 每个环境可以有自己的配置：
 
 ```python
-from config import get_config, switch_env
+from core.config import get_env_config, switch_env
 
 # 获取当前环境配置
-config = get_config()
+config = get_env_config()
 print(f"API URL: {config.api_base_url}")
 print(f"Log Level: {config.log_level}")
 
 # 切换到其他环境
 switch_env("staging")
-config = get_config()
+config = get_env_config()
 ```
 
 #### 默认环境配置
@@ -521,7 +531,7 @@ config = get_config()
 然后在代码中加载：
 
 ```python
-from config.env_config import EnvironmentManager
+from core.config import EnvironmentManager
 
 env_manager = EnvironmentManager(config_file="env_config.json")
 config = env_manager.get_config()
@@ -532,7 +542,7 @@ config = env_manager.get_config()
 框架会自动验证配置的有效性：
 
 ```python
-from config import validate_config
+from core.config import validate_config
 
 is_valid, errors = validate_config()
 if not is_valid:
@@ -543,7 +553,7 @@ if not is_valid:
 #### 查看配置摘要
 
 ```python
-from config import env_manager
+from core.config import env_manager
 
 summary = env_manager.get_config_summary()
 print(summary)

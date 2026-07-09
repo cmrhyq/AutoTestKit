@@ -1,0 +1,19 @@
+api_base_url: https://test-api.example.com
+api_timeout: 30
+api_verify_ssl: true
+
+browser_type: chromium
+headless: true
+browser_timeout: 30000
+log_level: INFO
+max_retries: 3
+retry_delay: 1
+enable_retry: true
+parallel_workers: auto
+enable_parallel: true
+# 认证配置模块参数
+bearer_token: null
+basic_auth_username: abc
+basic_auth_password: cba
+api_key: null
+api_key_header: null

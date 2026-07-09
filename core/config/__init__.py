@@ -6,8 +6,11 @@ from .env_config import (
     EnvironmentManager,
     env_manager,
     get_current_env,
-    get_config,
+    get_env_config,
     switch_env,
+)
+from .system_config import (
+    get_sys_config,
 )
 
 __all__ = [
@@ -17,6 +20,7 @@ __all__ = [
     "EnvironmentManager",
     "env_manager",
     "get_current_env",
-    "get_config",
+    "get_sys_config",
+    "get_env_config",
     "switch_env",
 ]

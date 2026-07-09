@@ -1,0 +1,79 @@
+# ======================= 测试环境配置 =======================
+# 测试环境：dev, test, staging, prod
+test_env: test
+
+# ======================= 浏览器配置 =======================
+# 浏览器类型：chromium, firefox, webkit
+browser_type: chromium
+# 是否使用无头模式运行浏览器 (true/false)
+headless: false
+# 浏览器操作超时时间（毫秒）
+browser_timeout: 30000
+# 页面加载超时时间（毫秒）
+page_load_timeout: 30000
+# 浏览器启动参数（逗号分隔）
+browser_args:
+# 视口宽度
+viewport_width: 1920
+# 视口高度
+viewport_height: 1080
+# 是否启用浏览器开发者工具 (true/false)
+devtools: false
+
+# ======================= API 配置 =======================
+# API 请求超时时间（秒）
+api_timeout: 30
+# API 连接超时时间（秒）
+api_connect_timeout: 10
+# API 读取超时时间（秒）
+api_read_timeout: 30
+# 是否验证 SSL 证书
+api_verify_ssl: true
+
+# ======================= 日志配置 =======================
+# 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_level: DEBUG
+# 日志目录
+log_dir: logs
+# 日志文件名格式
+log_file_format: test_{timestamp}.log
+# 是否在控制台输出日志 (true/false)
+log_to_console: true
+# 是否输出日志到文件 (true/false)
+log_to_file: true
+# 日志格式
+log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# 日志时间格式
+log_date_format: "%Y-%m-%d %H:%M:%S"
+
+# ======================= 并行执行配置 =======================
+# 并行 worker 数量：auto 表示自动检测 CPU 核心数，或指定具体数字
+parallel_workers: auto
+# 是否启用并行执行 (true/false)
+enable_parallel: true
+# 并行执行分发策略：loadscope, loadfile, loadgroup, load
+parallel_dist_mode: loadscope
+
+# ======================= 用例失败重跑配置（pytest-rerunfailures） =======================
+# 用例失败重跑次数，0 表示不重跑
+rerun_count: 2
+# 用例失败重跑延迟时间（秒）
+rerun_delay: 1
+
+# ======================= Allure 报告配置 =======================
+# Allure 结果目录
+allure_results_dir: report/allure-results
+# Allure 报告目录
+allure_report_dir: report/allure-report
+# 是否清理旧的 Allure 结果 (true/false)
+allure_clean_results: true
+
+# ======================= 截图配置 =======================
+# 截图保存目录
+screenshot_dir: screenshots
+# 是否在失败时自动截图 (true/false)
+screenshot_on_failure: true
+# 截图格式：png, jpeg
+screenshot_format: png
+# 截图质量（仅对 jpeg 有效，1-100）
+screenshot_quality: 80

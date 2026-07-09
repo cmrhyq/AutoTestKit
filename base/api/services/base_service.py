@@ -14,6 +14,7 @@ import time
 from typing import Any, Optional, Dict, Union
 from urllib.parse import urljoin
 import requests
+from requests import Response
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import (
     RequestException,
@@ -22,7 +23,7 @@ from requests.exceptions import (
     HTTPError
 )
 
-from config.settings import Settings
+from core.config import Settings
 from core.cache.data_cache import DataCache
 from core.log.logger import TestLogger
 from utils.internet_utils import get_random_pc_ua
@@ -93,19 +94,15 @@ class BaseService:
         """
         if auth_type == 'bearer':
             # Bearer Token 认证
-            token = auth_credentials.get('token') if auth_credentials else Settings.BEARER_TOKEN
+            token = auth_credentials.get('token')
             if token:
                 self.session.headers.update({'Authorization': f'Bearer {token}'})
                 self.logger.info("Bearer token authentication configured")
         
         elif auth_type == 'basic':
             # Basic Auth 认证
-            if auth_credentials:
-                username = auth_credentials.get('username')
-                password = auth_credentials.get('password')
-            else:
-                username = Settings.BASIC_AUTH_USERNAME
-                password = Settings.BASIC_AUTH_PASSWORD
+            username = auth_credentials.get('username')
+            password = auth_credentials.get('password')
             
             if username and password:
                 self.session.auth = HTTPBasicAuth(username, password)
@@ -113,12 +110,8 @@ class BaseService:
         
         elif auth_type == 'api_key':
             # API Key 认证
-            if auth_credentials:
-                api_key = auth_credentials.get('api_key')
-                header_name = auth_credentials.get('header_name', Settings.API_KEY_HEADER)
-            else:
-                api_key = Settings.API_KEY
-                header_name = Settings.API_KEY_HEADER
+            api_key = auth_credentials.get('api_key')
+            header_name = auth_credentials.get('header_name')
             
             if api_key:
                 self.session.headers.update({header_name: api_key})
@@ -199,9 +192,9 @@ class BaseService:
         method: str,
         url: str,
         **kwargs
-    ) -> requests.Response:
+    ) -> Response:
         """
-        发送 HTTP 请求，支持自动重试
+        发送 HTTP 请求，支持自动重试（指数退避）
         
         Args:
             method: HTTP 方法
@@ -214,23 +207,27 @@ class BaseService:
         Raises:
             RequestException: 请求失败且重试次数用尽
         """
-        max_retries = Settings.MAX_RETRIES if Settings.ENABLE_RETRY else 0
-        retry_delay = Settings.RETRY_DELAY
+        max_retries = 3  # API 请求最大重试次数（固定值）
+        retry_delay = 1  # 初始重试延迟（秒），每次重试翻倍（指数退避）
         
         last_exception = None
         
         for attempt in range(max_retries + 1):
             try:
 
+                # 设置 User-Agent，仅在有 json 参数时自动设置 Content-Type
                 if "headers" in kwargs:
-                    # 合并会话头和请求头
                     headers = kwargs['headers']
-                    headers['Content-Type'] = 'application/json;charset=utf-8'
-                    headers['User-Agent'] = get_random_pc_ua()
-                    kwargs['headers'] = headers
                 else:
-                    headers = {'Content-Type': 'application/json;charset=utf-8', 'User-Agent': get_random_pc_ua()}
-                    kwargs['headers'] = headers
+                    headers = {}
+                
+                headers.setdefault('User-Agent', get_random_pc_ua())
+                
+                # 仅当传入 json 参数且未手动指定 Content-Type 时才设置
+                if 'json' in kwargs and 'Content-Type' not in headers:
+                    headers['Content-Type'] = 'application/json'
+                
+                kwargs['headers'] = headers
 
                 # 记录请求信息
                 self._log_request(method, url, **kwargs)

@@ -10,7 +10,6 @@
 @Description Internet Utils
 """
 import random
-from random import choice
 import socket
 from contextlib import closing
 
@@ -36,7 +35,80 @@ __all__ = [
 
     # html
     'html_entities_2_standard_html',  # 将html实体名称/实体编号转为html标签
+    
+    # 网络环境检测
+    'is_ci_environment',  # 是否在 CI 环境中
+    'get_network_port',  # 根据网络环境自动选择端口
 ]
+
+
+# ==================== 网络环境检测 ====================
+
+def is_ci_environment(ci_hostname_keywords: list = None) -> bool:
+    """
+    检测当前是否在 CI（持续集成）环境中运行
+    
+    通过主机名关键字和环境变量判断是否在 CI 环境中：
+    - 检查主机名是否包含指定关键字（如 jenkins, ci, build）
+    - 检查常见 CI 环境变量是否存在
+    
+    Args:
+        ci_hostname_keywords: CI 主机名关键字列表，默认 ["jenkins", "ci", "build", "runner"]
+    
+    Returns:
+        bool: 是否在 CI 环境中
+        
+    使用示例：
+        if is_ci_environment():
+            print("Running in CI environment")
+        
+        # 自定义关键字
+        if is_ci_environment(["jenkins", "github-runner"]):
+            print("Running in specific CI")
+    """
+    import os
+    
+    if ci_hostname_keywords is None:
+        ci_hostname_keywords = ["jenkins", "ci", "build", "runner"]
+    
+    # 检查主机名
+    hostname = socket.gethostname().lower()
+    for keyword in ci_hostname_keywords:
+        if keyword.lower() in hostname:
+            return True
+    
+    # 检查常见 CI 环境变量
+    ci_env_vars = [
+        "CI", "JENKINS_URL", "GITHUB_ACTIONS", "GITLAB_CI",
+        "TRAVIS", "CIRCLECI", "BUILD_NUMBER", "TEAMCITY_VERSION"
+    ]
+    for var in ci_env_vars:
+        if os.environ.get(var):
+            return True
+    
+    return False
+
+
+def get_network_port(public_port: str, internal_port: str) -> str:
+    """
+    根据当前网络环境自动选择访问端口
+    
+    在 CI/内网环境中使用内网端口，在本地环境中使用公网端口。
+    
+    Args:
+        public_port: 本地/公网访问时使用的端口
+        internal_port: CI/内网环境中使用的端口
+    
+    Returns:
+        str: 选中的端口
+        
+    使用示例：
+        port = get_network_port(public_port="20030", internal_port="30080")
+        url = f"http://api.example.com:{port}/v1"
+    """
+    if is_ci_environment():
+        return internal_port
+    return public_port
 
 
 def _get_url_contain_params(url, params):

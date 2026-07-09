@@ -1,10 +1,12 @@
 import multiprocessing
+import os
+import shutil
 from pathlib import Path
 from datetime import datetime
 
 import pytest
 
-from config import Settings
+from core.config import Settings
 from core import TestLogger, DataCache
 
 # 建议使用 threading.Lock 或 multiprocessing.Manager 来保护`
@@ -49,10 +51,24 @@ def pytest_configure(config):
     - 用于并行执行的 CPU 核心检测
     - 创建目录结构
     - 配置验证
-    - 设置 Allure 报告
+    - 清理 Trace/视频录制文件
     - Allure 的环境信息
     """
     logger = TestLogger.get_logger("PytestConfigure")
+    
+    # 清理 trace_videos 目录
+    trace_dir = os.path.join(str(Settings.PROJECT_ROOT), "trace_videos")
+    if os.path.exists(trace_dir):
+        try:
+            for filename in os.listdir(trace_dir):
+                file_path = os.path.join(trace_dir, filename)
+                if os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+                else:
+                    os.remove(file_path)
+            logger.info(f"Cleaned trace_videos directory")
+        except Exception as e:
+            logger.warning(f"Failed to clean trace_videos: {e}")
     
     # 创建必要的目录
     Settings.create_directories()
@@ -290,7 +306,7 @@ def test_logger(request):
     
     # Attach test log to Allure report
     try:
-        from core.allure.allure_helper import AllureHelper
+        from core.reporting.allure_helper import AllureHelper
         import logging
         
         # Get the log file path for this test

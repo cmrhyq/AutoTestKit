@@ -13,10 +13,10 @@ import allure
 from typing import Optional, Dict
 
 from base.api.services.base_service import BaseService
-from config import env_manager
+from core.config import env_manager
 from core.log.logger import TestLogger
 from core.cache.data_cache import DataCache
-from config.settings import Settings
+from core.config import Settings
 
 
 @pytest.fixture(scope="session")
@@ -86,7 +86,7 @@ def base_service(api_logger):
 
 
 @pytest.fixture(scope="function")
-def authenticated_service(api_logger):
+def authenticated_service(api_logger, api_env):
     """
     Function-level authenticated BaseService fixture
     
@@ -95,6 +95,7 @@ def authenticated_service(api_logger):
     
     Args:
         api_logger: API 日志记录器
+        api_env: 环境配置字典
         
     Returns:
         BaseService: 带认证的 API 服务实例
@@ -106,22 +107,22 @@ def authenticated_service(api_logger):
     auth_type = None
     auth_credentials = None
     
-    if Settings.BEARER_TOKEN:
+    if api_env.get("bearer_token"):
         auth_type = 'bearer'
-        auth_credentials = {'token': Settings.BEARER_TOKEN}
+        auth_credentials = {'token': api_env.get("bearer_token")}
         api_logger.info("Using Bearer token authentication")
-    elif Settings.BASIC_AUTH_USERNAME and Settings.BASIC_AUTH_PASSWORD:
+    elif api_env.get("basic_auth_username") and api_env.get("basic_auth_password"):
         auth_type = 'basic'
         auth_credentials = {
-            'username': Settings.BASIC_AUTH_USERNAME,
-            'password': Settings.BASIC_AUTH_PASSWORD
+            'username': api_env.get("basic_auth_username"),
+            'password': api_env.get("basic_auth_password")
         }
         api_logger.info("Using Basic authentication")
-    elif Settings.API_KEY:
+    elif api_env.get("api_key"):
         auth_type = 'api_key'
         auth_credentials = {
-            'api_key': Settings.API_KEY,
-            'header_name': Settings.API_KEY_HEADER
+            'api_key': api_env.get("api_key"),
+            'header_name': api_env.get("api_key_header")
         }
         api_logger.info("Using API Key authentication")
     else:

@@ -11,12 +11,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError
 
-from config.settings import Settings
+from core.config import Settings
 from core.log.logger import TestLogger
-from core.allure.allure_helper import AllureHelper
+from core.reporting.allure_helper import AllureHelper
 
 class WaitUntil(Enum):
     """
@@ -80,6 +80,7 @@ class BasePage:
         """
         self.page = page
         self.logger = logger or TestLogger.get_logger(self.__class__.__name__)
+        self.dialog_text = None  # 存储弹窗文本
         
         # 设置默认超时时间
         self.page.set_default_timeout(Settings.BROWSER_TIMEOUT)
@@ -736,7 +737,406 @@ class BasePage:
 
         self.page.add_locator_handler(selector, handler)
 
-    def execute_script(self, script: str, *args) -> any:
+    # ==================== 多级菜单导航 ====================
+    
+    def open_menu(
+        self,
+        first_level: str,
+        second_level: str = None,
+        third_level: str = None,
+        fourth_level: str = None,
+        first_level_index: int = 0,
+        second_level_index: int = 0,
+        third_level_index: int = 0,
+        fourth_level_index: int = 0,
+        wait_after_click: bool = True
+    ) -> None:
+        """
+        打开多级菜单导航
+        
+        支持最多4级菜单导航，智能判断菜单是否已展开避免重复点击导致收缩。
+        当同名菜单存在多个时，通过 index 参数定位到第几个。
+        
+        Args:
+            first_level: 一级菜单名称
+            second_level: 二级菜单名称（可选）
+            third_level: 三级菜单名称（可选）
+            fourth_level: 四级菜单名称（可选）
+            first_level_index: 一级菜单同名时的索引（0=第1个）
+            second_level_index: 二级菜单同名时的索引
+            third_level_index: 三级菜单同名时的索引
+            fourth_level_index: 四级菜单同名时的索引
+            wait_after_click: 点击后是否等待页面加载
+        
+        使用示例：
+            # 只点击一级菜单
+            page.open_menu("系统权限")
+            
+            # 点击二级菜单
+            page.open_menu("系统权限", "用户管理")
+            
+            # 点击三级菜单
+            page.open_menu("微服务", "服务治理", "路由规则")
+            
+            # 点击四级菜单
+            page.open_menu("运维中心", "监控", "告警", "告警规则")
+            
+            # 同名菜单选择第2个
+            page.open_menu("配置", second_level_index=1)
+        """
+        menu_path = ' > '.join(filter(None, [first_level, second_level, third_level, fourth_level]))
+        self.logger.info(f"Opening menu: {menu_path}")
+        
+        try:
+            with AllureHelper.step(f"Navigate menu: {menu_path}"):
+                levels = [
+                    (first_level, first_level_index),
+                    (second_level, second_level_index),
+                    (third_level, third_level_index),
+                    (fourth_level, fourth_level_index),
+                ]
+                
+                for i, (level_name, level_index) in enumerate(levels):
+                    if level_name is None:
+                        break
+                    
+                    locator = self.page.get_by_text(level_name, exact=True).nth(level_index)
+                    
+                    # 智能判断：如果下一级菜单已可见，跳过当前级的点击
+                    next_level = levels[i + 1][0] if i + 1 < len(levels) else None
+                    
+                    if next_level is not None:
+                        next_locator = self.page.get_by_text(next_level, exact=True).nth(levels[i + 1][1])
+                        try:
+                            if next_locator.is_visible(timeout=500):
+                                self.logger.debug(f"Menu '{level_name}' already expanded, skipping")
+                                continue
+                        except Exception:
+                            pass
+                    
+                    locator.click()
+                    if wait_after_click:
+                        self.page.wait_for_load_state(state="load")
+                    self.logger.debug(f"Clicked menu: {level_name}")
+                
+                self.logger.info("Menu navigation completed")
+                
+        except PlaywrightTimeoutError as e:
+            self.logger.error(f"Timeout while navigating menu: {e}")
+            self._capture_failure_screenshot(f"menu_timeout_{self._get_timestamp()}")
+            raise
+        except Exception as e:
+            self.logger.error(f"Failed to navigate menu: {e}")
+            self._capture_failure_screenshot(f"menu_error_{self._get_timestamp()}")
+            raise
+
+    # ==================== 文件上传 ====================
+    
+    def upload_file_by_input(
+        self,
+        locator: Locator,
+        file_path: str,
+        description: str = "Upload"
+    ) -> None:
+        """
+        通过 input[type=file] 标签上传文件
+        
+        适用于页面上有 <input type="file"> 元素的场景。
+        
+        Args:
+            locator: 文件输入框的定位器
+            file_path: 文件的绝对路径或相对于项目 data 目录的路径
+            description: 操作描述（用于日志和 Allure 报告）
+        
+        Raises:
+            FileNotFoundError: 文件不存在
+            PlaywrightTimeoutError: 操作超时
+            
+        使用示例：
+            page.upload_file_by_input(
+                page.page.locator("input[type='file']"),
+                "test_data.csv",
+                description="上传测试数据"
+            )
+        """
+        resolved_path = self._resolve_file_path(file_path)
+        self.logger.info(f"{description}: uploading file via input - {resolved_path}")
+        
+        try:
+            with AllureHelper.step(f"{description}: {Path(resolved_path).name}"):
+                locator.set_input_files(resolved_path)
+            self.logger.info(f"{description}: file uploaded successfully")
+        except Exception as e:
+            self.logger.error(f"{description}: file upload failed - {e}")
+            self._capture_failure_screenshot(f"upload_input_error_{self._get_timestamp()}")
+            raise
+    
+    def upload_file_by_chooser(
+        self,
+        trigger_locator: Locator,
+        file_path: str,
+        description: str = "Upload"
+    ) -> None:
+        """
+        通过文件选择器对话框上传文件
+        
+        适用于点击按钮后弹出系统文件选择器的场景。
+        
+        Args:
+            trigger_locator: 触发文件选择器的按钮/元素定位器
+            file_path: 文件的绝对路径或相对于项目 data 目录的路径
+            description: 操作描述
+            
+        使用示例：
+            page.upload_file_by_chooser(
+                page.page.get_by_text("选择文件"),
+                "document.pdf",
+                description="上传合同文档"
+            )
+        """
+        resolved_path = self._resolve_file_path(file_path)
+        self.logger.info(f"{description}: uploading file via chooser - {resolved_path}")
+        
+        try:
+            with AllureHelper.step(f"{description}: {Path(resolved_path).name}"):
+                with self.page.expect_file_chooser() as fc_info:
+                    trigger_locator.click()
+                file_chooser = fc_info.value
+                file_chooser.set_files(resolved_path)
+            self.logger.info(f"{description}: file uploaded via chooser successfully")
+        except Exception as e:
+            self.logger.error(f"{description}: file chooser upload failed - {e}")
+            self._capture_failure_screenshot(f"upload_chooser_error_{self._get_timestamp()}")
+            raise
+
+    # ==================== 文件下载 ====================
+    
+    def download_file(
+        self,
+        trigger_locator: Locator,
+        save_dir: str = None,
+        description: str = "Download"
+    ) -> str:
+        """
+        下载文件
+        
+        监听下载事件，点击触发元素，等待下载完成并保存。
+        
+        Args:
+            trigger_locator: 触发下载的按钮/链接定位器
+            save_dir: 保存目录，默认为项目 data 目录
+            description: 操作描述
+            
+        Returns:
+            str: 下载文件的完整保存路径
+            
+        使用示例：
+            path = page.download_file(page.page.get_by_text("下载报告"))
+            print(f"File saved to: {path}")
+        """
+        if save_dir is None:
+            save_dir = str(Settings.PROJECT_ROOT / "data")
+        
+        Path(save_dir).mkdir(parents=True, exist_ok=True)
+        self.logger.info(f"{description}: starting file download to {save_dir}")
+        
+        try:
+            with AllureHelper.step(f"{description}"):
+                with self.page.expect_download() as download_info:
+                    trigger_locator.click()
+                download = download_info.value
+                save_path = str(Path(save_dir) / download.suggested_filename)
+                download.save_as(save_path)
+                
+            self.logger.info(f"{description}: file saved - {save_path} (from {download.url})")
+            return save_path
+        except Exception as e:
+            self.logger.error(f"{description}: file download failed - {e}")
+            self._capture_failure_screenshot(f"download_error_{self._get_timestamp()}")
+            raise
+
+    # ==================== Dialog 弹窗处理 ====================
+    
+    def handle_dialog(
+        self,
+        action: str = "accept",
+        dialog_type: str = None,
+        prompt_text: str = None
+    ) -> None:
+        """
+        注册原生弹窗（alert/confirm/prompt）处理器
+        
+        必须在触发弹窗的操作之前调用。处理完成后弹窗文本存储在 self.dialog_text。
+        
+        Args:
+            action: 弹窗处理动作
+                - "accept": 点击确定/OK
+                - "dismiss": 点击取消/Cancel  
+                - "text": 获取弹窗文本后点击确定
+            dialog_type: 限制处理的弹窗类型（"alert"/"confirm"/"prompt"），
+                         None 表示处理所有类型
+            prompt_text: 当弹窗为 prompt 且 action="accept" 时填入的文本
+            
+        使用示例：
+            # 处理删除确认弹窗
+            page.handle_dialog(action="accept")
+            page.page.locator("#delete-btn").click()
+            
+            # 取消确认弹窗
+            page.handle_dialog(action="dismiss", dialog_type="confirm")
+            page.page.locator("#dangerous-btn").click()
+            
+            # 获取弹窗文本
+            page.handle_dialog(action="text")
+            page.page.locator("#show-info").click()
+            print(page.dialog_text)  # 获取弹窗内容
+            
+            # 处理 prompt 并输入内容
+            page.handle_dialog(action="accept", prompt_text="new name")
+            page.page.locator("#rename-btn").click()
+        """
+        self.dialog_text = None
+        
+        def _handler(dialog):
+            if dialog_type and dialog.type != dialog_type:
+                dialog.accept()
+                return
+            
+            self.logger.info(f"Dialog detected: type={dialog.type}, message={dialog.message}")
+            
+            if action == "text":
+                self.dialog_text = dialog.message
+                dialog.accept()
+            elif action == "dismiss":
+                dialog.dismiss()
+            else:  # accept
+                if prompt_text and dialog.type == "prompt":
+                    dialog.accept(prompt_text)
+                else:
+                    dialog.accept()
+            
+            self.logger.info(f"Dialog handled: action={action}")
+        
+        self.page.once("dialog", _handler)
+        self.logger.info(f"Dialog handler registered: action={action}, type_filter={dialog_type}")
+
+    # ==================== Tab/窗口切换 ====================
+    
+    def switch_to_tab(
+        self,
+        tab_index: int = -1,
+        wait_timeout: int = 3000,
+        description: str = "Switch tab"
+    ) -> 'Page':
+        """
+        切换到指定标签页
+        
+        Args:
+            tab_index: 标签页索引，0=第一个，-1=最后一个（新打开的）
+            wait_timeout: 切换后等待时间（毫秒）
+            description: 操作描述
+            
+        Returns:
+            Page: 切换后的页面对象
+            
+        使用示例：
+            # 切换到新打开的标签页
+            new_page = page.switch_to_tab(-1)
+            
+            # 切换回第一个标签页
+            page.switch_to_tab(0)
+        """
+        context = self.page.context
+        
+        try:
+            self.page.wait_for_timeout(wait_timeout)
+            pages = context.pages
+            
+            if abs(tab_index) > len(pages):
+                raise IndexError(
+                    f"Tab index {tab_index} out of range. "
+                    f"Available tabs: {len(pages)} (index 0-{len(pages) - 1})"
+                )
+            
+            target_page = pages[tab_index]
+            target_page.bring_to_front()
+            target_page.wait_for_load_state("load", timeout=Settings.PAGE_LOAD_TIMEOUT)
+            
+            self.logger.info(
+                f"{description}: switched to tab[{tab_index}], "
+                f"total: {len(pages)}, title: {target_page.title()}"
+            )
+            
+            self.page = target_page
+            return target_page
+            
+        except IndexError:
+            raise
+        except Exception as e:
+            self.logger.error(f"{description}: tab switch failed - {e}")
+            self._capture_failure_screenshot(f"tab_switch_error_{self._get_timestamp()}")
+            raise
+    
+    def wait_for_new_tab(self, trigger_action, timeout: int = 10000) -> 'Page':
+        """
+        等待新标签页打开并返回新页面对象
+        
+        Args:
+            trigger_action: 触发新标签页打开的可调用对象
+            timeout: 等待超时时间（毫秒）
+            
+        Returns:
+            Page: 新打开的页面对象
+            
+        使用示例：
+            new_page = page.wait_for_new_tab(
+                lambda: page.page.locator("a[target='_blank']").click()
+            )
+            print(f"New page: {new_page.title()}")
+        """
+        context = self.page.context
+        
+        try:
+            with context.expect_page(timeout=timeout) as new_page_info:
+                trigger_action()
+            
+            new_page = new_page_info.value
+            new_page.wait_for_load_state("load", timeout=Settings.PAGE_LOAD_TIMEOUT)
+            
+            self.logger.info(f"New tab opened: {new_page.title()}")
+            return new_page
+        except Exception as e:
+            self.logger.error(f"Failed to wait for new tab: {e}")
+            raise
+
+    # ==================== 内部辅助方法 ====================
+    
+    def _resolve_file_path(self, file_path: str) -> str:
+        """
+        解析文件路径，支持绝对路径和相对路径（相对于 data 目录）
+        
+        Args:
+            file_path: 文件路径
+            
+        Returns:
+            str: 解析后的绝对路径
+            
+        Raises:
+            FileNotFoundError: 文件不存在
+        """
+        path = Path(file_path)
+        
+        if path.is_absolute():
+            resolved = str(path)
+        else:
+            resolved = str(Settings.PROJECT_ROOT / "data" / file_path)
+        
+        if not Path(resolved).exists():
+            raise FileNotFoundError(f"File not found: {resolved}")
+        
+        return resolved
+
+    def execute_script(self, script: str, *args) -> Any:
         """
         执行 JavaScript 代码
         

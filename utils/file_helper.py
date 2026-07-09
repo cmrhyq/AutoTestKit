@@ -5,14 +5,13 @@
 文件查找等功能。
 """
 
-import os
 import json
 import shutil
 from pathlib import Path
 from typing import Optional, Union, List, Any
 from datetime import datetime
 
-from config.settings import Settings
+from core.config import Settings
 
 
 class FileHelper:
@@ -510,7 +509,7 @@ class FileHelper:
         Returns:
             Path: 完整路径
         """
-        return FileHelper.join_path(Settings.PROJECT_DATA_DIR, *paths)
+        return FileHelper.join_path(Settings.PROJECT_CONFIG_DIR, *paths)
     
     @staticmethod
     def get_log_path(*paths: Union[str, Path]) -> Path:
