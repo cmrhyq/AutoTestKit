@@ -1,6 +1,6 @@
 # ======================= 测试环境配置 =======================
 # 测试环境：dev, test, staging, prod
-test_env: test
+test_env: test_arm
 
 # ======================= 浏览器配置 =======================
 # 浏览器类型：chromium, firefox, webkit
@@ -8,9 +8,9 @@ browser_type: chromium
 # 是否使用无头模式运行浏览器 (true/false)
 headless: false
 # 浏览器操作超时时间（毫秒）
-browser_timeout: 30000
+browser_timeout: 40000
 # 页面加载超时时间（毫秒）
-page_load_timeout: 30000
+page_load_timeout: 0000
 # 浏览器启动参数（逗号分隔）
 browser_args:
 # 视口宽度
@@ -56,7 +56,7 @@ parallel_dist_mode: loadscope
 
 # ======================= 用例失败重跑配置（pytest-rerunfailures） =======================
 # 用例失败重跑次数，0 表示不重跑
-rerun_count: 2
+rerun_count: 0
 # 用例失败重跑延迟时间（秒）
 rerun_delay: 1
 
