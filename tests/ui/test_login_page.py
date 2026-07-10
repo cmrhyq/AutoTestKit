@@ -29,7 +29,7 @@ class TestLoginPage(object):
 
         with AllureHelper.step("创建 Sandbox Login 对象并打开页面"):
             login_page = LoginPage(page)
-            login_page.open(ui_env.get("ui_base_url"))
+            login_page.navigate(ui_env.get("ui_base_url"))
             logger.info("Page opened successfully")
 
         with AllureHelper.step("验证页面 URL"):

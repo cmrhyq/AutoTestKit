@@ -31,24 +31,6 @@ class LoginPage(BasePage):
         # 告警
         self.alert = page.locator(".el-message__content").first  # 告警框
 
-    def open(self, base_url: str) -> 'LoginPage':
-        """
-        打开 Example.com 页面
-
-        Returns:
-            ExamplePage: 当前页面对象（支持链式调用）
-        """
-        self.navigate(base_url)
-        self.wait_for_page_load()
-        return self
-
-    def wait_for_page_load(self) -> None:
-        """
-        等待页面完全加载
-        """
-        self.wait_for_load_state("load")
-        self.logger.info("Example page loaded successfully")
-
     def login(self, username: str, password: str):
         # 元素定位器处理器关闭弹窗定位元素
         self.post_add_locator_handler(self.btn_continue_login)
