@@ -3,10 +3,6 @@ from playwright.sync_api import Page, expect
 
 
 class LoginPage(BasePage):
-    # ==================== 页面元素定位器 ====================
-
-    # 页面标题
-    WELCOME = '//*[@id="ep-id-6403-2"]'
 
     # ==================== 页面 URL ====================
     def __init__(self, page: Page):
