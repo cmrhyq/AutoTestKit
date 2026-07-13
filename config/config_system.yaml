@@ -3,20 +3,24 @@
 test_env: test
 
 # ======================= 浏览器配置 =======================
+## 视口宽度
+#viewport_width: 1920
+## 视口高度
+#viewport_height: 1080
+# 是否禁用viewport，使用最大化窗口
+no_viewport: true
+# 慢动作模式，即每一个操作都暂停一段时间，模拟人类操作
+slow_mode: 300
 # 浏览器类型：chromium, firefox, webkit
 browser_type: chromium
 # 是否使用无头模式运行浏览器 (true/false)
 headless: false
 # 浏览器操作超时时间（毫秒）
-browser_timeout: 30000
+browser_timeout: 40000
 # 页面加载超时时间（毫秒）
-page_load_timeout: 30000
+page_load_timeout: 0000
 # 浏览器启动参数（逗号分隔）
-browser_args:
-# 视口宽度
-viewport_width: 1920
-# 视口高度
-viewport_height: 1080
+browser_args: --start-maximized
 # 是否启用浏览器开发者工具 (true/false)
 devtools: false
 
