@@ -43,8 +43,12 @@ class Settings:
     # 浏览器启动参数
     BROWSER_ARGS: list = system.get("browser_args", "").split(",") if system.get("browser_args") else []
     # 视口大小
-    VIEWPORT_WIDTH: int = int(system.get("viewport_width", 1920))
-    VIEWPORT_HEIGHT: int = int(system.get("viewport_height", 1080))
+    # VIEWPORT_WIDTH: int = int(system.get("viewport_width", 1920))
+    # VIEWPORT_HEIGHT: int = int(system.get("viewport_height", 1080))
+    # 是否禁用viewport
+    NO_VIEWPORT: bool = system.get("no_viewport", "false") == "true"
+    # 慢动作模式，即每一个操作都暂停一段时间，模拟人类操作
+    SLOW_MODE: int = system.get("slow_mode", 300)
     # 是否启用浏览器开发者工具
     DEVTOOLS: bool = system.get("devtools", "false") == "true"
 

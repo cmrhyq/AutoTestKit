@@ -75,6 +75,7 @@ def browser(playwright_instance: Playwright) -> Generator[Browser, None, None]:
     launch_options = {
         "headless": Settings.HEADLESS,
         "timeout": Settings.BROWSER_TIMEOUT,
+        "slow_mo": Settings.SLOW_MODE,
     }
     
     # 添加浏览器启动参数
@@ -123,10 +124,11 @@ def context(browser: Browser) -> Generator[BrowserContext, None, None]:
     
     # 创建浏览器上下文，配置视口大小
     context = browser.new_context(
-        viewport={
-            "width": Settings.VIEWPORT_WIDTH,
-            "height": Settings.VIEWPORT_HEIGHT
-        },
+        # viewport={
+        #     "width": Settings.VIEWPORT_WIDTH,
+        #     "height": Settings.VIEWPORT_HEIGHT
+        # },
+        no_viewport=Settings.NO_VIEWPORT,
         ignore_https_errors=not Settings.VERIFY_SSL,
     )
     
