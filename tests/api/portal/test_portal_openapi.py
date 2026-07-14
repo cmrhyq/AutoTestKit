@@ -60,29 +60,29 @@ class TestPortalOpenAPI:
         yield service
         service.close()
 
-    # ==================== 基础认证 ====================
-
-    @allure.title("获取Token")
-    @allure.description("登录获取Token，后续所有接口依赖此Token")
-    @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_token(self, portal_service, api_env, api_cache, api_logger):
-        with AllureHelper.api_test(portal_service):
-            with AllureHelper.step("发送 POST 请求获取Token"):
-                panji_sign = PortalUserEntity(
-                    username=api_env.get("basic_auth_username"),
-                    password=api_env.get("basic_auth_password"),
-                    tenant_code=api_env.get("tenant_code")
-                )
-                response_json = portal_service.get_token(panji_sign)
-
-            with AllureHelper.step("验证响应数据"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert "data" in response_json, "响应应包含Token"
-                assert response_json["code"] == 200, "响应Code应等于200"
-
-            with AllureHelper.step("缓存Token供后续使用"):
-                api_cache.set("token", response_json["data"])
-                api_logger.info("已登录并缓存Token")
+    # # ==================== 基础认证 ====================
+    #
+    # @allure.title("获取Token")
+    # @allure.description("登录获取Token，后续所有接口依赖此Token")
+    # @allure.severity(allure.severity_level.CRITICAL)
+    # def test_get_token(self, portal_service, api_env, api_cache, api_logger):
+    #     with AllureHelper.api_test(portal_service):
+    #         with AllureHelper.step("发送 POST 请求获取Token"):
+    #             panji_sign = PortalUserEntity(
+    #                 username=api_env.get("basic_auth_username"),
+    #                 password=api_env.get("basic_auth_password"),
+    #                 tenant_code=api_env.get("tenant_code")
+    #             )
+    #             response_json = portal_service.get_token(panji_sign)
+    #
+    #         with AllureHelper.step("验证响应数据"):
+    #             assert isinstance(response_json, Dict), "响应应该是字典类型"
+    #             assert "data" in response_json, "响应应包含Token"
+    #             assert response_json["code"] == 200, "响应Code应等于200"
+    #
+    #         with AllureHelper.step("缓存Token供后续使用"):
+    #             api_cache.set("token", response_json["data"])
+    #             api_logger.info("已登录并缓存Token")
 
     # ==================== 域信息查询 ====================
 

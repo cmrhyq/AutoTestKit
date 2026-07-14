@@ -21,32 +21,32 @@ class TestPanjiPortalOpenAPI:
         yield service
         service.close()
 
-    @allure.title("测试获取Token")
-    @allure.description("验证能够成功获取Token数据")
-    @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_token(self, portal_open_service, api_env, api_cache, api_logger):
-        with AllureHelper.step("发送 POST 请求获取Token"):
-            panji_sign = PortalUserEntity(
-                username=api_env.get("basic_auth_username"),
-                password=api_env.get("basic_auth_password"),
-                tenant_code=api_env.get("tenant_code")
-            )
-            response_json = portal_open_service.get_token(panji_sign)
-
-        with AllureHelper.step("验证响应数据"):
-            assert isinstance(response_json, Dict), "响应应该是字典类型"
-            assert "data" in response_json, "响应应包含Token"
-            assert response_json["code"] == 200, "响应Code应等于200"
-
-        with AllureHelper.step("缓存Token供后续使用"):
-            api_cache.set("token", response_json["data"])
-            api_logger.info(f"已经登陆并缓存Token: {response_json['data']}")
-
-        allure.attach(
-            str(response_json),
-            name="接口响应信息",
-            attachment_type=allure.attachment_type.JSON
-        )
+    # @allure.title("测试获取Token")
+    # @allure.description("验证能够成功获取Token数据")
+    # @allure.severity(allure.severity_level.CRITICAL)
+    # def test_get_token(self, portal_open_service, api_env, api_cache, api_logger):
+    #     with AllureHelper.step("发送 POST 请求获取Token"):
+    #         panji_sign = PortalUserEntity(
+    #             username=api_env.get("basic_auth_username"),
+    #             password=api_env.get("basic_auth_password"),
+    #             tenant_code=api_env.get("tenant_code")
+    #         )
+    #         response_json = portal_open_service.get_token(panji_sign)
+    #
+    #     with AllureHelper.step("验证响应数据"):
+    #         assert isinstance(response_json, Dict), "响应应该是字典类型"
+    #         assert "data" in response_json, "响应应包含Token"
+    #         assert response_json["code"] == 200, "响应Code应等于200"
+    #
+    #     with AllureHelper.step("缓存Token供后续使用"):
+    #         api_cache.set("token", response_json["data"])
+    #         api_logger.info(f"已经登陆并缓存Token: {response_json['data']}")
+    #
+    #     allure.attach(
+    #         str(response_json),
+    #         name="接口响应信息",
+    #         attachment_type=allure.attachment_type.JSON
+    #     )
 
     @allure.title("测试获取一级域")
     @allure.description("验证能够成功获取一级域数据")

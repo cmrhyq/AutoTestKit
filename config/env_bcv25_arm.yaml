@@ -1,23 +1,113 @@
+# ==================== API 测试配置 ====================
+# ==================== 通用配置 ====================
+# OpenAPI 服务基础地址
 api_base_url: http://openapi.portal.panji-102-53-20030.4a.cmit.cloud:20030
+# InnerAPI 服务基础地址（内部接口，区别于 openapi）
+api_inner_base_url: http://portal.panji-102-53-20030.4a.cmit.cloud:20030
+# 基础认证用户名
 basic_auth_username: panji_probe
+# 基础认证密码
 basic_auth_password: Abc123!@#$
+# 租户编码（认证/OpenAPI用）
 tenant_code: tenant_admin
 
-ui_base_url: http://portal.nbpod3-31-181-20030.4a.cmit.cloud:20030/portal/web/#/login
-ui_username: huangyuqiao
-ui_password: PJ2025@ceshi
-
+# ==================== 共享测试数据 ====================
+# 查询用户名 - 用于OpenAPI/InnerAPI中消息发送、系统创建等
 query_user_name: shengsong-sit4
-portal_system_code: testss20250319
-user_id: 201214
-tenant_id: 1
-portal_app_code: testyy20250108
+# 用户ID - 用于创建系统/应用时的 createId
+user_id: "201214"
+# 租户ID - 用于创建系统/应用时关联的租户
+tenant_id: "1"
+# 应用类型（web_type/app_type等）
 portal_app_type: web_type
+# 负载类型（Deployment/StatefulSet等）
 portal_workload_type: Deployment
+# 分页参数
 page_num: 1
 page_size: 10
+
+# ==================== OpenAPI 测试数据 ====================
+# OpenAPI 系统编码
+portal_system_code: testss20250319
+# OpenAPI 应用编码
+portal_app_code: testyy20250108
+# 同步用户名（加密）
 sync_username: YV9l97xXmCphM0kLY8IptQ==
+# 同步手机号（加密）
 sync_phone: FZfAKlL4LhFOuegCAVR0cA==
+# 同步邮箱（加密）
 sync_email: /9VWlMdY7PShZj72q53jIQ==
+# 产品实例名称
 prod_inst_name: 1210
+# 单元编码
 cell_code: test
+
+# ==================== InnerAPI 测试数据 ====================
+# InnerAPI 系统编码 - 用于创建系统时的 systemName 和 systemCode
+inner_system_code: testxt20250711
+# InnerAPI 应用编码 - 用于创建应用时的 applicationSourceName 和 applicationSourceCode
+inner_app_code: testyy20250711
+# 模块名称 - 用于查询字典数据和API列表
+module_name: portal
+# 模块编码 - 用于获取license信息
+module_code: mesh
+# 角色编码（主角色） - 用于角色CRUD测试
+role_code_0: autotest250711
+# 角色编码（绑定流程用） - 用于用户-租户-角色绑定流程测试
+role_code_2: autorole250711
+# 用户名2 - 用于用户-租户-角色绑定流程的目标用户
+username_2: test0930
+# 租户编码2 - 用于用户-租户-角色绑定流程的测试租户
+tenant_code_2: autotenant250711
+
+# ==================== Plugin 插件中心测试数据 ====================
+# 插件名称 - 用于查询指定插件安装信息
+plugin_name: kubectl
+
+# ==================== Operations 运营运维测试数据 ====================
+# 接口拨测日志ID - 运营运维/云拨测/任务分析页面，接口编排数据
+monitor_yunboce_rwfx_id_1: 15174
+# 服务拨测日志ID
+monitor_yunboce_rwfx_id_2: 108649
+# 巡检任务名称 - 用于执行巡检任务
+inspection_task_name: test1119
+
+# ==================== Observable 可观测测试数据 ====================
+# 日志查询 - 命名空间
+log_namespace: paas-monitor
+# 日志查询 - 集群名称
+log_cluster_name: kzm-101
+# 日志查询 - Pod名称
+log_pod_name: monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r
+# 日志查询 - 容器名称
+log_container_name: monitor-amdb-confs
+# 日志查询 - 组件类型
+log_component_type: app
+# 日志查询 - 开始时间戳
+log_start_time: 176145907000
+# 日志查询 - 结束时间戳
+log_end_time: 176145908000
+# 日志查询 - 返回数量
+log_size: 1
+# 日志上下文 - 日志ID
+log_id: 2cNV25kBX1NeH2CondPI
+# 日志上下文 - 时间戳
+log_timestamp: 1760321444470
+# 日志上下文 - 偏移量
+log_offset: 100016405
+# 日志上下文 - 日志文件路径
+log_file_path: /apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log
+# 日志上下文 - 主机IP
+log_host_ip: 100.10.32.101
+# 模型查询 - 模型ID或名称
+models_id_or_name: c6869bc8-b527-4bff-bce7-6f39de1b06ab
+
+
+
+# ==================== UI 测试配置 ====================
+# UI 测试入口地址
+ui_base_url: http://portal.nbpod3-31-181-20030.4a.cmit.cloud:20030/portal/web/#/login
+# UI 登录用户名
+ui_username: huangyuqiao
+# UI 登录密码
+ui_password: PJ2025@ceshi
