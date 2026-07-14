@@ -1,6 +1,6 @@
 # ======================= 测试环境配置 =======================
 # 测试环境：dev, test, staging, prod
-test_env: test
+test_env: bcv25_arm
 
 # ======================= 浏览器配置 =======================
 # 浏览器类型：chromium, firefox, webkit

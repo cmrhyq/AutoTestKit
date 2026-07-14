@@ -534,7 +534,7 @@ class PanJiPortalOpenService(BaseService):
         self.logger.info(f"Query application detail")
         url = f"/openapi/portal/restApi/application/detail"
         params = {
-            "applicationSourceId", app_id
+            "applicationSourceId": app_id
         }
         response = self.get(endpoint=url, params=params, headers=_get_default_headers())
         return response.json()

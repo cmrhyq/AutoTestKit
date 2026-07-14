@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, List
 
 from base.api.services.base_service import BaseService
-from config import env_manager
+from config import get_env_config
+
 
 @dataclass
 class InnerSystemEntity(object):
@@ -149,8 +150,8 @@ class InnerUserEntity(object):
 def _get_default_headers() -> Dict[str, str]:
     """获取默认请求头"""
     return {
-        "apikey": env_manager.get_config().get("apikey"),
-        "tenantCode": env_manager.get_config().get("tenant_code"),
+        "apikey": get_env_config().get("apikey"),
+        "tenantCode": get_env_config().get("tenant_code"),
         "x-app-id": "portal",
     }
 

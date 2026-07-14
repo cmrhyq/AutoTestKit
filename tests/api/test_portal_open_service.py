@@ -6,7 +6,7 @@ import pytest
 from base.api.fixtures import api_cache
 from base.api.services.portal_open_service import PanJiPortalOpenService, PortalUserEntity, ClusterPlaneEntity, \
     OpenSystemEntity
-from core.allure.allure_helper import AllureHelper
+from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api

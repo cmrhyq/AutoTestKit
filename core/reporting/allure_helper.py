@@ -6,6 +6,7 @@ Allure 辅助工具模块
 """
 
 import json
+import traceback
 from contextlib import contextmanager
 from typing import Any, Optional, Generator
 import allure
@@ -292,6 +293,139 @@ class AllureHelper:
         except Exception as e:
             import logging
             logging.warning(f"Failed to add link to Allure: {e}")
+
+    @staticmethod
+    def attach_api_detail(service, assertion_result: str = "PASS") -> None:
+        """
+        将接口请求/响应的完整信息附加到 Allure 报告中
+
+        无论断言成功或失败，都会展示以下信息：
+        - Request URL (请求方法 + 地址)
+        - Request Headers (请求头)
+        - Request Body (请求体)
+        - Response Status Code (响应状态码)
+        - Response Headers (响应头)
+        - Response Body (响应体)
+        - Assertion Result (断言结果)
+
+        Args:
+            service: 具有 last_response 属性的 API 服务实例（BaseService 子类）
+            assertion_result: 断言结果文本，默认 "PASS"
+        """
+        response = getattr(service, "last_response", None)
+        if response is None:
+            allure.attach(
+                "No response captured (request may have failed before sending)",
+                name="Request/Response Info",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            return
+
+        request = response.request
+
+        # 请求地址
+        allure.attach(
+            f"{request.method} {request.url}",
+            name="Request URL",
+            attachment_type=allure.attachment_type.TEXT
+        )
+
+        # 请求头
+        request_headers = dict(request.headers) if request.headers else {}
+        allure.attach(
+            json.dumps(request_headers, indent=2, ensure_ascii=False),
+            name="Request Headers",
+            attachment_type=allure.attachment_type.JSON
+        )
+
+        # 请求体
+        request_body = request.body
+        if request_body:
+            try:
+                if isinstance(request_body, bytes):
+                    request_body = request_body.decode("utf-8")
+                body_json = json.loads(request_body)
+                allure.attach(
+                    json.dumps(body_json, indent=2, ensure_ascii=False),
+                    name="Request Body",
+                    attachment_type=allure.attachment_type.JSON
+                )
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                allure.attach(
+                    str(request_body),
+                    name="Request Body",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+        else:
+            allure.attach("(empty)", name="Request Body", attachment_type=allure.attachment_type.TEXT)
+
+        # 响应状态码
+        allure.attach(
+            str(response.status_code),
+            name="Response Status Code",
+            attachment_type=allure.attachment_type.TEXT
+        )
+
+        # 响应头
+        response_headers = dict(response.headers) if response.headers else {}
+        allure.attach(
+            json.dumps(response_headers, indent=2, ensure_ascii=False),
+            name="Response Headers",
+            attachment_type=allure.attachment_type.JSON
+        )
+
+        # 响应体
+        try:
+            response_body = response.json()
+            allure.attach(
+                json.dumps(response_body, indent=2, ensure_ascii=False),
+                name="Response Body",
+                attachment_type=allure.attachment_type.JSON
+            )
+        except Exception:
+            allure.attach(
+                response.text or "(empty)",
+                name="Response Body",
+                attachment_type=allure.attachment_type.TEXT
+            )
+
+        # 断言结果
+        allure.attach(
+            assertion_result,
+            name="Assertion Result",
+            attachment_type=allure.attachment_type.TEXT
+        )
+
+    @staticmethod
+    @contextmanager
+    def api_test(service):
+        """
+        API 测试上下文管理器
+
+        自动处理：
+        1. 捕获断言异常和其他异常
+        2. 无论成功/失败都将完整的请求响应信息附加到 Allure 报告
+        3. 异常仍会被 re-raise，不影响 pytest 的结果判定
+
+        Args:
+            service: 具有 last_response 属性的 API 服务实例
+
+        使用示例：
+            with AllureHelper.api_test(portal_service):
+                response_json = portal_service.get_first_field_info()
+                assert response_json["code"] == 0, "响应Code应等于0"
+        """
+        assertion_result = "PASS"
+        try:
+            yield
+        except AssertionError as e:
+            assertion_result = f"FAIL: {str(e)}"
+            raise
+        except Exception as e:
+            assertion_result = f"ERROR: {str(e)}\n{traceback.format_exc()}"
+            raise
+        finally:
+            AllureHelper.attach_api_detail(service, assertion_result)
 
 
 # 便捷函数：创建测试步骤

@@ -69,6 +69,9 @@ class BaseService:
         # 创建 session 以复用连接
         self.session = requests.Session()
         
+        # 保存最后一次请求的完整 Response 对象，供 Allure 报告使用
+        self.last_response: Optional[requests.Response] = None
+        
         # 设置默认超时
         self.timeout = (Settings.API_CONNECT_TIMEOUT, Settings.API_READ_TIMEOUT)
         
@@ -242,6 +245,9 @@ class BaseService:
                 
                 # 记录响应信息
                 self._log_response(response)
+                
+                # 保存最后一次 Response 供外部使用
+                self.last_response = response
                 
                 # 检查 HTTP 错误
                 response.raise_for_status()
