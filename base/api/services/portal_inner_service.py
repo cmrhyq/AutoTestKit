@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, List
 
 from base.api.services.base_service import BaseService
-from config import get_env_config
+from core.config import get_env_config
 
 
 @dataclass

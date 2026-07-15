@@ -4,12 +4,29 @@
 api_base_url: http://openapi.portal.panji-102-53-20030.4a.cmit.cloud:20030
 # InnerAPI 服务基础地址（内部接口，区别于 openapi）
 api_inner_base_url: http://portal.panji-102-53-20030.4a.cmit.cloud:20030
+# 请求超时/SSL/重试等框架参数
+api_timeout: 30
+api_verify_ssl: true
+max_retries: 3
+retry_delay: 1
+enable_retry: true
+parallel_workers: auto
+enable_parallel: true
+log_level: INFO
+# 浏览器 / UI 相关框架参数
+browser_type: chromium
+headless: true
+browser_timeout: 30000
 # 基础认证用户名
 basic_auth_username: panji_probe
 # 基础认证密码
 basic_auth_password: Abc123!@#$
 # 租户编码（认证/OpenAPI用）
 tenant_code: tenant_admin
+# 兜底认证凭证（预留，未来切换到 Bearer/api-key 全局默认）
+bearer_token: null
+api_key: null
+api_key_header: null
 
 # 多租户账号（key = tenant_code）
 # 测试类通过 TENANT 类属性声明使用哪个租户，tests/api/conftest.py 的 get_token fixture 会按需登录
@@ -111,6 +128,56 @@ log_file_path: /apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-depl
 log_host_ip: 100.10.32.101
 # 模型查询 - 模型ID或名称
 models_id_or_name: c6869bc8-b527-4bff-bce7-6f39de1b06ab
+
+# ==================== Microservices 微服务测试数据 ====================
+# 微服务 InnerAPI apikey（原硬编码值迁移至此，避免源码硬编码敏感凭证）
+ms_apikey: 67d5da7b76b1030ea6888f7644e05195
+# 微服务 系统编码
+ms_sys_code: probe-ns
+# 微服务 单元编码
+ms_cell_code: test
+# 微服务 平面编码
+ms_plane_code: test
+# 微服务 网关配置名称
+ms_gateway_name: gateway-demo
+# 微服务 网关规则名称
+ms_rule_name: rule-demo
+# 微服务 虚拟服务名称
+ms_vs_name: vs-demo
+# 微服务 CMF 控制面名称
+ms_control_plane_name: CMF
+# 微服务 CMF 控制面编码
+ms_control_plane_code: CMF
+# 微服务 CMF 应用编码
+ms_application_code: cust
+# 微服务 CMF 功能类名（Java 全限定名）
+ms_function_class_name: com.cmit.vs.cmf.name.common.INameCSV
+# 微服务 CMF 服务编码
+ms_funcser_code: cust_IUserInfoCSV_name
+# 微服务 CMF 环境编码
+ms_env_code: PROD
+# 微服务 CMF 服务名
+ms_func_ser_name: name
+# 微服务 CMF 注册中心名
+ms_registry_name: zk-test
+# 微服务 CMF 归属编码
+ms_belong_code: cust
+
+# ==================== Elastic-Compute 弹性计算测试数据（首批） ====================
+# 弹性计算 Extensions apikey（extentions/ 路径下的接口鉴权）
+ec_apikey: 186cc9f603c4fed3742ff4160f2beec2
+# 弹性计算 单元编码
+ec_cell_code: TEST
+# 弹性计算 系统编码
+ec_sys_code: test-admin
+# 弹性计算 集群 ID
+ec_cluster_id: "1"
+# 弹性计算 目标 namespace
+ec_namespace: test-admin
+# 弹性计算 应用查询 kinds 关键字（应用类型：Deployment 等）
+ec_app_search_keyword: nginx
+# 弹性计算 应用查询 kinds
+ec_app_kinds: Deployment
 
 
 

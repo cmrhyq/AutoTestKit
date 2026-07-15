@@ -1,4 +1,5 @@
 api_base_url: https://test-api.example.com
+api_inner_base_url: https://test-inner-api.example.com
 api_timeout: 30
 api_verify_ssl: true
 
@@ -17,6 +18,7 @@ basic_auth_username: abc
 basic_auth_password: cba
 api_key: null
 api_key_header: null
+tenant_code: tenantA
 
 # 多租户账号（key = tenant_code）
 # 测试类通过 TENANT 类属性声明使用哪个租户，tests/api/conftest.py 的 get_token fixture 会按需登录
@@ -27,3 +29,94 @@ tenants:
   tenantB:
     username: userB
     password: passB
+  tenant_admin:
+    username: userAdmin
+    password: passAdmin
+  monitor-group:
+    username: userMonitor
+    password: passMonitor
+
+# ==================== 共享测试数据（占位）====================
+query_user_name: test-user
+user_id: "1"
+tenant_id: "1"
+portal_app_type: web_type
+portal_workload_type: Deployment
+page_num: 1
+page_size: 10
+
+# ==================== OpenAPI 测试数据（占位）====================
+portal_system_code: test-sys
+portal_app_code: test-app
+sync_username: fake-username-token
+sync_phone: fake-phone-token
+sync_email: fake-email-token
+prod_inst_name: test-inst
+cell_code: test
+
+# ==================== InnerAPI 测试数据（占位）====================
+inner_system_code: test-inner-sys
+inner_app_code: test-inner-app
+module_name: portal
+module_code: mesh
+role_code_0: test-role-0
+role_code_2: test-role-2
+username_2: test-user-2
+tenant_code_2: test-tenant-2
+
+# ==================== Plugin 测试数据（占位）====================
+plugin_name: kubectl
+
+# ==================== Operations 测试数据（占位）====================
+monitor_yunboce_rwfx_id_1: 1
+monitor_yunboce_rwfx_id_2: 2
+inspection_task_name: test-inspection
+
+# ==================== Observable 测试数据（占位）====================
+log_namespace: test-ns
+log_cluster_name: test-cluster
+log_pod_name: test-pod
+log_container_name: test-container
+log_component_type: app
+log_start_time: 0
+log_end_time: 1
+log_size: 1
+log_id: test-log-id
+log_timestamp: 0
+log_offset: 0
+log_file_path: /tmp/test.log
+log_host_ip: 127.0.0.1
+models_id_or_name: test-model
+
+# ==================== Microservices 微服务测试数据（占位）====================
+# 微服务 InnerAPI apikey（测试环境使用假值，避免暴露真实凭证）
+ms_apikey: test-ms-apikey
+ms_sys_code: test-sys
+ms_cell_code: test
+ms_plane_code: test
+ms_gateway_name: test-gateway
+ms_rule_name: test-rule
+ms_vs_name: test-vs
+ms_control_plane_name: CMF
+ms_control_plane_code: CMF
+ms_application_code: test-app
+ms_function_class_name: com.example.test.IFakeCSV
+ms_funcser_code: test_IFakeCSV_name
+ms_env_code: PROD
+ms_func_ser_name: name
+ms_registry_name: zk-test
+ms_belong_code: test-belong
+
+# ==================== Elastic-Compute 弹性计算测试数据（占位，首批）====================
+ec_apikey: test-ec-apikey
+ec_cell_code: TEST
+ec_sys_code: test-sys
+ec_cluster_id: "1"
+ec_namespace: test-ns
+ec_app_search_keyword: nginx
+ec_app_kinds: Deployment
+
+# ==================== UI 测试配置（占位）====================
+ui_base_url: http://localhost/portal/web/#/login
+ui_username: test-user
+ui_password: test-pass

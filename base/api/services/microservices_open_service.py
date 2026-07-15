@@ -496,12 +496,12 @@ class PanJiMicroservicesOpenService(BaseService):
         self.logger.info("List ingress instances")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/list"
         body = {
-            "systemCode": "${sysCode}",
-            "unitCode": "${unitCode}",
-            "planeCode": "${planeCode}",
-            "page": 1,
-            "keyword": "ingress",
-            "rows": 1
+            "systemCode": data.systemCode,
+            "unitCode": data.unitCode,
+            "planeCode": data.planeCode,
+            "page": data.page,
+            "keyword": data.keyword,
+            "rows": data.rows,
         }
         response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
@@ -716,8 +716,12 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("Batch get funcser")
         url = "/openapi/ms-ubm/microservice-ubm/v2/funcser/batch"
-        payload = {"controlPlaneCode": control_plane_code, "applicationCode": application_code, "funcserCodes": funcser_codes}
-        response = self.get(endpoint=url, json=payload, headers=_get_default_headers())
+        params = {
+            "controlPlaneCode": control_plane_code,
+            "applicationCode": application_code,
+            "funcserCodes": ",".join(funcser_codes) if isinstance(funcser_codes, list) else funcser_codes,
+        }
+        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
         return response.json()
 
     def add_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -811,6 +815,116 @@ class PanJiMicroservicesOpenService(BaseService):
         """
         self.logger.info("Update CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/update"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def update_cmf_circuit_breaking_state(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        CMF熔断配置上线或者下线
+        Args:
+            data: Dict 状态更新数据
+        """
+        self.logger.info("Update CMF circuit breaking state")
+        url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/updateState"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def delete_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        CMF删除熔断配置
+        Args:
+            data: Dict 删除参数
+        """
+        self.logger.info("Delete CMF circuit breaking config")
+        url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/delete"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def list_virtualservice_by_gateway_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        根据网关规则查询虚拟服务列表
+        Args:
+            data: Dict 查询参数
+        """
+        self.logger.info("List virtualservice by gateway config")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/listByGatewayConfig"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def add_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        新增虚拟服务
+        Args:
+            data: Dict 虚拟服务数据
+        """
+        self.logger.info("Add virtual service (openapi)")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/add"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def get_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        精确查询虚拟服务信息
+        Args:
+            data: Dict 查询参数
+        """
+        self.logger.info("Get virtual service (openapi)")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/getVirtualService"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def update_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        更新虚拟服务
+        Args:
+            data: Dict 更新数据
+        """
+        self.logger.info("Update virtual service (openapi)")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/update"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def list_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        查询虚拟服务列表
+        Args:
+            data: Dict 分页查询参数
+        """
+        self.logger.info("List virtual service (openapi)")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/list"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def delete_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        删除虚拟服务
+        Args:
+            data: Dict 删除参数
+        """
+        self.logger.info("Delete virtual service (openapi)")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/delete"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def delete_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        删除网关规则
+        Args:
+            data: Dict 删除参数
+        """
+        self.logger.info("Delete gateway rule")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/delete"
+        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        return response.json()
+
+    def delete_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        删除入口网关实例
+        Args:
+            data: Dict 删除参数
+        """
+        self.logger.info("Delete gateway instance")
+        url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/delete"
         response = self.post(endpoint=url, json=data, headers=_get_default_headers())
         return response.json()
 

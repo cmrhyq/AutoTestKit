@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Dict, Any
 
 from base import BaseService
-from config import env_manager
+from core.config import env_manager
 
 
 @dataclass
@@ -57,12 +57,16 @@ class MeshNode(object):
 
 
 def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头"""
+    """获取默认请求头。
+
+    apikey 从 env yaml 的 ms_apikey 键读取，避免在源码中硬编码敏感凭证；
+    username 复用 basic_auth_username；tenantCode 复用 tenant_code。
+    """
     env = env_manager.get_config()
     return {
-        "apikey": "67d5da7b76b1030ea6888f7644e05195",
+        "apikey": env.get("ms_apikey"),
         "username": env.get("basic_auth_username"),
-        "tenantCode": env.get("tenant_code")
+        "tenantCode": env.get("tenant_code"),
     }
 
 
@@ -472,7 +476,7 @@ class PanJiMicroservicesInnerService(BaseService):
                 "userCode": data.username
             }
         ]
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
         return response.json()
 
     def batch_create_secret(self, data: Kem) -> Dict[str, Any]:
