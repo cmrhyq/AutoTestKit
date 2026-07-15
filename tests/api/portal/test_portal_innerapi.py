@@ -43,6 +43,13 @@ class TestPortalInnerapi:
     线程组: portal门户-innerapi调用
     """
 
+    TENANT = "monitor-group"
+
+    @pytest.fixture(autouse=True)
+    def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
+        get_token(self.TENANT)
+
     @pytest.fixture(scope="class")
     def portal_inner_service(self, api_env, api_logger):
         """创建 Portal Inner API 服务实例"""

@@ -28,6 +28,13 @@ class TestPluginInfo:
     线程组: Thread Group - plugin
     """
 
+    TENANT = "tenant_admin"
+
+    @pytest.fixture(autouse=True)
+    def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
+        get_token(self.TENANT)
+
     @pytest.fixture(scope="class")
     def plugin_open_service(self, api_env, api_logger):
         """创建 Plugin OpenAPI 服务实例"""

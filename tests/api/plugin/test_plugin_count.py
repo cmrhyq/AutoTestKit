@@ -23,6 +23,13 @@ class TestPluginCount:
     线程组: 插件接口测试
     """
 
+    TENANT = "tenant_admin"
+
+    @pytest.fixture(autouse=True)
+    def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
+        get_token(self.TENANT)
+
     @pytest.fixture(scope="class")
     def plugin_inner_service(self, api_env, api_logger):
         """创建 Plugin Inner API 服务实例"""

@@ -27,6 +27,13 @@ class TestOperationsQuery:
     线程组: Monitor运营运维-openapi调用
     """
 
+    TENANT = "tenant_admin"
+
+    @pytest.fixture(autouse=True)
+    def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
+        get_token(self.TENANT)
+
     @pytest.fixture(scope="class")
     def operation_service(self, api_env, api_logger):
         """创建 Operation OpenAPI 服务实例"""

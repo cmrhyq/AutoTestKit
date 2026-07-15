@@ -11,6 +11,16 @@ basic_auth_password: Abc123!@#$
 # 租户编码（认证/OpenAPI用）
 tenant_code: tenant_admin
 
+# 多租户账号（key = tenant_code）
+# 测试类通过 TENANT 类属性声明使用哪个租户，tests/api/conftest.py 的 get_token fixture 会按需登录
+tenants:
+  tenant_admin:
+    username: panji_probe
+    password: Abc123!@#$
+  monitor-group:
+    username: panji_probe
+    password: Abc123!@#$
+
 # ==================== 共享测试数据 ====================
 # 查询用户名 - 用于OpenAPI/InnerAPI中消息发送、系统创建等
 query_user_name: shengsong-sit4
