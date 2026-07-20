@@ -179,6 +179,165 @@ ec_app_search_keyword: nginx
 # 弹性计算 应用查询 kinds
 ec_app_kinds: Deployment
 
+# ==================== Elastic-Compute OpenAPI 批次2 通用 ====================
+# 通用资源名（configmap/secret/etc）
+ec_name: cm-demo
+# CR group（namespace 级）
+ec_group: keda.sh
+# CR version（namespace 级）
+ec_version: v1alpha1
+# CR kind（namespace 级）
+ec_kind: ScaledObject
+# CR 资源名（namespace 级）
+ec_cr_name: test-cr-so001
+# CR namespace 级 kind
+ec_cr_ns_kind: ScaledObject
+# CR namespace 级 group
+ec_cr_ns_group: keda.sh
+# CR namespace 级 version
+ec_cr_ns_version: v1alpha1
+# CR 集群级 kind
+ec_cr_cluster_kind: Apple
+# CR 集群级 group
+ec_cr_cluster_group: test.example.com
+# CR 集群级 version
+ec_cr_cluster_version: v1
+# CR 集群级 name
+ec_cr_cluster_name: test-apple
+# domains 集群名
+ec_cluster_name: controller-test
+# HPA / 通用 apiVersion
+ec_api_version: v1
+# LimitRange / ServiceV2 主机集群 cell
+ec_host_cell_code: test-admin
+# LimitRange / ServiceV2 主机集群 sys
+ec_host_sys_code: test-admin
+# LimitRange / ServiceV2 主机集群标志
+ec_test_host_cluster: "0"
+# PriorityClass 名
+ec_priority_class_name: pc-test
+# pvc 名
+ec_pvc_name: test-hpa-001
+# pv 名
+ec_pv_name: test-pv-001
+# storage class 名
+ec_storage_class_name: test-sc-001
+# HPA 名
+ec_hpa_name: test-hpa-001
+# ConfigMap 名
+ec_configmap_name: cm-demo
+# Pod 名
+ec_pod_name: cm-demo
+# Pod 容器名
+ec_container_name: container0
+# Pod 镜像
+ec_image: hpe_containers/nginx:latest
+# 轮询间隔（ms）
+ec_interval_time: "10000"
+# quota-manager 租户编码（body 内）
+ec_quota_tenant_code: lzm
+# quota-manager 用户名（body 内）
+ec_quota_username: lzm-admin
+# ecapp（workload）额外 username
+ec_ecapp_username: PROD
+# EndpointsV2 系统编码
+ec_endpoints_sys_code: xt-sit1
+# EndpointsV2 单元编码
+ec_endpoints_cell_code: test
+# ConfigMap 系统编码
+ec_configmap_sys_code: xt-sit1
+# ConfigMap 单元编码
+ec_configmap_cell_code: test
+
+# ==================== Elastic-Compute Node ====================
+# Node 名
+ec_node_name: 192.168.142.3
+
+# ==================== Elastic-Compute Secret / ImagePullSecret ====================
+# Secret 名
+ec_secret_name: app-nginx-secret3
+
+# ==================== Elastic-Compute Service / ServiceAccount / Endpoints ====================
+ec_service_name: app-nginx
+ec_service_account_name: app-nginx
+ec_endpoints_name: app-nginx
+
+# ==================== Elastic-Compute Harbor ====================
+# Harbor id
+ec_harbor_id: "3"
+# Harbor init id
+ec_harbor_init_id: "1"
+ec_harbor_project_name: test-harbor-project001
+ec_harbor_project_member_name: ec-harbor-admin
+ec_harbor_copy_name: test-harbor-test001
+ec_harbor_copy_url: http://192.168.142.3:1121
+ec_harbor_copy_access_id: admin
+ec_harbor_copy_access_secret: Harbor12345
+ec_harbor_copy_project_name: test
+ec_harbor_copy_filters: test/**
+ec_harbor_copy_image_tag: "1.21"
+ec_harbor_target_id: "2"
+ec_harbor_policy_name: test-replication-policiy-name001
+ec_harbor_rep_name: nginx
+
+# ==================== Elastic-Compute Image API ====================
+ec_image_cluster_id: "56"
+ec_image_namespace: test
+ec_image_project_name: test
+ec_image_name: nginx
+ec_image_version: latest
+ec_image_delete_name: test/nginx
+ec_image_delete_version: latest
+
+# ==================== Elastic-Compute Domains / port / recovery ====================
+ec_domain_cluster_id: "56"
+ec_domain_name: probetest.a.b.c.e.f
+ec_domain_ip: 192.168.142.3
+ec_nodeport: "10001"
+ec_nodeport_ports: 30011-30030
+
+# ==================== Elastic-Compute Helm ====================
+ec_helm_release_name: nginx-demo
+ec_helm_app_code: test-app
+ec_helm_image: hpe_containers/nginx
+ec_helm_image_tag: latest
+ec_helm_chart_name: nginx
+ec_helm_chart_version: 0.1.0
+ec_helm_chart_file_path: ""
+
+# ==================== Elastic-Compute Workload ====================
+ec_workload_name: app-nginx
+ec_workload_kind: Deployment
+ec_workload_app_code: test-app
+ec_workload_replicas: "1"
+ec_workload_image: hpe_containers/nginx:latest
+ec_workload_schedule: "0/1 * * * ?"
+ec_workload_completions: "1"
+ec_workload_parallelism: "1"
+ec_workload_file_path_in_pod: /docker-entrypoint.sh
+ec_workload_plane_code: PLANE
+ec_workload_env_code: PROD
+
+# ==================== Elastic-Compute ScaledObject 关联 workload ====================
+ec_so_name: test-so-001
+ec_so_workload_kind: Deployment
+ec_so_workload_name: dev
+
+# ==================== Elastic-Compute Recovery ====================
+ec_recovery_resource_name: test-resource-deploy-001
+ec_recovery_workload_name: app-nginx
+ec_recovery_workload_kind: Deployment
+ec_recovery_app_code: probe-deploy
+ec_recovery_tenant_code: monitor-group
+ec_recovery_plane_code: PLANE
+ec_recovery_env_code: PROD
+ec_recovery_cluster_id: "1"
+ec_recovery_unit_code: test
+ec_recovery_username: PROD
+
+# ==================== Elastic-Compute Ingress-istio ====================
+ec_istio_ingress_sys_code: istio-ingress
+
 
 
 # ==================== UI 测试配置 ====================

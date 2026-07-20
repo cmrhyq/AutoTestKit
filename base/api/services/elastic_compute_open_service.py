@@ -4,6 +4,8 @@
 基于 auto_test_pro 的 auto-test/files/elastic-compute/openapi/*.jmx 转换：
 - cluster.jmx：集群管理生命周期
 - namespace-api.jmx：分区管理
+- elastic-computer-resource-collection.jmx：资源采集/指标信息
+- Node.jmx：Node 节点查询/更新
 """
 import logging
 from typing import Dict, Any
@@ -103,4 +105,143 @@ class PanJiElasticComputeOpenService(BaseService):
         self.logger.info(f"Get namespace detail: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
         response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    # ==================== elastic-computer-resource-collection 资源采集接口 ====================
+
+    def list_cluster_quota(self) -> Dict[str, Any]:
+        """
+        查询集群配额信息。
+
+        对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询集群配额信息
+        GET /openapi/elastic-compute/v2/metrics/clusterQuota
+        """
+        self.logger.info("List elastic-compute cluster quota metrics")
+        url = "/openapi/elastic-compute/v2/metrics/clusterQuota"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_tenant_quota(self) -> Dict[str, Any]:
+        """
+        查询租户配额信息。
+
+        对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询租户配额信息
+        GET /openapi/elastic-compute/v2/metrics/tenantQuota
+        """
+        self.logger.info("List elastic-compute tenant quota metrics")
+        url = "/openapi/elastic-compute/v2/metrics/tenantQuota"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_cluster_resource(self) -> Dict[str, Any]:
+        """
+        查询集群资源信息。
+
+        对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询集群资源信息
+        GET /openapi/elastic-compute/v2/metrics/clusterResource
+        """
+        self.logger.info("List elastic-compute cluster resource metrics")
+        url = "/openapi/elastic-compute/v2/metrics/clusterResource"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_middleware_info(self) -> Dict[str, Any]:
+        """
+        查询中间件信息。
+
+        对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询中间件信息
+        GET /openapi/elastic-compute/v2/metrics/middlewareInfo
+        """
+        self.logger.info("List elastic-compute middleware info metrics")
+        url = "/openapi/elastic-compute/v2/metrics/middlewareInfo"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_system_quota(self) -> Dict[str, Any]:
+        """
+        查询应用/组件系统配额信息。
+
+        对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询应用/组件系统配额信息
+        GET /openapi/elastic-compute/v2/metrics/systemQuota
+        """
+        self.logger.info("List elastic-compute system quota metrics")
+        url = "/openapi/elastic-compute/v2/metrics/systemQuota"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    # ==================== Node 节点接口 ====================
+
+    def get_node_detail(self, cell_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 Node。
+
+        对应 JMX：弹性计算_openapi_Node_查询指定Node
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/nodes/{name}
+
+        Args:
+            cell_code: 单元编码
+            name: Node 名（如 IP）
+        """
+        self.logger.info(f"Get node detail: cell={cell_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_nodes(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询全集群所有 Node 列表。
+
+        对应 JMX：弹性计算_openapi_Node_查询全集群所有Node列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/nodes
+
+        Args:
+            cell_code: 单元编码
+        """
+        self.logger.info(f"List nodes of cell: {cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def patch_node(
+        self,
+        cell_code: str,
+        name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        增量更新指定 Node。
+
+        对应 JMX：弹性计算_openapi_Node_增量更新指定Node
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/nodes/{name}
+
+        Args:
+            cell_code: 单元编码
+            name: Node 名
+            payload: patch body（strategic merge patch）
+        """
+        self.logger.info(f"Patch node: cell={cell_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
+        response = self.patch(endpoint=url, json=payload, headers=_get_default_headers())
+        return response.json()
+
+    def update_node(
+        self,
+        cell_code: str,
+        name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        全量更新指定 Node。
+
+        对应 JMX：弹性计算_openapi_Node_更新指定Node
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/nodes/{name}
+
+        Args:
+            cell_code: 单元编码
+            name: Node 名
+            payload: 完整 Node 对象
+        """
+        self.logger.info(f"Update node: cell={cell_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
+        response = self.put(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()

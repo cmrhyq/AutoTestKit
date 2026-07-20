@@ -116,6 +116,127 @@ ec_namespace: test-ns
 ec_app_search_keyword: nginx
 ec_app_kinds: Deployment
 
+# ==================== Elastic-Compute OpenAPI 批次2 通用（占位） ====================
+ec_name: cm-demo
+ec_group: keda.sh
+ec_version: v1alpha1
+ec_kind: ScaledObject
+ec_cr_name: test-cr-so001
+ec_cr_ns_kind: ScaledObject
+ec_cr_ns_group: keda.sh
+ec_cr_ns_version: v1alpha1
+ec_cr_cluster_kind: Apple
+ec_cr_cluster_group: test.example.com
+ec_cr_cluster_version: v1
+ec_cr_cluster_name: test-apple
+ec_cluster_name: controller-test
+ec_api_version: v1
+ec_host_cell_code: test-admin
+ec_host_sys_code: test-admin
+ec_test_host_cluster: "0"
+ec_priority_class_name: pc-test
+ec_pvc_name: test-hpa-001
+ec_pv_name: test-pv-001
+ec_storage_class_name: test-sc-001
+ec_hpa_name: test-hpa-001
+ec_configmap_name: cm-demo
+ec_pod_name: cm-demo
+ec_container_name: container0
+ec_image: hpe_containers/nginx:latest
+ec_interval_time: "10000"
+ec_quota_tenant_code: lzm
+ec_quota_username: lzm-admin
+ec_ecapp_username: PROD
+ec_endpoints_sys_code: xt-sit1
+ec_endpoints_cell_code: test
+ec_configmap_sys_code: xt-sit1
+ec_configmap_cell_code: test
+
+# ==================== Elastic-Compute Node（占位） ====================
+ec_node_name: 192.168.142.3
+
+# ==================== Elastic-Compute Secret / ImagePullSecret（占位） ====================
+ec_secret_name: app-nginx-secret3
+
+# ==================== Elastic-Compute Service / ServiceAccount / Endpoints（占位） ====================
+ec_service_name: app-nginx
+ec_service_account_name: app-nginx
+ec_endpoints_name: app-nginx
+
+# ==================== Elastic-Compute Harbor（占位） ====================
+ec_harbor_id: "3"
+ec_harbor_init_id: "1"
+ec_harbor_project_name: test-harbor-project001
+ec_harbor_project_member_name: ec-harbor-admin
+ec_harbor_copy_name: test-harbor-test001
+ec_harbor_copy_url: http://192.168.142.3:1121
+ec_harbor_copy_access_id: admin
+ec_harbor_copy_access_secret: Harbor12345
+ec_harbor_copy_project_name: test
+ec_harbor_copy_filters: test/**
+ec_harbor_copy_image_tag: "1.21"
+ec_harbor_target_id: "2"
+ec_harbor_policy_name: test-replication-policiy-name001
+ec_harbor_rep_name: nginx
+
+# ==================== Elastic-Compute Image API（占位） ====================
+ec_image_cluster_id: "56"
+ec_image_namespace: test
+ec_image_project_name: test
+ec_image_name: nginx
+ec_image_version: latest
+ec_image_delete_name: test/nginx
+ec_image_delete_version: latest
+
+# ==================== Elastic-Compute Domains / port / recovery（占位） ====================
+ec_domain_cluster_id: "56"
+ec_domain_name: probetest.a.b.c.e.f
+ec_domain_ip: 192.168.142.3
+ec_nodeport: "10001"
+ec_nodeport_ports: 30011-30030
+
+# ==================== Elastic-Compute Helm（占位） ====================
+ec_helm_release_name: nginx-demo
+ec_helm_app_code: test-app
+ec_helm_image: hpe_containers/nginx
+ec_helm_image_tag: latest
+ec_helm_chart_name: nginx
+ec_helm_chart_version: 0.1.0
+ec_helm_chart_file_path: ""
+
+# ==================== Elastic-Compute Workload（占位） ====================
+ec_workload_name: app-nginx
+ec_workload_kind: Deployment
+ec_workload_app_code: test-app
+ec_workload_replicas: "1"
+ec_workload_image: hpe_containers/nginx:latest
+ec_workload_schedule: "0/1 * * * ?"
+ec_workload_completions: "1"
+ec_workload_parallelism: "1"
+ec_workload_file_path_in_pod: /docker-entrypoint.sh
+ec_workload_plane_code: PLANE
+ec_workload_env_code: PROD
+
+# ==================== Elastic-Compute ScaledObject 关联 workload（占位） ====================
+ec_so_name: test-so-001
+ec_so_workload_kind: Deployment
+ec_so_workload_name: dev
+
+# ==================== Elastic-Compute Recovery（占位） ====================
+ec_recovery_resource_name: test-resource-deploy-001
+ec_recovery_workload_name: app-nginx
+ec_recovery_workload_kind: Deployment
+ec_recovery_app_code: probe-deploy
+ec_recovery_tenant_code: monitor-group
+ec_recovery_plane_code: PLANE
+ec_recovery_env_code: PROD
+ec_recovery_cluster_id: "1"
+ec_recovery_unit_code: test
+ec_recovery_username: PROD
+
+# ==================== Elastic-Compute Ingress-istio（占位） ====================
+ec_istio_ingress_sys_code: istio-ingress
+
 # ==================== UI 测试配置（占位）====================
 ui_base_url: http://localhost/portal/web/#/login
 ui_username: test-user
