@@ -46,7 +46,7 @@ class TestEcExtentionsApplication:
     def test_search_app(self, ec_ext_service, api_env):
         with AllureHelper.api_test(ec_ext_service):
             with AllureHelper.step("发送 GET 请求按 kinds 搜索应用"):
-                kinds = api_env.get("ec_app_search_keyword") or "nginx"
+                kinds = api_env.get("ec_image_name") or "nginx"
                 response_json = ec_ext_service.search_app(kinds)
             with AllureHelper.step("验证响应"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"

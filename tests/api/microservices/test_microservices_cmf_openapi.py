@@ -45,9 +45,9 @@ class TestMicroservicesCmfOpenApi:
 
     def _degrade_payload(self, api_env) -> Dict:
         return {
-            "controlPlaneName": api_env.get("ms_control_plane_name"),
-            "controlPlaneCode": api_env.get("ms_control_plane_code"),
-            "envCode": api_env.get("ms_env_code"),
+            "controlPlaneName": api_env.get("ms_control_plane"),
+            "controlPlaneCode": api_env.get("ms_control_plane"),
+            "envCode": api_env.get("ec_env_code"),
             "applicationCode": api_env.get("ms_application_code"),
             "functionClassName": api_env.get("ms_function_class_name"),
             "funcSerName": api_env.get("ms_func_ser_name"),
@@ -71,7 +71,7 @@ class TestMicroservicesCmfOpenApi:
                     }
                 ]
                 response_json = cmf_service.batch_add_funcser(
-                    api_env.get("ms_control_plane_code"), funcsers
+                    api_env.get("ms_control_plane"), funcsers
                 )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
@@ -82,7 +82,7 @@ class TestMicroservicesCmfOpenApi:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 GET 请求批量查询服务信息"):
                 response_json = cmf_service.batch_get_funcser(
-                    control_plane_code=api_env.get("ms_control_plane_code"),
+                    control_plane_code=api_env.get("ms_control_plane"),
                     application_code=api_env.get("ms_application_code"),
                     funcser_codes=[api_env.get("ms_funcser_code")],
                 )
@@ -108,8 +108,8 @@ class TestMicroservicesCmfOpenApi:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求获取降级详情"):
                 response_json = cmf_service.get_cmf_degrade_detail(
-                    control_plane_name=api_env.get("ms_control_plane_name"),
-                    env_code=api_env.get("ms_env_code"),
+                    control_plane_name=api_env.get("ms_control_plane"),
+                    env_code=api_env.get("ec_env_code"),
                     func_ser_name=api_env.get("ms_func_ser_name"),
                 )
             with AllureHelper.step("验证响应"):
@@ -166,8 +166,8 @@ class TestMicroservicesCmfOpenApi:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求获取熔断详情"):
                 response_json = cmf_service.get_cmf_circuit_breaking_detail(
-                    control_plane_name=api_env.get("ms_control_plane_name"),
-                    env_code=api_env.get("ms_env_code"),
+                    control_plane_name=api_env.get("ms_control_plane"),
+                    env_code=api_env.get("ec_env_code"),
                     func_ser_name=api_env.get("ms_func_ser_name"),
                 )
             with AllureHelper.step("验证响应"):

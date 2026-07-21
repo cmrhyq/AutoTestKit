@@ -47,8 +47,8 @@ class TestMicroservicesIstioOpenApi:
     def _base_meta(self, api_env) -> Dict:
         return {
             "systemCode": api_env.get("ms_sys_code"),
-            "cellCode": api_env.get("ms_cell_code"),
-            "planeCode": api_env.get("ms_plane_code"),
+            "cellCode": api_env.get("cell_code"),
+            "planeCode": api_env.get("cell_code"),
         }
 
     # ==================== 入口网关实例 ====================

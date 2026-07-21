@@ -6,6 +6,7 @@
 - namespace-api.jmx：分区管理
 - elastic-computer-resource-collection.jmx：资源采集/指标信息
 - Node.jmx：Node 节点查询/更新
+- pvc-pv.jmx：PVC/PV/StorageClass 生命周期
 """
 import logging
 from typing import Dict, Any
@@ -244,4 +245,129 @@ class PanJiElasticComputeOpenService(BaseService):
         self.logger.info(f"Update node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
         response = self.put(endpoint=url, json=payload, headers=_get_default_headers())
+        return response.json()
+
+    # ==================== PVC (PersistentVolumeClaim) 接口 ====================
+
+    def get_pvc(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 PVC。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_查询指定pvc
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: PVC 名称
+        """
+        self.logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def create_pvc(
+        self,
+        cell_code: str,
+        sys_code: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        创建 PVC。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_创建pvc请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            payload: PVC 资源定义（K8s PersistentVolumeClaim 对象）
+        """
+        self.logger.info(f"Create PVC: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
+        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        return response.json()
+
+    def delete_pvc(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        删除指定 PVC。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_删除指定pvc
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: PVC 名称
+        """
+        self.logger.info(f"Delete PVC: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
+        response = self.delete(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_pvc(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
+        """
+        查询 PVC 列表。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_查询pvc列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+        """
+        self.logger.info(f"List PVC: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    def list_all_cluster_pvc(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询全集群所有 PVC 列表。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_查询全集群所有pvc列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/pvc
+
+        Args:
+            cell_code: 单元编码
+        """
+        self.logger.info(f"List all cluster PVC: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pvc"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    # ==================== PV (PersistentVolume) 接口 ====================
+
+    def get_pv(self, cell_code: str, pv_name: str) -> Dict[str, Any]:
+        """
+        查询指定 PV。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_查询指定pv
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/pv/{pvName}
+
+        Args:
+            cell_code: 单元编码
+            pv_name: PV 名称
+        """
+        self.logger.info(f"Get PV: cell={cell_code}, name={pv_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pv/{pv_name}"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
+
+    # ==================== StorageClass 接口 ====================
+
+    def get_storage_class(self, cell_code: str, storage_class_name: str) -> Dict[str, Any]:
+        """
+        查询指定 StorageClass。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_查询StorageClass
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/storageClass/{storageClassName}
+
+        Args:
+            cell_code: 单元编码
+            storage_class_name: StorageClass 名称
+        """
+        self.logger.info(f"Get StorageClass: cell={cell_code}, name={storage_class_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/storageClass/{storage_class_name}"
+        response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()

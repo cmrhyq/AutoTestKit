@@ -40,8 +40,8 @@ def _build_ingress(api_env) -> Ingress:
         name=api_env.get("ms_gateway_name"),
         code=api_env.get("ms_gateway_name"),
         sysCode=api_env.get("ms_sys_code"),
-        unitCode=api_env.get("ms_cell_code"),
-        planeCode=api_env.get("ms_plane_code"),
+        unitCode=api_env.get("cell_code"),
+        planeCode=api_env.get("cell_code"),
     )
 
 
@@ -50,8 +50,8 @@ def _build_ingress_config(api_env, soft_load_code: str = None) -> IngressConfig:
         name=api_env.get("ms_gateway_name"),
         code=api_env.get("ms_gateway_name"),
         sysCode=api_env.get("ms_sys_code"),
-        unitCode=api_env.get("ms_cell_code"),
-        planeCode=api_env.get("ms_plane_code"),
+        unitCode=api_env.get("cell_code"),
+        planeCode=api_env.get("cell_code"),
         serviceName=api_env.get("ms_gateway_name"),
         softLoadCode=soft_load_code or api_env.get("ms_gateway_name"),
     )
@@ -166,8 +166,8 @@ class TestMsIngressGw:
                 data = IngressIns(
                     keyword="",
                     systemCode=api_env.get("ms_sys_code"),
-                    unitCode=api_env.get("ms_cell_code"),
-                    planeCode=api_env.get("ms_plane_code"),
+                    unitCode=api_env.get("cell_code"),
+                    planeCode=api_env.get("cell_code"),
                     page=1,
                     rows=10,
                 )
@@ -183,8 +183,8 @@ class TestMsIngressGw:
                     "name": api_env.get("ms_gateway_name"),
                     "code": api_env.get("ms_gateway_name"),
                     "sysCode": api_env.get("ms_sys_code"),
-                    "unitCode": api_env.get("ms_cell_code"),
-                    "planeCode": api_env.get("ms_plane_code"),
+                    "unitCode": api_env.get("cell_code"),
+                    "planeCode": api_env.get("cell_code"),
                     "remark": "updated by autotest",
                 }
                 response_json = ingress_service.update_ingress_instance(data)

@@ -78,8 +78,8 @@ class TestMicroservicesUbmOpenApi:
     def test_batch_add_strategy(self, ubm_service, api_env):
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略数据并发送 POST 请求"):
-                control_plane_code = api_env.get("ms_control_plane_code")
-                belong_code = api_env.get("ms_belong_code")
+                control_plane_code = api_env.get("ms_control_plane")
+                belong_code = api_env.get("ms_application_code")
                 strategies = [
                     {
                         "strategyCode": "CUSTOM-demoA",
@@ -120,19 +120,19 @@ class TestMicroservicesUbmOpenApi:
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略状态数据并发送 PUT 请求"):
                 data = {
-                    "controlPlaneCode": api_env.get("ms_control_plane_code"),
+                    "controlPlaneCode": api_env.get("ms_control_plane"),
                     "scope": "Application",
                     "kind": "ROUTE",
                     "strategyInfos": [
-                        {"strategyCode": "CUSTOM-demoA", "belongCode": api_env.get("ms_belong_code"), "status": "UP"},
-                        {"strategyCode": "CUSTOM-demoB", "belongCode": api_env.get("ms_belong_code"), "status": "UP"},
+                        {"strategyCode": "CUSTOM-demoA", "belongCode": api_env.get("ms_application_code"), "status": "UP"},
+                        {"strategyCode": "CUSTOM-demoB", "belongCode": api_env.get("ms_application_code"), "status": "UP"},
                     ],
                     "clusterInfos": [
                         {
-                            "planeCode": api_env.get("ms_plane_code"),
-                            "planeName": api_env.get("ms_plane_code"),
-                            "cellCode": api_env.get("ms_cell_code"),
-                            "cellName": api_env.get("ms_cell_code"),
+                            "planeCode": api_env.get("cell_code"),
+                            "planeName": api_env.get("cell_code"),
+                            "cellCode": api_env.get("cell_code"),
+                            "cellName": api_env.get("cell_code"),
                         }
                     ],
                 }

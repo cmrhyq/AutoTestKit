@@ -53,8 +53,8 @@ class TestMicroservicesInnerApi:
     def _kem(self, api_env) -> Kem:
         return Kem(
             sysCode=api_env.get("ms_sys_code"),
-            cellCode=api_env.get("ms_cell_code"),
-            planeCode=api_env.get("ms_plane_code"),
+            cellCode=api_env.get("cell_code"),
+            planeCode=api_env.get("cell_code"),
             tenantCode=api_env.get("tenant_code"),
             username=api_env.get("basic_auth_username"),
             gatewayInsName=api_env.get("ms_gateway_name"),
@@ -68,15 +68,15 @@ class TestMicroservicesInnerApi:
             vsName=api_env.get("ms_vs_name"),
             gatewayName=api_env.get("ms_gateway_name"),
             sysCode=api_env.get("ms_sys_code"),
-            cellCode=api_env.get("ms_cell_code"),
-            planeCode=api_env.get("ms_plane_code"),
+            cellCode=api_env.get("cell_code"),
+            planeCode=api_env.get("cell_code"),
             clusterId=api_env.get("ec_cluster_id"),
         )
 
     def _node(self, api_env) -> MeshNode:
         return MeshNode(
-            cellCode=api_env.get("ms_cell_code"),
-            planeCode=api_env.get("ms_plane_code"),
+            cellCode=api_env.get("cell_code"),
+            planeCode=api_env.get("cell_code"),
             clusterId=api_env.get("ec_cluster_id"),
         )
 
