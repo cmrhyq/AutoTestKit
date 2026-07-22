@@ -70,14 +70,14 @@ class TestMicroservicesInnerApi:
             sysCode=api_env.get("ms_sys_code"),
             cellCode=api_env.get("cell_code"),
             planeCode=api_env.get("cell_code"),
-            clusterId=api_env.get("ec_cluster_id"),
+            clusterId=api_env.get("cluster_id"),
         )
 
     def _node(self, api_env) -> MeshNode:
         return MeshNode(
             cellCode=api_env.get("cell_code"),
             planeCode=api_env.get("cell_code"),
-            clusterId=api_env.get("ec_cluster_id"),
+            clusterId=api_env.get("cluster_id"),
         )
 
     # ==================== KEM 统一操作 ====================

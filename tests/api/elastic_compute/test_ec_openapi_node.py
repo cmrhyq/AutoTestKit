@@ -53,7 +53,7 @@ class TestEcOpenapiNode:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_node_detail(self, ec_service, api_env):
         cell_code = api_env.get("ec_cell_code")
-        name = api_env.get("ec_node_name")
+        name = api_env.get("node_ip")
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"查询 Node: cell={cell_code}, name={name}"):
                 response_json = ec_service.get_node_detail(
@@ -78,7 +78,7 @@ class TestEcOpenapiNode:
     @allure.severity(allure.severity_level.NORMAL)
     def test_patch_node(self, ec_service, api_env):
         cell_code = api_env.get("ec_cell_code")
-        name = api_env.get("ec_node_name")
+        name = api_env.get("node_ip")
         payload = {"metadata": {"labels": {"paas-test": "true"}}}
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"PATCH Node: cell={cell_code}, name={name}"):
@@ -93,7 +93,7 @@ class TestEcOpenapiNode:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_node(self, ec_service, api_env):
         cell_code = api_env.get("ec_cell_code")
-        name = api_env.get("ec_node_name")
+        name = api_env.get("node_ip")
         payload = self._minimal_node_body(name)
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"PUT Node: cell={cell_code}, name={name}"):

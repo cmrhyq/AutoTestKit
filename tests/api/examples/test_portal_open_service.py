@@ -272,7 +272,7 @@ class TestPanjiPortalOpenAPI:
     def test_user_bind_tenant(self, portal_open_service, api_env):
         with AllureHelper.step("发送 POST 请求绑定租户"):
             user_info = PortalUserEntity(
-                user_id=api_env.get("query_user_id"),
+                user_id=api_env.get("user_id"),
                 username=api_env.get("query_user_name")
             )
             response_json = portal_open_service.user_bind_tenant(user_info)
@@ -293,7 +293,7 @@ class TestPanjiPortalOpenAPI:
     def test_user_bind_role(self, portal_open_service, api_env):
         with AllureHelper.step("发送 POST 请求绑定角色"):
             user_info = PortalUserEntity(
-                user_id=api_env.get("query_user_id"),
+                user_id=api_env.get("user_id"),
                 username=api_env.get("query_user_name")
             )
             response_json = portal_open_service.user_bind_role(user_info)
@@ -351,7 +351,7 @@ class TestPanjiPortalOpenAPI:
                 system_desc=api_env.get("portal_system_code"),
                 field_one=api_cache.get("firstFieldId"),
                 field_two=api_cache.get("secondFieldId"),
-                create_id=api_env.get("query_user_id"),
+                create_id=api_env.get("user_id"),
                 username=api_env.get("query_user_name"),
             )
             response_json = portal_open_service.create_system(create_system)

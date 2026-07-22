@@ -242,7 +242,7 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求绑定租户"):
                 user_info = PortalUserEntity(
-                    user_id=api_env.get("query_user_id"),
+                    user_id=api_env.get("user_id"),
                     username=api_env.get("query_user_name")
                 )
                 response_json = portal_service.user_bind_tenant(user_info)
@@ -258,7 +258,7 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求绑定角色"):
                 user_info = PortalUserEntity(
-                    user_id=api_env.get("query_user_id"),
+                    user_id=api_env.get("user_id"),
                     username=api_env.get("query_user_name")
                 )
                 response_json = portal_service.user_bind_role(user_info)
@@ -308,7 +308,7 @@ class TestPortalOpenAPI:
                     system_desc=api_env.get("portal_system_code"),
                     field_one=api_cache.get("firstFieldId"),
                     field_two=api_cache.get("secondFieldId"),
-                    create_id=api_env.get("query_user_id"),
+                    create_id=api_env.get("user_id"),
                     username=api_env.get("query_user_name")
                 )
                 response_json = portal_service.create_system(system)
@@ -409,7 +409,7 @@ class TestPortalOpenAPI:
                     system_id=system_id,
                     system_name=api_env.get("portal_system_code"),
                     system_code=api_env.get("portal_system_code"),
-                    create_id=api_env.get("query_user_id"),
+                    create_id=api_env.get("user_id"),
                     username=api_env.get("query_user_name")
                 )
                 response_json = portal_service.update_system(system)
@@ -487,7 +487,7 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求进行用户系统授权"):
-                user_id_list = ["200685", api_env.get("query_user_id")]
+                user_id_list = ["200685", api_env.get("user_id")]
                 response_json = portal_service.user_system_authorization(
                     user_id_list=user_id_list,
                     system_id_list=[system_id]
@@ -507,7 +507,7 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求进行用户应用授权"):
-                user_id_list = [api_env.get("query_user_id"), "200685"]
+                user_id_list = [api_env.get("user_id"), "200685"]
                 response_json = portal_service.user_application_authorization(
                     user_id_list=user_id_list,
                     application_id_list=[app_id]
