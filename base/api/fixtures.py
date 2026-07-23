@@ -107,22 +107,22 @@ def authenticated_service(api_logger, api_env):
     auth_type = None
     auth_credentials = None
     
-    if api_env.get("bearer_token"):
+    if api_env.get("bearerToken"):
         auth_type = 'bearer'
-        auth_credentials = {'token': api_env.get("bearer_token")}
+        auth_credentials = {'token': api_env.get("bearerToken")}
         api_logger.info("Using Bearer token authentication")
-    elif api_env.get("basic_auth_username") and api_env.get("basic_auth_password"):
+    elif api_env.get("basicAuthUsername") and api_env.get("basicAuthPassword"):
         auth_type = 'basic'
         auth_credentials = {
-            'username': api_env.get("basic_auth_username"),
-            'password': api_env.get("basic_auth_password")
+            'username': api_env.get("basicAuthUsername"),
+            'password': api_env.get("basicAuthPassword")
         }
         api_logger.info("Using Basic authentication")
-    elif api_env.get("api_key"):
+    elif api_env.get("apiKey"):
         auth_type = 'api_key'
         auth_credentials = {
-            'api_key': api_env.get("api_key"),
-            'header_name': api_env.get("api_key_header")
+            'api_key': api_env.get("apiKey"),
+            'header_name': api_env.get("apiKeyHeader")
         }
         api_logger.info("Using API Key authentication")
     else:

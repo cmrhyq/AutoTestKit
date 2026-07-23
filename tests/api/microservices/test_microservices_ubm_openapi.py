@@ -41,7 +41,7 @@ class TestMicroservicesUbmOpenApi:
     def ubm_service(self, api_env, api_logger):
         """创建 Microservices OpenAPI 服务实例"""
         service = PanJiMicroservicesOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -78,8 +78,8 @@ class TestMicroservicesUbmOpenApi:
     def test_batch_add_strategy(self, ubm_service, api_env):
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略数据并发送 POST 请求"):
-                control_plane_code = api_env.get("ms_control_plane")
-                belong_code = api_env.get("ms_application_code")
+                control_plane_code = api_env.get("controlPlaneCode")
+                belong_code = api_env.get("belongCode")
                 strategies = [
                     {
                         "strategyCode": "CUSTOM-demoA",
@@ -120,19 +120,19 @@ class TestMicroservicesUbmOpenApi:
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略状态数据并发送 PUT 请求"):
                 data = {
-                    "controlPlaneCode": api_env.get("ms_control_plane"),
+                    "controlPlaneCode": api_env.get("controlPlaneCode"),
                     "scope": "Application",
                     "kind": "ROUTE",
                     "strategyInfos": [
-                        {"strategyCode": "CUSTOM-demoA", "belongCode": api_env.get("ms_application_code"), "status": "UP"},
-                        {"strategyCode": "CUSTOM-demoB", "belongCode": api_env.get("ms_application_code"), "status": "UP"},
+                        {"strategyCode": "CUSTOM-demoA", "belongCode": api_env.get("belongCode"), "status": "UP"},
+                        {"strategyCode": "CUSTOM-demoB", "belongCode": api_env.get("belongCode"), "status": "UP"},
                     ],
                     "clusterInfos": [
                         {
-                            "planeCode": api_env.get("cell_code"),
-                            "planeName": api_env.get("cell_code"),
-                            "cellCode": api_env.get("cell_code"),
-                            "cellName": api_env.get("cell_code"),
+                            "planeCode": api_env.get("planeCode"),
+                            "planeName": api_env.get("planeName"),
+                            "cellCode": api_env.get("cellCode"),
+                            "cellName": api_env.get("cellName"),
                         }
                     ],
                 }

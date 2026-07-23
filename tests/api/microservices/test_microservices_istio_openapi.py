@@ -38,7 +38,7 @@ class TestMicroservicesIstioOpenApi:
     @pytest.fixture(scope="class")
     def istio_service(self, api_env, api_logger):
         service = PanJiMicroservicesOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -46,9 +46,9 @@ class TestMicroservicesIstioOpenApi:
 
     def _base_meta(self, api_env) -> Dict:
         return {
-            "systemCode": api_env.get("ms_sys_code"),
-            "cellCode": api_env.get("cell_code"),
-            "planeCode": api_env.get("cell_code"),
+            "systemCode": api_env.get("sysCode"),
+            "cellCode": api_env.get("cellCode"),
+            "planeCode": api_env.get("planeCode"),
         }
 
     # ==================== 入口网关实例 ====================
@@ -60,7 +60,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求新增网关实例"):
                 data = {
                     **self._base_meta(api_env),
-                    "name": api_env.get("ms_gateway_name"),
+                    "name": api_env.get("meshGatewayName"),
                     "type": "INGRESS",
                 }
                 response_json = istio_service.add_gateway_instance(data)
@@ -74,7 +74,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求精确查询网关实例"):
                 data = {
                     **self._base_meta(api_env),
-                    "name": api_env.get("ms_gateway_name"),
+                    "name": api_env.get("meshGatewayName"),
                 }
                 response_json = istio_service.get_gateway_instance(data)
             with AllureHelper.step("验证响应"):
@@ -102,7 +102,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求更新网关实例"):
                 data = {
                     **self._base_meta(api_env),
-                    "name": api_env.get("ms_gateway_name"),
+                    "name": api_env.get("meshGatewayName"),
                     "type": "INGRESS",
                     "remark": "updated by autotest",
                 }
@@ -129,8 +129,8 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求新增网关规则"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
                     "port": 80,
                     "protocol": "HTTP",
                 }
@@ -145,7 +145,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求分页查询网关规则"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
                     "page": 1,
                     "rows": 10,
                 }
@@ -160,8 +160,8 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求精确查询网关配置"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
                 }
                 response_json = istio_service.get_gateway_rule(data)
             with AllureHelper.step("验证响应"):
@@ -174,8 +174,8 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求更新网关规则"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
                     "port": 80,
                     "protocol": "HTTP",
                     "remark": "updated by autotest",
@@ -193,9 +193,9 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求新增虚拟服务"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
-                    "vsName": api_env.get("ms_vs_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
+                    "vsName": api_env.get("meshVsName"),
                 }
                 response_json = istio_service.add_virtual_service(data)
             with AllureHelper.step("验证响应"):
@@ -208,8 +208,8 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求按网关规则查询虚拟服务列表"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
                 }
                 response_json = istio_service.list_virtualservice_by_gateway_config(data)
             with AllureHelper.step("验证响应"):
@@ -222,7 +222,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求精确查询虚拟服务"):
                 data = {
                     **self._base_meta(api_env),
-                    "vsName": api_env.get("ms_vs_name"),
+                    "vsName": api_env.get("meshVsName"),
                 }
                 response_json = istio_service.get_virtual_service(data)
             with AllureHelper.step("验证响应"):
@@ -235,9 +235,9 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求更新虚拟服务"):
                 data = {
                     **self._base_meta(api_env),
-                    "vsName": api_env.get("ms_vs_name"),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
+                    "vsName": api_env.get("meshVsName"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
                     "remark": "updated by autotest",
                 }
                 response_json = istio_service.update_virtual_service(data)
@@ -263,7 +263,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求删除虚拟服务"):
                 data = {
                     **self._base_meta(api_env),
-                    "vsName": api_env.get("ms_vs_name"),
+                    "vsName": api_env.get("meshVsName"),
                 }
                 response_json = istio_service.delete_virtual_service(data)
             with AllureHelper.step("验证响应"):
@@ -276,8 +276,8 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求删除网关规则"):
                 data = {
                     **self._base_meta(api_env),
-                    "gatewayName": api_env.get("ms_gateway_name"),
-                    "ruleName": api_env.get("ms_rule_name"),
+                    "gatewayName": api_env.get("meshGatewayName"),
+                    "ruleName": api_env.get("ruleName"),
                 }
                 response_json = istio_service.delete_gateway_rule(data)
             with AllureHelper.step("验证响应"):
@@ -290,7 +290,7 @@ class TestMicroservicesIstioOpenApi:
             with AllureHelper.step("发送 POST 请求删除网关实例"):
                 data = {
                     **self._base_meta(api_env),
-                    "name": api_env.get("ms_gateway_name"),
+                    "name": api_env.get("meshGatewayName"),
                 }
                 response_json = istio_service.delete_gateway_instance(data)
             with AllureHelper.step("验证响应"):

@@ -44,7 +44,7 @@ class TestMicroservicesInnerApi:
     @pytest.fixture(scope="class")
     def inner_service(self, api_env, api_logger):
         service = PanJiMicroservicesInnerService(
-            base_url=api_env.get("api_inner_base_url") or api_env.get("api_base_url"),
+            base_url=api_env.get("apiInnerBaseUrl") or api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -52,32 +52,32 @@ class TestMicroservicesInnerApi:
 
     def _kem(self, api_env) -> Kem:
         return Kem(
-            sysCode=api_env.get("ms_sys_code"),
-            cellCode=api_env.get("cell_code"),
-            planeCode=api_env.get("cell_code"),
-            tenantCode=api_env.get("tenant_code"),
-            username=api_env.get("basic_auth_username"),
-            gatewayInsName=api_env.get("ms_gateway_name"),
-            gatewayName=api_env.get("ms_gateway_name"),
+            sysCode=api_env.get("sysCode"),
+            cellCode=api_env.get("cellCode"),
+            planeCode=api_env.get("planeCode"),
+            tenantCode=api_env.get("tenantCode"),
+            username=api_env.get("basicAuthUsername"),
+            gatewayInsName=api_env.get("meshGatewayName"),
+            gatewayName=api_env.get("meshGatewayName"),
             gatewayNodePort="30080",
-            vsName=api_env.get("ms_vs_name"),
+            vsName=api_env.get("meshVsName"),
         )
 
     def _vs(self, api_env) -> MeshVS:
         return MeshVS(
-            vsName=api_env.get("ms_vs_name"),
-            gatewayName=api_env.get("ms_gateway_name"),
-            sysCode=api_env.get("ms_sys_code"),
-            cellCode=api_env.get("cell_code"),
-            planeCode=api_env.get("cell_code"),
-            clusterId=api_env.get("cluster_id"),
+            vsName=api_env.get("meshVsName"),
+            gatewayName=api_env.get("meshGatewayName"),
+            sysCode=api_env.get("sysCode"),
+            cellCode=api_env.get("cellCode"),
+            planeCode=api_env.get("planeCode"),
+            clusterId=api_env.get("clusterId"),
         )
 
     def _node(self, api_env) -> MeshNode:
         return MeshNode(
-            cellCode=api_env.get("cell_code"),
-            planeCode=api_env.get("cell_code"),
-            clusterId=api_env.get("cluster_id"),
+            cellCode=api_env.get("cellCode"),
+            planeCode=api_env.get("planeCode"),
+            clusterId=api_env.get("clusterId"),
         )
 
     # ==================== KEM 统一操作 ====================

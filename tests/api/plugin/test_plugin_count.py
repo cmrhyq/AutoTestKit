@@ -34,7 +34,7 @@ class TestPluginCount:
     def plugin_inner_service(self, api_env, api_logger):
         """创建 Plugin Inner API 服务实例"""
         service = PanJiPluginInnerService(
-            base_url=api_env.get("api_inner_base_url"), logger=api_logger
+            base_url=api_env.get("apiInnerBaseUrl"), logger=api_logger
         )
         yield service
         service.close()

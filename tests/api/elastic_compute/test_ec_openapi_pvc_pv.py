@@ -42,7 +42,7 @@ class TestEcOpenapiPvcPv:
     def ec_service(self, api_env, api_logger):
         """创建服务实例，base_url 从 env yaml 显式传入。"""
         service = PanJiElasticComputeOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -75,10 +75,10 @@ class TestEcOpenapiPvcPv:
     )
     @allure.severity(allure.severity_level.CRITICAL)
     def test_pvc_lifecycle(self, ec_service, api_env, api_cache):
-        cell_code = api_env.get("ec_cell_code")
-        sys_code = api_env.get("ec_sys_code")
-        pvc_name = api_env.get("ec_pvc_name")
-        storage_class_name = api_env.get("ec_storage_class_name")
+        cell_code = api_env.get("cellCode")
+        sys_code = api_env.get("sysCode")
+        pvc_name = api_env.get("pvcName", "auto-test-probe-pvc-test-0001")
+        storage_class_name = api_env.get("storageClassName")
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询指定 PVC 确认当前状态"):
@@ -140,8 +140,8 @@ class TestEcOpenapiPvcPv:
     )
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_pv(self, ec_service, api_env):
-        cell_code = api_env.get("ec_cell_code")
-        pv_name = api_env.get("ec_pv_name")
+        cell_code = api_env.get("cellCode")
+        pv_name = api_env.get("pvName")
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"查询 PV: cell={cell_code}, name={pv_name}"):
@@ -162,8 +162,8 @@ class TestEcOpenapiPvcPv:
     )
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_storage_class(self, ec_service, api_env):
-        cell_code = api_env.get("ec_cell_code")
-        storage_class_name = api_env.get("ec_storage_class_name")
+        cell_code = api_env.get("cellCode")
+        storage_class_name = api_env.get("storageClassName")
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(

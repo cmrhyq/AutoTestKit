@@ -1,235 +1,197 @@
 # ==================================================================
 # AutoTestKit 环境配置 - test（占位环境）
-# 组织逻辑参考自 auto_test_pro/docs/参数传递逻辑说明.md：
-#   - 按"业务领域 / 资源类型"分组（非按 API 类型 OpenAPI/InnerAPI 分组）
-#   - 同一逻辑资源的多种表述（cellCode/unitCode/planeCode 同值等）合并为一个 key
+# 与 env_bcv25_arm.yaml 保持 key 一致（标准 camelCase 命名）。
 # ==================================================================
 
 
 # ---------------------- 框架基础配置 ----------------------
-api_base_url: https://test-api.example.com
-api_inner_base_url: https://test-inner-api.example.com
-api_timeout: 30
-api_verify_ssl: true
-max_retries: 3
-retry_delay: 1
-enable_retry: true
-parallel_workers: auto
-enable_parallel: true
-log_level: INFO
-browser_type: chromium
+apiBaseUrl: https://test-api.example.com
+apiInnerBaseUrl: https://test-inner-api.example.com
+apiTimeout: 30
+apiVerifySsl: true
+maxRetries: 3
+retryDelay: 1
+enableRetry: true
+parallelWorkers: auto
+enableParallel: true
+logLevel: INFO
+browserType: chromium
 headless: true
-browser_timeout: 30000
+browserTimeout: 30000
 
 
 # ---------------------- 认证 / 凭证 ----------------------
-basic_auth_username: abc
-basic_auth_password: cba
-tenant_code: tenantA
-bearer_token: null
-api_key: null
-api_key_header: null
+basicAuthUsername: test-user
+basicAuthPassword: test-pass
+bearerToken: null
+apiKey: null
+apiKeyHeader: null
 
 tenants:
-  tenantA:
-    username: userA
-    password: passA
-  tenantB:
-    username: userB
-    password: passB
   tenant_admin:
-    username: userAdmin
-    password: passAdmin
+    username: test-admin
+    password: test-pass
   monitor-group:
-    username: userMonitor
-    password: passMonitor
-
-
-# ---------------------- 用户信息 ----------------------
-query_user_name: test-user
-user_id: "1"
-tenant_id: "1"
+    username: test-monitor
+    password: test-pass
 
 
 # ---------------------- 标准集群信息 ----------------------
-cluster_id: "1"
-cluster_name: test-cluster
-cell_code: test
-sys_code: test-sys
-node_ip: 127.0.0.1
+clusterId: 1
+clusterName: test-cluster
+namespace: test-ns
+cellCode: test
+cellName: test
+planeCode: test
+planeName: test
+unitCode: test
+unitName: test
+sysCode: test-sys
+nodeIp: 127.0.0.1
 
 
-# ---------------------- 弹性计算-专属集群信息 ----------------------
-ec_cell_code: TEST
-ec_sys_code: test-sys
-ec_plane_code: PLANE
-ec_env_code: PROD
-ec_sub_sys_code: xt-sit1
-ec_image_cluster_id: "56"
-ec_test_host_cluster: "0"
+# ---------------------- 托管集群信息 ----------------------
+hostClusterId: 1
+hostCellCode: test
+hostSysCode: test-sys
+hostNodeIp: 127.0.0.1
 
 
-# ---------------------- Portal / 场景化用例参数 ----------------------
-portal_app_type: web_type
-portal_workload_type: Deployment
-page_num: 1
-page_size: 10
-sync_username: fake-username-token
-sync_phone: fake-phone-token
-sync_email: fake-email-token
-prod_inst_name: test-inst
+# ---------------------- 用户信息 ----------------------
+user: test-user
+userPwd: test-pass
+tenantCode: monitor-group
+adminTenantCode: tenant_admin
 
 
-# ---------------------- Portal OpenAPI 测试数据 ----------------------
-portal_system_code: test-sys
-portal_app_code: test-app
+# ---------------------- 标签值 ----------------------
+paasUnitCode: test
+paasEnvCode: PROD
+paasPlaneCode: test
+paasTenantCode: monitor-group
 
 
-# ---------------------- Portal InnerAPI 测试数据 ----------------------
-inner_system_code: test-inner-sys
-inner_app_code: test-inner-app
-module_name: portal
-module_code: mesh
-role_code_0: test-role-0
-role_code_2: test-role-2
-username_2: test-user-2
-tenant_code_2: test-tenant-2
+# ---------------------- app code ----------------------
+appCodeDeploy: test-probe-deploy1
+appCodeSts: test-probe-statefulset1
+appCodeDaemonset: test-probe-daemonset1
+appCodeJob: test-probe-job1
 
 
-# ---------------------- 插件中心 ----------------------
-plugin_name: kubectl
+# ---------------------- harbor 信息 ----------------------
+harborId: 1
+harborName: test-harbor
+harborUrl: http://127.0.0.1:1121
+harborAdminPwd: "******"
+targetId: 1
+copyHarborName: slave
+copyHarborUrl: http://127.0.0.1:1121
+copyProjectName: tools
+copyFilters: tools/nginx
+copyRepName: nginx
+copyImageTag: latest
+nginxImageUrl: 127.0.0.1:1121/tools/nginx:latest
+nginxProjectName: tools
+nginxRepoName: tools/nginx
+nginxImageName: tools/nginx:latest
+nginxImageRepo: 127.0.0.1:1121/tools/nginx
+nginxImageTag: latest
+
+
+# ---------------------- workload 信息 ----------------------
+nativeHpaWorkloadKind: Deployment
+nativeHpaWorkloadName: test-hpa-workload-0001
+soWorkloadKind: Deployment
+soWorkloadName: test-so-workload-0002
+
+
+# ---------------------- 存储相关 ----------------------
+pvName: test-pv-0001
+pvcName: test-pvc-0001
+storageClassName: nfs-test
+nfsName: nfs-test
+
+
+# ---------------------- 其他杂项 ----------------------
+physicalHostId: 1
+ports: 30011-30030
+testHostCluster: 0
+grantUser: monitor-admin
+grantAppCode: test-probe-deploy1
+
+
+# ---------------------- 门户Open接口参数 ----------------------
+portalUsername: test-user
+portalUserId: 100001
+prodInstName: test-inst
+syncPhone: test-phone-token
+syncEmail: test-email-token
+syncUsername: test-username-token
 
 
 # ---------------------- 运营运维 ----------------------
-monitor_yunboce_rwfx_id_1: 1
-monitor_yunboce_rwfx_id_2: 2
-inspection_task_name: test-inspection
+taskName: test-inspection
+monitorYunboceRwfxId1: 1
+monitorYunboceRwfxId2: 2
 
 
-# ---------------------- 可观测（日志/模型）----------------------
-log_namespace: test-ns
-log_cluster_name: test-cluster
-log_pod_name: test-pod
-log_container_name: test-container
-log_component_type: app
-log_start_time: 0
-log_end_time: 1
-log_size: 1
-log_id: test-log-id
-log_timestamp: 0
-log_offset: 0
-log_file_path: /tmp/test.log
-log_host_ip: 127.0.0.1
-models_id_or_name: test-model
+# ---------------------- 可观测 ----------------------
+modelsIdOrName: test-model
+obsId: test-obs-id
+obsNamespace: test-ns
+obsClusterName: test-cluster
+obsPodName: test-pod
+obsContainerName: test-container
+obsComponentType: app
+obsSync: false
+obsStartTime: 0
+obsEndTime: 1
+obsSize: 1
+obsTimestamp: 0
+obsOffset: 0
+obsLogFilePath: /tmp/test.log
+obsHostIp: 127.0.0.1
 
 
-# ---------------------- 微服务 - 通用 ----------------------
-ms_apikey: test-ms-apikey
-ms_sys_code: test-sys
-
-# ---------------------- 微服务 - istio 网关 ----------------------
-ms_gateway_name: test-gateway
-ms_rule_name: test-rule
-ms_vs_name: test-vs
-
-# ---------------------- 微服务 - CMF ----------------------
-ms_control_plane: CMF
-ms_application_code: test-app
-ms_function_class_name: com.example.test.IFakeCSV
-ms_funcser_code: test_IFakeCSV_name
-ms_func_ser_name: name
-ms_registry_name: zk-test
+# ---------------------- 微服务-istio网关 ----------------------
+istioGatewayInstanceName: test-gwinstance
+istioGatewayNodePort: 30011
+istioGatewayName: test-gw
+istioVsName: test-vs
+istioGatewayInstanceNameInner: test-inner-gwinstance
+istioGatewayNodePortInner: 30012
+istioGatewayNameInner: test-inner-gw
+istioVsNameInner: test-inner-vs
 
 
-# ---------------------- 弹性计算 - 通用 ----------------------
-ec_apikey: test-ec-apikey
-ec_name: cm-demo
-ec_api_version: v1
-
-# ---------------------- 弹性计算 - CustomResource (namespace 级) ----------------------
-ec_group: keda.sh
-ec_version: v1alpha1
-ec_kind: ScaledObject
-ec_cr_name: test-cr-so001
-
-# ---------------------- 弹性计算 - CustomResource (cluster 级) ----------------------
-ec_cr_cluster_kind: Apple
-ec_cr_cluster_group: test.example.com
-ec_cr_cluster_version: v1
-ec_cr_cluster_name: test-apple
-
-# ---------------------- 弹性计算 - Workload ----------------------
-ec_workload_kind: Deployment
-ec_workload_name: app-nginx
-ec_app_code: test-app
-ec_workload_schedule: "0/1 * * * ?"
-ec_workload_file_path_in_pod: /docker-entrypoint.sh
-
-# ---------------------- 弹性计算 - Pod / Container ----------------------
-ec_container_name: container0
-ec_image: hpe_containers/nginx:latest
-ec_image_tag: latest
-ec_app_search_keyword: nginx
-ec_interval_time: "10000"
-
-# ---------------------- 弹性计算 - HPA / ScaledObject ----------------------
-ec_pvc_name: test-hpa-001
-ec_so_name: test-so-001
-ec_so_workload_name: dev
-
-# ---------------------- 弹性计算 - 存储 (PV / StorageClass) ----------------------
-ec_pv_name: test-pv-001
-ec_storage_class_name: test-sc-001
-
-# ---------------------- 弹性计算 - PriorityClass / Secret ----------------------
-ec_priority_class_name: pc-test
-ec_secret_name: app-nginx-secret3
-
-# ---------------------- 弹性计算 - Quota ----------------------
-ec_quota_tenant_code: lzm
-ec_quota_username: lzm-admin
-
-# ---------------------- 弹性计算 - Recovery ----------------------
-ec_recovery_resource_name: test-resource-deploy-001
-ec_recovery_app_code: probe-deploy
-ec_recovery_tenant_code: monitor-group
-
-# ---------------------- 弹性计算 - Ingress / Domain ----------------------
-ec_istio_ingress_sys_code: istio-ingress
-ec_domain_name: probetest.a.b.c.e.f
-ec_nodeport: "10001"
-ec_nodeport_ports: 30011-30030
+# ---------------------- 微服务接口 ----------------------
+ubmPath: /openapi/ms-ubm/microservice-ubm/openapi/tenant
+controlPlaneName: CMF
+applicationCode: test-app
+belongCode: cust
+functionClassName: com.example.test.IFakeCSV
+funcserCode: test_IFakeCSV_name
+envCode: PROD
+funcSerName: name
+cmfPath: /openapi/ms-ubm/microservice-ubm
+controlPlaneCode: CMF
+registryName: zk-test
+ingressPath: /openapi/ms-ingress/microservice-ingress-console/openapi/tenant
+meshPath: /openapi/ms-mesh/microservice-mesh-console/openapi/tenant
+meshGatewayName: gateway-demo
+ruleName: rule-demo
+meshVsName: vs-demo
+nodePort: 30026
+svcHost: gateway-demo.test-ns.svc.cluster.local
+application: Application
+funcSer: FuncSer
 
 
-# ---------------------- 弹性计算 - Harbor ----------------------
-ec_harbor_id: "3"
-ec_harbor_project_name: test-harbor-project001
-ec_harbor_project_member_name: ec-harbor-admin
-ec_harbor_copy_name: test-harbor-test001
-ec_harbor_copy_url: http://192.168.142.3:1121
-ec_harbor_copy_access_id: admin
-ec_harbor_copy_access_secret: Harbor12345
-ec_harbor_copy_project_name: test
-ec_harbor_copy_filters: test/**
-ec_harbor_copy_image_tag: "1.21"
-ec_harbor_target_id: "2"
-ec_harbor_policy_name: test-replication-policiy-name001
-
-
-# ---------------------- 弹性计算 - Image API ----------------------
-ec_image_name: nginx
-ec_image_delete_name: test/nginx
-
-
-# ---------------------- 弹性计算 - Helm ----------------------
-ec_helm_release_name: nginx-demo
-ec_helm_image: hpe_containers/nginx
-ec_helm_chart_name: nginx
-ec_helm_chart_version: 0.1.0
-ec_helm_chart_file_path: ""
+# ---------------------- 插件中心 ----------------------
+pluginName: kubectl
 
 
 # ---------------------- UI 测试配置 ----------------------
-ui_base_url: http://localhost/portal/web/#/login
-ui_username: test-user
-ui_password: test-pass
+uiBaseUrl: http://localhost/portal/web/#/login
+uiUsername: test-user
+uiPassword: test-pass

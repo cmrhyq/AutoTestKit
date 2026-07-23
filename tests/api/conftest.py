@@ -23,7 +23,7 @@ def get_token(api_env, api_cache, api_logger):
     - 租户账号信息来自 config/env_{env}.yaml 的 `tenants` 字典。
     """
     service = PanJiPortalOpenService(
-        base_url=api_env.get("api_base_url"),
+        base_url=api_env.get("apiBaseUrl"),
         logger=api_logger,
     )
 

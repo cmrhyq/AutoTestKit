@@ -28,7 +28,7 @@ from core.reporting.allure_helper import AllureHelper
 def ingress_service(api_env, api_logger):
     """模块级 Ingress OpenAPI 服务实例"""
     service = PanJiMicroservicesOpenService(
-        base_url=api_env.get("api_base_url"),
+        base_url=api_env.get("apiBaseUrl"),
         logger=api_logger,
     )
     yield service
@@ -37,23 +37,23 @@ def ingress_service(api_env, api_logger):
 
 def _build_ingress(api_env) -> Ingress:
     return Ingress(
-        name=api_env.get("ms_gateway_name"),
-        code=api_env.get("ms_gateway_name"),
-        sysCode=api_env.get("ms_sys_code"),
-        unitCode=api_env.get("cell_code"),
-        planeCode=api_env.get("cell_code"),
+        name=api_env.get("meshGatewayName"),
+        code=api_env.get("meshGatewayName"),
+        sysCode=api_env.get("sysCode"),
+        unitCode=api_env.get("unitCode"),
+        planeCode=api_env.get("planeCode"),
     )
 
 
 def _build_ingress_config(api_env, soft_load_code: str = None) -> IngressConfig:
     return IngressConfig(
-        name=api_env.get("ms_gateway_name"),
-        code=api_env.get("ms_gateway_name"),
-        sysCode=api_env.get("ms_sys_code"),
-        unitCode=api_env.get("cell_code"),
-        planeCode=api_env.get("cell_code"),
-        serviceName=api_env.get("ms_gateway_name"),
-        softLoadCode=soft_load_code or api_env.get("ms_gateway_name"),
+        name=api_env.get("meshGatewayName"),
+        code=api_env.get("meshGatewayName"),
+        sysCode=api_env.get("sysCode"),
+        unitCode=api_env.get("unitCode"),
+        planeCode=api_env.get("planeCode"),
+        serviceName=api_env.get("meshGatewayName"),
+        softLoadCode=soft_load_code or api_env.get("meshGatewayName"),
     )
 
 
@@ -165,9 +165,9 @@ class TestMsIngressGw:
             with AllureHelper.step("发送 POST 请求分页查询 ingress 网关实例"):
                 data = IngressIns(
                     keyword="",
-                    systemCode=api_env.get("ms_sys_code"),
-                    unitCode=api_env.get("cell_code"),
-                    planeCode=api_env.get("cell_code"),
+                    systemCode=api_env.get("sysCode"),
+                    unitCode=api_env.get("unitCode"),
+                    planeCode=api_env.get("planeCode"),
                     page=1,
                     rows=10,
                 )
@@ -180,11 +180,11 @@ class TestMsIngressGw:
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求修改 ingress 网关实例"):
                 data = {
-                    "name": api_env.get("ms_gateway_name"),
-                    "code": api_env.get("ms_gateway_name"),
-                    "sysCode": api_env.get("ms_sys_code"),
-                    "unitCode": api_env.get("cell_code"),
-                    "planeCode": api_env.get("cell_code"),
+                    "name": api_env.get("meshGatewayName"),
+                    "code": api_env.get("meshGatewayName"),
+                    "sysCode": api_env.get("sysCode"),
+                    "unitCode": api_env.get("unitCode"),
+                    "planeCode": api_env.get("planeCode"),
                     "remark": "updated by autotest",
                 }
                 response_json = ingress_service.update_ingress_instance(data)

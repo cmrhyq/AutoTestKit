@@ -33,7 +33,7 @@ class TestEcOpenapiResourceCollection:
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
         service = PanJiElasticComputeOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service

@@ -39,7 +39,7 @@ class TestPluginInfo:
     def plugin_open_service(self, api_env, api_logger):
         """创建 Plugin OpenAPI 服务实例"""
         service = PanJiPluginOpenService(
-            base_url=api_env.get("api_base_url"), logger=api_logger
+            base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service
         service.close()
@@ -48,7 +48,7 @@ class TestPluginInfo:
     @allure.description("GET /openapi/plugin-mgmt/api/v1/plugin/{pluginName}/installationInfo - 验证能够查询指定插件安装信息")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_info(self, plugin_open_service, api_env, api_cache):
-        plugin_name = api_env.get("plugin_name", "kubectl")
+        plugin_name = api_env.get("pluginName", "kubectl")
 
         with AllureHelper.step(f"发送 GET 请求查询插件 {plugin_name} 的安装信息"):
             response_json = plugin_open_service.get_plugin_install_info(plugin_name=plugin_name)

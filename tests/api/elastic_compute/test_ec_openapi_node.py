@@ -33,7 +33,7 @@ class TestEcOpenapiNode:
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
         service = PanJiElasticComputeOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -52,8 +52,8 @@ class TestEcOpenapiNode:
     @allure.title("查询指定 Node")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_node_detail(self, ec_service, api_env):
-        cell_code = api_env.get("ec_cell_code")
-        name = api_env.get("node_ip")
+        cell_code = api_env.get("cellCode")
+        name = api_env.get("nodeIp")
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"查询 Node: cell={cell_code}, name={name}"):
                 response_json = ec_service.get_node_detail(
@@ -66,7 +66,7 @@ class TestEcOpenapiNode:
     @allure.title("查询全集群所有 Node 列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_nodes(self, ec_service, api_env):
-        cell_code = api_env.get("ec_cell_code")
+        cell_code = api_env.get("cellCode")
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"查询全集群 Node 列表: cell={cell_code}"):
                 response_json = ec_service.list_nodes(cell_code=cell_code)
@@ -77,8 +77,8 @@ class TestEcOpenapiNode:
     @allure.title("增量更新指定 Node")
     @allure.severity(allure.severity_level.NORMAL)
     def test_patch_node(self, ec_service, api_env):
-        cell_code = api_env.get("ec_cell_code")
-        name = api_env.get("node_ip")
+        cell_code = api_env.get("cellCode")
+        name = api_env.get("nodeIp")
         payload = {"metadata": {"labels": {"paas-test": "true"}}}
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"PATCH Node: cell={cell_code}, name={name}"):
@@ -92,8 +92,8 @@ class TestEcOpenapiNode:
     @allure.title("全量更新指定 Node")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_node(self, ec_service, api_env):
-        cell_code = api_env.get("ec_cell_code")
-        name = api_env.get("node_ip")
+        cell_code = api_env.get("cellCode")
+        name = api_env.get("nodeIp")
         payload = self._minimal_node_body(name)
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"PUT Node: cell={cell_code}, name={name}"):

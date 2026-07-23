@@ -20,14 +20,14 @@ def _get_ext_headers() -> Dict[str, str]:
 
     从 env yaml 中读取：
     - ec_apikey：apikey
-    - basic_auth_username：username
-    - tenant_code：tenantCode
+    - basicAuthUsername：username
+    - tenantCode：tenantCode
     """
     env = env_manager.get_config()
     return {
         "apikey": env.get("ec_apikey"),
-        "username": env.get("basic_auth_username"),
-        "tenantCode": env.get("tenant_code"),
+        "username": env.get("basicAuthUsername"),
+        "tenantCode": env.get("tenantCode"),
     }
 
 

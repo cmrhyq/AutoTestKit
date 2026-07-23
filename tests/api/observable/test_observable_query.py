@@ -40,7 +40,7 @@ class TestObservableQuery:
     def observable_service(self, api_env, api_logger):
         """创建 Observable OpenAPI 服务实例"""
         service = PanJiObservableOpenService(
-            base_url=api_env.get("api_base_url"), logger=api_logger
+            base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service
         service.close()
@@ -76,7 +76,7 @@ class TestObservableQuery:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_model_by_id_or_name(self, observable_service, api_env, api_cache):
         models_id_or_name = api_env.get(
-            "models_id_or_name", "c6869bc8-b527-4bff-bce7-6f39de1b06ab"
+            "modelsIdOrName", "c6869bc8-b527-4bff-bce7-6f39de1b06ab"
         )
 
         with AllureHelper.step(f"发送 GET 请求获取模型详情: {models_id_or_name}"):

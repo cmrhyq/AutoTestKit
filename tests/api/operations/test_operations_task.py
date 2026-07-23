@@ -34,7 +34,7 @@ class TestOperationsTask:
     def operation_service(self, api_env, api_logger):
         """创建 Operation OpenAPI 服务实例"""
         service = PanJiOperationOpenService(
-            base_url=api_env.get("api_base_url"), logger=api_logger
+            base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service
         service.close()
@@ -43,7 +43,7 @@ class TestOperationsTask:
     @allure.description("POST /openapi/monitor-inspection/cluster-inspection/api/inspectionTask/executeTask - 执行巡检任务")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_execute_inspection_task(self, operation_service, api_env, api_cache):
-        task_name = api_env.get("inspection_task_name", "test1119")
+        task_name = api_env.get("taskName", "test1119")
 
         with AllureHelper.step(f"发送 POST 请求执行巡检任务: {task_name}"):
             response_json = operation_service.execute_inspection_task(task_name=task_name)

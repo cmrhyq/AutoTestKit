@@ -38,7 +38,7 @@ class TestOperationsQuery:
     def operation_service(self, api_env, api_logger):
         """创建 Operation OpenAPI 服务实例"""
         service = PanJiOperationOpenService(
-            base_url=api_env.get("api_base_url"), logger=api_logger
+            base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service
         service.close()
@@ -59,7 +59,7 @@ class TestOperationsQuery:
     @allure.description("GET /openapi/monitor-inspection/cluster-inspection/api/synthetic/interface/log - 查询接口拨测日志")
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_interface_synthetic_log(self, operation_service, api_env, api_cache):
-        log_id = api_env.get("monitor_yunboce_rwfx_id_1", 15174)
+        log_id = api_env.get("monitorYunboceRwfxId1", 15174)
 
         with AllureHelper.step(f"发送 GET 请求查询接口拨测日志详情，id={log_id}"):
             response_json = operation_service.query_interface_synthetic_log(log_id=log_id)
@@ -72,7 +72,7 @@ class TestOperationsQuery:
     @allure.description("GET /openapi/monitor-inspection/cluster-inspection/api/synthetic/service/log - 查询服务拨测日志")
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_service_synthetic_log(self, operation_service, api_env, api_cache):
-        log_id = api_env.get("monitor_yunboce_rwfx_id_2", 108649)
+        log_id = api_env.get("monitorYunboceRwfxId2", 108649)
 
         with AllureHelper.step(f"发送 GET 请求查询服务拨测日志详情，id={log_id}"):
             response_json = operation_service.query_service_synthetic_log(log_id=log_id)

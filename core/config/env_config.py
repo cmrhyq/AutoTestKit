@@ -27,13 +27,13 @@ class EnvConfig:
         self._data = config_data
     
     def __getattr__(self, key: str) -> Any:
-        """支持属性访问：config.api_base_url"""
+        """支持属性访问：config.apiBaseUrl"""
         if key.startswith('_'):
             return object.__getattribute__(self, key)
         return self._data.get(key)
     
     def __getitem__(self, key: str) -> Any:
-        """支持字典访问：config['api_base_url']"""
+        """支持字典访问：config['apiBaseUrl']"""
         return self._data.get(key)
     
     def get(self, key: str, default: Any = None) -> Any:
@@ -188,7 +188,7 @@ class EnvironmentManager:
         使用环境变量覆盖配置
         
         环境变量命名规则：CONFIG_<KEY> 会覆盖配置中的 key
-        例如：CONFIG_API_BASE_URL 会覆盖 api_base_url
+        例如：CONFIG_API_BASE_URL 会覆盖 apiBaseUrl（大小写不敏感匹配 CONFIG_ 前缀部分）
         """
         result = config_data.copy()
         

@@ -49,7 +49,7 @@ class Settings:
     DEVTOOLS: bool = system.get("devtools", "false") == "true"
 
     # ==================== API 配置 ====================
-    API_BASE_URL: str = env.get("api_base_url", "http://localhost:8000")
+    API_BASE_URL: str = env.get("apiBaseUrl", "http://localhost:8000")
     # API 请求超时时间（秒）
     API_TIMEOUT: int = int(system.get("api_timeout", 30))
     # API 连接超时时间（秒）

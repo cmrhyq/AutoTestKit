@@ -54,7 +54,7 @@ class TestPortalInnerapi:
     def portal_inner_service(self, api_env, api_logger):
         """创建 Portal Inner API 服务实例"""
         service = PanJiPortalInnerService(
-            base_url=api_env.get("api_inner_base_url"), logger=api_logger
+            base_url=api_env.get("apiInnerBaseUrl"), logger=api_logger
         )
         yield service
         service.close()
@@ -100,7 +100,7 @@ class TestPortalInnerapi:
     def test_get_dict_by_module(self, portal_inner_service, api_env, api_cache):
         with AllureHelper.step("发送 GET 请求查询字典数据"):
             response_json = portal_inner_service.get_dict_by_module(
-                module_name=api_env.get("module_name"),
+                module_name=api_env.get("moduleName"),
                 dict_type="ENVIRONMENT"
             )
 
@@ -151,7 +151,7 @@ class TestPortalInnerapi:
     def test_get_license_info(self, portal_inner_service, api_env, api_cache):
         with AllureHelper.step("发送 GET 请求获取license信息"):
             response_json = portal_inner_service.get_license_info(
-                module_code=api_env.get("module_code")
+                module_code="mesh"
             )
 
         with AllureHelper.step("验证响应数据"):
@@ -239,7 +239,7 @@ class TestPortalInnerapi:
     def test_send_message(self, portal_inner_service, api_env, api_cache):
         with AllureHelper.step("发送 POST 请求发送站内消息"):
             response_json = portal_inner_service.send_message(
-                users=[api_env.get("query_user_name")],
+                users=[api_env.get("portalUsername")],
                 content="切换失败，请关注手工处理"
             )
 
@@ -302,12 +302,12 @@ class TestPortalInnerapi:
             pytest.skip("未获取到一级域/二级域ID，跳过创建系统")
 
         system = InnerSystemEntity(
-            system_name=api_env.get("inner_system_code"),
-            system_code=api_env.get("inner_system_code"),
+            system_name="portal_inner_api_test_sys",
+            system_code="portal_inner_api_test_sys",
             field_one=first1,
             field_two=module_id,
-            create_id=api_env.get("user_id"),
-            username=api_env.get("query_user_name"),
+            create_id=api_env.get("portalUserId"),
+            username=api_env.get("portalUsername"),
         )
 
         with AllureHelper.step("发送 POST 请求创建系统"):
@@ -331,7 +331,7 @@ class TestPortalInnerapi:
             data = response_json.get("data", [])
             system_id = None
             for item in data:
-                if item.get("systemCode") == api_env.get("inner_system_code"):
+                if item.get("systemCode") == "portal_inner_api_test_sys":
                     system_id = item.get("systemId")
                     break
             api_cache.set("systemId", system_id)
@@ -347,13 +347,13 @@ class TestPortalInnerapi:
             pytest.skip("未获取到 systemId，跳过创建应用")
 
         app = ApplicationEntity(
-            app_name=api_env.get("inner_app_code"),
-            app_code=api_env.get("inner_app_code"),
-            app_type=api_env.get("portal_app_type"),
+            app_name="portal_inner_api_test_app",
+            app_code="portal_inner_api_test_app",
+            app_type="web_type",
             system_id=system_id,
-            create_id=api_env.get("user_id"),
-            username=api_env.get("query_user_name"),
-            workload_type=api_env.get("portal_workload_type"),
+            create_id=api_env.get("portalUserId"),
+            username=api_env.get("portalUsername"),
+            workload_type="Deployment",
         )
 
         with AllureHelper.step("发送 POST 请求创建应用"):
@@ -376,7 +376,7 @@ class TestPortalInnerapi:
         with AllureHelper.step("提取并缓存应用数据"):
             data = response_json.get("data", [])
             for item in data:
-                if item.get("applicationSourceCode") == api_env.get("inner_app_code"):
+                if item.get("applicationSourceCode") == "portal_inner_api_test_app":
                     api_cache.set("systemId2", item.get("systemId"))
                     api_cache.set("appSourceId", item.get("applicationSourceId"))
                     break
@@ -523,7 +523,7 @@ class TestPortalInnerapi:
     @allure.description("完整测试角色CRUD流程：查询 -> 清理 -> 创建 -> 修改 -> 删除")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_role_management(self, portal_inner_service, api_env, api_cache):
-        role_code_0 = api_env.get("role_code_0")
+        role_code_0 = "autotest250711"
 
         # Step 1: 角色查询
         with AllureHelper.step("查询当前角色列表"):
@@ -582,10 +582,10 @@ class TestPortalInnerapi:
     )
     @allure.severity(allure.severity_level.CRITICAL)
     def test_user_tenant_role_bindflow(self, portal_inner_service, api_env, api_cache):
-        username2 = api_env.get("username_2")
-        rolecode2 = api_env.get("role_code_2")
-        tenantcode2 = api_env.get("tenant_code_2")
-        module_name = api_env.get("module_name")
+        username2 = "test0930"
+        rolecode2 = "autorole250711"
+        tenantcode2 = "autotenant250711"
+        module_name = "portal"
 
         # Step 1: 查询用户
         with AllureHelper.step(f"查询用户: {username2}"):

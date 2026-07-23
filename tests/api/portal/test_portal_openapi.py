@@ -61,7 +61,7 @@ class TestPortalOpenAPI:
     def portal_service(self, api_env, api_logger):
         """创建 Portal OpenAPI 服务实例"""
         service = PanJiPortalOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger
         )
         yield service
@@ -111,7 +111,7 @@ class TestPortalOpenAPI:
     def test_create_cluster_plane(self, portal_service, api_env):
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求新增集群平面单元"):
-                cluster = ClusterPlaneEntity(prod_inst_name=api_env.get("prod_inst_name"))
+                cluster = ClusterPlaneEntity(prod_inst_name=api_env.get("prodInstName"))
                 response_json = portal_service.create_cluster_plane(cluster)
 
             with AllureHelper.step("验证响应数据"):
@@ -124,7 +124,7 @@ class TestPortalOpenAPI:
     def test_query_cluster_plane(self, portal_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 GET 请求查询集群平面单元"):
-                cluster = ClusterPlaneEntity(prod_inst_name=api_env.get("prod_inst_name"))
+                cluster = ClusterPlaneEntity(prod_inst_name=api_env.get("prodInstName"))
                 response_json = portal_service.query_cluster_plane(cluster)
 
             with AllureHelper.step("验证响应数据"):
@@ -143,7 +143,7 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 PATCH 请求修改集群平面单元"):
                 cluster = ClusterPlaneEntity(
-                    prod_inst_name=api_env.get("prod_inst_name"),
+                    prod_inst_name=api_env.get("prodInstName"),
                     instance_id=api_cache.get("instanceId")
                 )
                 response_json = portal_service.update_cluster_plane(cluster)
@@ -199,7 +199,7 @@ class TestPortalOpenAPI:
     def test_query_tenant_info_by_username(self, portal_service, api_env):
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 GET 请求查询绑定的租户信息"):
-                username = api_env.get("query_user_name")
+                username = api_env.get("portalUsername")
                 response_json = portal_service.query_tenant_info_by_username(username)
 
             with AllureHelper.step("验证响应数据"):
@@ -225,9 +225,9 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求同步用户"):
                 user_info = PortalUserEntity(
-                    phone=api_env.get("sync_phone"),
-                    email=api_env.get("sync_email"),
-                    username=api_env.get("sync_username")
+                    phone=api_env.get("syncPhone"),
+                    email=api_env.get("syncEmail"),
+                    username=api_env.get("syncUsername")
                 )
                 response_json = portal_service.sync_user_api(user_info)
 
@@ -242,8 +242,8 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求绑定租户"):
                 user_info = PortalUserEntity(
-                    user_id=api_env.get("user_id"),
-                    username=api_env.get("query_user_name")
+                    user_id=api_env.get("portalUserId"),
+                    username=api_env.get("portalUsername")
                 )
                 response_json = portal_service.user_bind_tenant(user_info)
 
@@ -258,8 +258,8 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求绑定角色"):
                 user_info = PortalUserEntity(
-                    user_id=api_env.get("user_id"),
-                    username=api_env.get("query_user_name")
+                    user_id=api_env.get("portalUserId"),
+                    username=api_env.get("portalUsername")
                 )
                 response_json = portal_service.user_bind_role(user_info)
 
@@ -275,7 +275,7 @@ class TestPortalOpenAPI:
     def test_query_system(self, portal_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求查询系统"):
-                system_code = api_env.get("portal_system_code")
+                system_code = "portal_open_api_test_sys"
                 response_json = portal_service.query_system(system_code)
 
             with AllureHelper.step("验证响应数据"):
@@ -303,13 +303,13 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求创建系统"):
                 system = OpenSystemEntity(
-                    system_name=api_env.get("portal_system_code"),
-                    system_code=api_env.get("portal_system_code"),
-                    system_desc=api_env.get("portal_system_code"),
+                    system_name="portal_open_api_test_sys",
+                    system_code="portal_open_api_test_sys",
+                    system_desc="portal_open_api_test_sys",
                     field_one=api_cache.get("firstFieldId"),
                     field_two=api_cache.get("secondFieldId"),
-                    create_id=api_env.get("user_id"),
-                    username=api_env.get("query_user_name")
+                    create_id=api_env.get("portalUserId"),
+                    username=api_env.get("portalUsername")
                 )
                 response_json = portal_service.create_system(system)
 
@@ -331,12 +331,12 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求分配系统资源配额"):
                 code_entity = BasicCodeEntity(
-                    cell_code=api_env.get("cell_code"),
-                    tenant_code=api_env.get("tenant_code"),
-                    system_code=api_env.get("portal_system_code")
+                    cell_code=api_env.get("cellCode"),
+                    tenant_code=api_env.get("tenantCode"),
+                    system_code="portal_open_api_test_sys"
                 )
                 response_json = portal_service.system_resource_allocation(
-                    username=api_env.get("query_user_name"),
+                    username=api_env.get("portalUsername"),
                     code_list=code_entity
                 )
 
@@ -352,7 +352,7 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求查询系统"):
-                system_code = api_env.get("portal_system_code")
+                system_code = "portal_open_api_test_sys"
                 response_json = portal_service.query_system(system_code)
 
             with AllureHelper.step("验证响应数据"):
@@ -379,10 +379,10 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求创建应用"):
                 response_json = portal_service.create_application(
-                    app_code=api_env.get("portal_app_code"),
-                    app_name=api_env.get("portal_app_code"),
-                    app_type=api_env.get("portal_app_type", "web_type"),
-                    workload_type=api_env.get("portal_workload_type", "Deployment"),
+                    app_code="portal_open_api_test_app",
+                    app_name="portal_open_api_test_app",
+                    app_type="web_type",
+                    workload_type="Deployment",
                     system_id=api_cache.get("systemId1")
                 )
 
@@ -407,10 +407,10 @@ class TestPortalOpenAPI:
             with AllureHelper.step("发送 POST 请求更新系统"):
                 system = OpenSystemEntity(
                     system_id=system_id,
-                    system_name=api_env.get("portal_system_code"),
-                    system_code=api_env.get("portal_system_code"),
-                    create_id=api_env.get("user_id"),
-                    username=api_env.get("query_user_name")
+                    system_name="portal_open_api_test_sys",
+                    system_code="portal_open_api_test_sys",
+                    create_id=api_env.get("portalUserId"),
+                    username=api_env.get("portalUsername")
                 )
                 response_json = portal_service.update_system(system)
 
@@ -443,7 +443,7 @@ class TestPortalOpenAPI:
     def test_query_application_list(self, portal_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求查询应用列表"):
-                app_code = api_env.get("portal_app_code")
+                app_code = "portal_open_api_test_app"
                 response_json = portal_service.query_application_list(app_code)
 
             with AllureHelper.step("验证响应数据"):
@@ -487,7 +487,7 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求进行用户系统授权"):
-                user_id_list = ["200685", api_env.get("user_id")]
+                user_id_list = ["200685", api_env.get("portalUserId")]
                 response_json = portal_service.user_system_authorization(
                     user_id_list=user_id_list,
                     system_id_list=[system_id]
@@ -507,7 +507,7 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求进行用户应用授权"):
-                user_id_list = [api_env.get("user_id"), "200685"]
+                user_id_list = [api_env.get("portalUserId"), "200685"]
                 response_json = portal_service.user_application_authorization(
                     user_id_list=user_id_list,
                     application_id_list=[app_id]
@@ -526,9 +526,9 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 GET 请求查询系统资源配额详情"):
                 code_entity = BasicCodeEntity(
-                    cell_code=api_env.get("cell_code"),
-                    tenant_code=api_env.get("tenant_code"),
-                    system_code=api_env.get("portal_system_code")
+                    cell_code=api_env.get("cellCode"),
+                    tenant_code=api_env.get("tenantCode"),
+                    system_code="portal_open_api_test_sys"
                 )
                 response_json = portal_service.system_resource_quota_detail(code_entity)
 
@@ -554,9 +554,9 @@ class TestPortalOpenAPI:
         with AllureHelper.api_test(portal_service):
             with AllureHelper.step("发送 POST 请求释放系统资源配额"):
                 code_entity = BasicCodeEntity(
-                    cell_code=api_env.get("cell_code"),
-                    tenant_code=api_env.get("tenant_code"),
-                    system_code=api_env.get("portal_system_code")
+                    cell_code=api_env.get("cellCode"),
+                    tenant_code=api_env.get("tenantCode"),
+                    system_code="portal_open_api_test_sys"
                 )
                 response_json = portal_service.system_resource_quota_remove(code_entity)
 
@@ -588,7 +588,7 @@ class TestPortalOpenAPI:
         if api_cache.get("systemExists"):
             pytest.skip("系统已存在，跳过删除系统")
         system_id = api_cache.get("systemId1")
-        system_code = api_env.get("portal_system_code")
+        system_code = "portal_open_api_test_sys"
         if not system_id:
             pytest.skip("未获取到systemId1，跳过删除系统")
 

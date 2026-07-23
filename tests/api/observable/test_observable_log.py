@@ -42,7 +42,7 @@ class TestObservableLog:
     def observable_service(self, api_env, api_logger):
         """创建 Observable OpenAPI 服务实例"""
         service = PanJiObservableOpenService(
-            base_url=api_env.get("api_base_url"), logger=api_logger
+            base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service
         service.close()
@@ -55,15 +55,15 @@ class TestObservableLog:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_log_by_quadruple(self, observable_service, api_env, api_cache):
         log = Log(
-            namespace=api_env.get("log_namespace", "paas-monitor"),
-            cluster_name=api_env.get("log_cluster_name", "kzm-101"),
-            pod_name=api_env.get("log_pod_name", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
-            container_name=api_env.get("log_container_name", "monitor-amdb-confs"),
-            start_time=int(api_env.get("log_start_time", 176145907000)),
-            end_time=int(api_env.get("log_end_time", 176145908000)),
-            component_type=api_env.get("log_component_type", "app"),
+            namespace=api_env.get("obsNamespace", "paas-monitor"),
+            cluster_name=api_env.get("obsClusterName", "kzm-101"),
+            pod_name=api_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
+            container_name=api_env.get("obsContainerName", "monitor-amdb-confs"),
+            start_time=int(api_env.get("obsStartTime", 176145907000)),
+            end_time=int(api_env.get("obsEndTime", 176145908000)),
+            component_type=api_env.get("obsComponentType", "app"),
             sync=False,
-            size=int(api_env.get("log_size", 1)),
+            size=int(api_env.get("obsSize", 1)),
         )
 
         with AllureHelper.step("发送 GET 请求根据四元组检索日志"):
@@ -106,20 +106,20 @@ class TestObservableLog:
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_log_context(self, observable_service, api_env, api_cache):
         context = LogContext(
-            log_id=api_env.get("log_id", "2cNV25kBX1NeH2CondPI"),
-            timestamp=int(api_env.get("log_timestamp", 1760321444470)),
-            offset=int(api_env.get("log_offset", 100016405)),
+            log_id=api_env.get("obsId", "2cNV25kBX1NeH2CondPI"),
+            timestamp=int(api_env.get("obsTimestamp", 1760321444470)),
+            offset=int(api_env.get("obsOffset", 100016405)),
             log_file_path=api_env.get(
-                "log_file_path",
+                "obsLogFilePath",
                 "/apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log"
             ),
-            host_ip=api_env.get("log_host_ip", "100.10.32.101"),
-            namespace=api_env.get("log_namespace", "paas-monitor"),
-            cluster_name=api_env.get("log_cluster_name", "kzm-101"),
-            pod_name=api_env.get("log_pod_name", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
-            container_name=api_env.get("log_container_name", "monitor-amdb-confs"),
+            host_ip=api_env.get("obsHostIp", "100.10.32.101"),
+            namespace=api_env.get("obsNamespace", "paas-monitor"),
+            cluster_name=api_env.get("obsClusterName", "kzm-101"),
+            pod_name=api_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
+            container_name=api_env.get("obsContainerName", "monitor-amdb-confs"),
             sync=False,
-            size=int(api_env.get("log_size", 1)),
+            size=int(api_env.get("obsSize", 1)),
         )
 
         with AllureHelper.step("发送 GET 请求查询日志上下文"):

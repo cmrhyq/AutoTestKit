@@ -60,13 +60,13 @@ def _get_default_headers() -> Dict[str, str]:
     """获取默认请求头。
 
     apikey 从 env yaml 的 ms_apikey 键读取，避免在源码中硬编码敏感凭证；
-    username 复用 basic_auth_username；tenantCode 复用 tenant_code。
+    username 复用 basicAuthUsername；tenantCode 复用 tenantCode。
     """
     env = env_manager.get_config()
     return {
         "apikey": env.get("ms_apikey"),
-        "username": env.get("basic_auth_username"),
-        "tenantCode": env.get("tenant_code"),
+        "username": env.get("basicAuthUsername"),
+        "tenantCode": env.get("tenantCode"),
     }
 
 

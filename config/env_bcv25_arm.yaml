@@ -1,44 +1,40 @@
 # ==================================================================
 # AutoTestKit 环境配置 - bcv25 arm
-# 组织逻辑参考自 auto_test_pro/docs/参数传递逻辑说明.md：
-#   - 按"业务领域 / 资源类型"分组（非按 API 类型 OpenAPI/InnerAPI 分组）
-#   - 同一逻辑资源的多种表述（cellCode/unitCode/planeCode 同值等）合并为一个 key
+# 命名规范：所有参数使用标准 camelCase
 # ==================================================================
 
 
 # ---------------------- 框架基础配置 ----------------------
 # OpenAPI 服务基础地址
-api_base_url: http://openapi.portal.panji-102-53-20030.4a.cmit.cloud:20030
+apiBaseUrl: http://openapi.portal.panji-102-53-20030.4a.cmit.cloud:20030
 # InnerAPI 服务基础地址（内部接口，区别于 openapi）
-api_inner_base_url: http://portal.panji-102-53-20030.4a.cmit.cloud:20030
+apiInnerBaseUrl: http://portal.panji-102-53-20030.4a.cmit.cloud:20030
 # 请求超时/SSL/重试
-api_timeout: 30
-api_verify_ssl: true
-max_retries: 3
-retry_delay: 1
-enable_retry: true
+apiTimeout: 30
+apiVerifySsl: true
+maxRetries: 3
+retryDelay: 1
+enableRetry: true
 # 并行执行
-parallel_workers: auto
-enable_parallel: true
-log_level: INFO
+parallelWorkers: auto
+enableParallel: true
+logLevel: INFO
 # 浏览器（UI 测试用）
-browser_type: chromium
+browserType: chromium
 headless: true
-browser_timeout: 30000
+browserTimeout: 30000
 
 
 # ---------------------- 认证 / 凭证 ----------------------
 # Basic Auth 凭证（对应 auto_test_pro 的 user/userPwd）
-basic_auth_username: panji_probe
-basic_auth_password: Abc123!@#$
-# 默认登录租户（对应 auto_test_pro 的 tenantCode / adminTenantCode）
-tenant_code: tenant_admin
+basicAuthUsername: panji_probe
+basicAuthPassword: Abc123!@#$
 # 兜底认证（预留）
-bearer_token: null
-api_key: null
-api_key_header: null
+bearerToken: null
+apiKey: null
+apiKeyHeader: null
 
-# 多租户账号（key = tenant_code），tests/api/conftest.py 的 get_token fixture 按需登录
+# 多租户账号（key = tenantCode），tests/api/conftest.py 的 get_token fixture 按需登录
 tenants:
   tenant_admin:
     username: panji_probe
@@ -47,292 +43,231 @@ tenants:
     username: panji_probe
     password: Abc123!@#$
 
+#---------------------- 标准集群信息 ----------------------
+# 集群id
+clusterId: 2
+# 集群名称
+clusterName: yxm-arm
+# namespace
+namespace: api-auto-test-ns
+# 集群cellCode
+cellCode: testkk
+# 单元名称
+cellName: testkk
+# 平面编码
+planeCode: testtt
+# 平面名称
+planeName: test1
+# 单元编码
+unitCode: testkk
+# 单元名称
+unitName: testkk
+# 系统code
+sysCode: api-auto-test-ns
+# nodeIp
+nodeIp: 100.10.102.51
 
-# ---------------------- 用户信息 ----------------------
-# 平台用户名（用于查询消息、系统创建等，对应 auto_test_pro 的 portalUsername/username）
-query_user_name: shengsong-sit4
-# 平台用户 ID（对应 auto_test_pro 的 portalUserId/userId）
-user_id: "201214"
-# 租户 ID（用于创建系统/应用时关联租户，对应 auto_test_pro 的 tenantId）
-tenant_id: "1"
+#---------------------- 托管集群信息 ----------------------
+# 托管集群id
+hostClusterId: 2
+# 托管集群cellCode
+hostCellCode: testkk
+# 托管系统code
+hostSysCode: api-auto-test-ns
+# nodeIp
+hostNodeIp: 100.10.102.51
 
+#---------------------- 用户信息 ----------------------
+# 用户名
+user: panji_probe
+# 用户密码
+userPwd: Abc123!@#$
+# 租户code（角色为租户管理员）
+tenantCode: monitor-group
+# 租户code（角色为平台管理员）
+adminTenantCode: tenant_admin
 
-# ---------------------- 标准集群信息 ----------------------
-# 集群 ID（对应 auto_test_pro 的 clusterId）
-# 亦用于：recovery_cluster_id / harbor_init_id / workload_replicas/completions/parallelism 等所有"标量 1"占位
-cluster_id: "1"
-# 集群名称（对应 auto_test_pro 的 clusterName）
-cluster_name: controller-test
-# 单元编码（对应 auto_test_pro 的 cellCode / unitCode / planeCode，值同）
-# 覆盖：ms_cell_code / ms_plane_code / ec_endpoints_cell_code / ec_configmap_cell_code
-#       / ec_image_namespace / ec_image_project_name / ec_recovery_unit_code
-cell_code: test
-# 系统编码（对应 auto_test_pro 的 sysCode / namespace）
-sys_code: probe-ns
-# Node IP / Domain IP（对应 auto_test_pro 的 nodeIp）
-node_ip: 192.168.142.3
+#---------------------- 标签值 ----------------------
+paasUnitCode: testkk
+paasEnvCode: PROD1
+paasPlaneCode: testtt
+paasTenantCode: monitor-group
 
+#---------------------- app code，无需改动 ----------------------
+appCodeDeploy: test-probe-deploy1
+appCodeSts: test-probe-statefulset1
+appCodeDaemonset: test-probe-daemonset1
+appCodeJob: test-probe-job1
 
-# ---------------------- 弹性计算-专属集群信息 ----------------------
-# 弹性计算模块的单元编码（部分接口使用大写 TEST，非通用 cell_code 值）
-ec_cell_code: TEST
-# 弹性计算 sys_code / namespace / host_cell_code / host_sys_code 同值
-ec_sys_code: test-admin
-# 弹性计算平面编码（workload/recovery 的 planeCode）
-ec_plane_code: PLANE
-# 弹性计算环境编码（对应 auto_test_pro 的 paasEnvCode）
-# 覆盖：ec_ecapp_username / ec_workload_env_code / ec_recovery_env_code / ec_recovery_username / ms_env_code
-ec_env_code: PROD
-# 弹性计算辅助 sys_code（EndpointsV2 / ConfigMap 使用）
-ec_sub_sys_code: xt-sit1
-# 弹性计算 image / domain 独立的 cluster_id
-ec_image_cluster_id: "56"
-# 是否使用托管集群测试：0否；1是（对应 auto_test_pro 的 testHostCluster）
-ec_test_host_cluster: "0"
+#---------------------- harbor 信息 ----------------------
+# harbor id
+harborId: 1
+# harbor名称
+harborName: harbor-panji-v25-yx
+# harbor 访问地址
+harborUrl: http://100.10.102.53:1121
+# harbor admin用户密码
+harborAdminPwd: "******"
+# 初始化创建harbor仓库的id
+targetId: 1
+# 初始化创建harbor仓库的名称
+copyHarborName: slave
+# 初始化创建harbor仓库的url
+copyHarborUrl: http://100.10.102.53:1121
+# 复制镜像的harbor项目名称
+copyProjectName: tools
+# 复制镜像过滤规则
+copyFilters: tools/nginx
+# 复制镜像名称
+copyRepName: nginx
+# 复制镜像版本
+copyImageTag: arm
+### 使用nginx镜像的详细信息
+# nginx镜像完整地址
+nginxImageUrl: 100.10.102.53:1121/tools/nginx:arm
+# nginx镜像所在harbor项目名称
+nginxProjectName: tools
+nginxRepoName: tools/nginx
+nginxImageName: tools/nginx:arm
+nginxImageRepo: 100.10.102.53:1121/tools/nginx
+nginxImageTag: arm
 
+#---------------------- workload 信息 ----------------------
+# hpa 关联 workload kind
+nativeHpaWorkloadKind: Deployment
+# hpa 关联 workload 名称
+nativeHpaWorkloadName: auto-test-deploy-probe-ns-test-0001
+# so 关联 workload kind
+soWorkloadKind: Deployment
+# so 关联 workload 名称
+soWorkloadName: auto-test-deploy-probe-ns-test-0002
 
-# ---------------------- Portal / 场景化用例参数 ----------------------
-# 应用类型（web_type / app_type 等）
-portal_app_type: web_type
-# 负载类型（Deployment / StatefulSet 等）
-portal_workload_type: Deployment
-# 分页参数
-page_num: 1
-page_size: 10
-# 加密用户信息（用于用户同步接口）
-sync_username: YV9l97xXmCphM0kLY8IptQ==
-sync_phone: FZfAKlL4LhFOuegCAVR0cA==
-sync_email: /9VWlMdY7PShZj72q53jIQ==
-# 产品实例名称（对应 auto_test_pro 的 prodInstName）
-prod_inst_name: "1210"
+#---------------------- 存储相关 ----------------------
+# pv name - 查询
+pvName: auto-test-probe-pv-test-0001
+# storageClass name
+storageClassName: nfs-51
+# nfs名称
+nfsName: nfs-51
 
+#---------------------- 其他杂项 ----------------------
+# physicalHostId - 裸金属主机id
+physicalHostId: 1
+# 租户nodeport端口范围分配
+ports: 30011-30030
+# 是否使用托管集群测试：0否；1是；涉及接口：limitRange和ResourceQuota的创建和删除接口
+testHostCluster: 0
+# 授权用户
+grantUser: monitor-admin
+# 授权appCode
+grantAppCode: test-probe-deploy1
 
-# ---------------------- Portal OpenAPI 测试数据 ----------------------
-# 系统编码（OpenAPI 创建）
-portal_system_code: testss20250319
-# 应用编码（OpenAPI 创建）
-portal_app_code: testyy20250108
+#---------------------- 门户Open接口参数，黄昱桥 ----------------------
+# 门户Open部分接口做测试用的，要替换就随便在对应环境上找一个有平台管理员权限的账号就行
+portalUsername: hyq
+# 上面用户对应的id
+portalUserId: 202012
+prodInstName: 1210
+# 用户创建接口参数
+syncPhone: FZfAKlL4LhFOuegCAVR0cA==
+syncEmail: /9VWlMdY7PShZj72q53jIQ==
+syncUsername: YV9l97xXmCphM0kLY8IptQ==
 
+#---------------------- 运营运维 ----------------------
+# 磐基->运维视图->运营运维->巡检中心->巡检任务->任务名称
+taskName: c
+# 运营运维/云拨测/任务分析页面
+monitorYunboceRwfxId1: 1
+monitorYunboceRwfxId2: 1
 
-# ---------------------- Portal InnerAPI 测试数据 ----------------------
-# 系统编码 / 系统名称（InnerAPI 创建，用作 systemName/systemCode）
-inner_system_code: testxt20250711
-# 应用编码 / 应用名称（InnerAPI 创建，用作 applicationSourceName/applicationSourceCode）
-inner_app_code: testyy20250711
-# 字典 / API 查询模块名
-module_name: portal
-# license 查询模块编码
-module_code: mesh
-# 主角色编码（角色 CRUD 测试）
-role_code_0: autotest250711
-# 绑定流程用角色编码（用户-租户-角色绑定测试）
-role_code_2: autorole250711
-# 绑定流程用目标用户名
-username_2: test0930
-# 绑定流程用测试租户编码
-tenant_code_2: autotenant250711
+#---------------------- 可观测 ----------------------
+# 磐基->运维视图->运营运维->资源中心->资产配置->打开F12选择一个资产点击然后寻找moduleId
+modelsIdOrName: 935efb34-b511-418f-8ead-035d3edb0a46
+# 以下参数寻找路径：磐基Paas平台 -> 运维视图 -> 运营运维 -> 日志中心 -> 日志检索 -> 默认视图 -> 下拉选择一条日志点击 -> 对象信息
+obsId: NEhDfp8B5CCISReqPXJk
+obsNamespace: paas-ec
+obsClusterName: kzm-arm
+obsPodName: ec-k8s-auth-km2zs
+obsContainerName: container-0
+obsComponentType: app
+obsSync: false
+obsStartTime: 1784529759178
+obsEndTime: 1784529759349
+obsSize: 1
+obsTimestamp: 1784529759178
+obsOffset: 66782284
+obsLogFilePath: /apps/monitor/oblogs/ns/paas-ec/pod/ec-k8s-auth-km2zs/poduid/53825652-4f4b-4400-8501-a0bd535895dd/cn/container-0/app/info-ec-auth.log
+obsHostIp: 100.10.102.52
 
+#---------------------- 微服务-istio网关 ----------------------
+# istio 网关实例名称
+istioGatewayInstanceName: testapi-gwinstance-721
+# istio 网关实例对应 nodeport
+istioGatewayNodePort: 30011
+# istio 网关名称
+istioGatewayName: testapi-gw-721
+# istio 虚拟服务名称
+istioVsName: testapi-vs-721
+# istio 网关实例名称 - inner 接口
+istioGatewayInstanceNameInner: testapi-inner-gwinstance-721
+# istio 网关实例对应 nodeport - inner 接口
+istioGatewayNodePortInner: 30012
+# istio 网关名称 - inner 接口
+istioGatewayNameInner: testapi-inner-gw-721
+# istio 虚拟服务名称 - inner 接口
+istioVsNameInner: testapi-inner-vs-721
 
-# ---------------------- 插件中心 ----------------------
-plugin_name: kubectl
+#---------------------- 微服务接口参数 ----------------------
+# 微服务CMF参数
+# openapi接口
+ubmPath: /openapi/ms-ubm/microservice-ubm/openapi/tenant
+# 控制面名称
+controlPlaneName: CMF
+# 微服务编码
+applicationCode: cmfcust
+belongCode: cust
+# 服务类名
+functionClassName: com.cmit.vs.cmf.name.common.INameCSV
+# 服务编码
+funcserCode: cust_IUserInfoCSV_name
+# 环境编码
+envCode: PROD1
+# 服务名称
+funcSerName: name
+# openapi接口
+cmfPath: /openapi/ms-ubm/microservice-ubm
+# 控制面编码
+controlPlaneCode: CMF
+# 注册中心名称
+registryName: zk-1
+# openapi接口
+ingressPath: /openapi/ms-ingress/microservice-ingress-console/openapi/tenant
+# openapi接口
+meshPath: /openapi/ms-mesh/microservice-mesh-console/openapi/tenant
+# mesh 网关名称
+meshGatewayName: gateway-demo
+# 网关配置名称
+ruleName: rule-demo
+# mesh 虚拟服务名称
+meshVsName: vs-demo
+# 主机端口
+nodePort: 30026
+# 服务名称
+svcHost: gateway-demo.probe-ns.svc.cluster.local
+# 微服务
+application: Application
+# 服务
+funcSer: FuncSer
 
-
-# ---------------------- 运营运维 ----------------------
-# 接口拨测日志 ID（运营运维/云拨测/任务分析）
-monitor_yunboce_rwfx_id_1: 15174
-# 服务拨测日志 ID
-monitor_yunboce_rwfx_id_2: 108649
-# 巡检任务名称（对应 auto_test_pro 的 taskName）
-inspection_task_name: test1119
-
-
-# ---------------------- 可观测（日志/模型）----------------------
-# 日志查询 - 命名空间
-log_namespace: paas-monitor
-# 日志查询 - 集群名称
-log_cluster_name: kzm-101
-# 日志查询 - Pod 名称
-log_pod_name: monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r
-# 日志查询 - 容器名称
-log_container_name: monitor-amdb-confs
-# 日志查询 - 组件类型
-log_component_type: app
-# 日志查询 - 开始时间戳
-log_start_time: 176145907000
-# 日志查询 - 结束时间戳
-log_end_time: 176145908000
-# 日志查询 - 返回数量
-log_size: 1
-# 日志上下文 - 日志 ID
-log_id: 2cNV25kBX1NeH2CondPI
-# 日志上下文 - 时间戳
-log_timestamp: 1760321444470
-# 日志上下文 - 偏移量
-log_offset: 100016405
-# 日志上下文 - 日志文件路径
-log_file_path: /apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log
-# 日志上下文 - 主机 IP
-log_host_ip: 100.10.32.101
-# 模型查询 - 模型 ID 或名称
-models_id_or_name: c6869bc8-b527-4bff-bce7-6f39de1b06ab
-
-
-# ---------------------- 微服务 - 通用 ----------------------
-# InnerAPI apikey（微服务模块专用鉴权）
-ms_apikey: 67d5da7b76b1030ea6888f7644e05195
-# 系统编码
-ms_sys_code: probe-ns
-
-# ---------------------- 微服务 - istio 网关 ----------------------
-# istio 网关名称（对应 auto_test_pro 的 gatewayname）
-ms_gateway_name: gateway-demo
-# 网关规则名称（对应 auto_test_pro 的 rulename）
-ms_rule_name: rule-demo
-# 虚拟服务名称（对应 auto_test_pro 的 vsname）
-ms_vs_name: vs-demo
-
-# ---------------------- 微服务 - CMF ----------------------
-# 控制面名称 / 编码（同值，对应 auto_test_pro 的 controlPlaneName / controlPlaneCode）
-ms_control_plane: CMF
-# 应用编码 / 归属编码（同值，对应 auto_test_pro 的 applicationCode / belongCode）
-ms_application_code: cust
-# 服务类名（Java 全限定名，对应 auto_test_pro 的 functionClassName）
-ms_function_class_name: com.cmit.vs.cmf.name.common.INameCSV
-# 服务编码（对应 auto_test_pro 的 funcserCode）
-ms_funcser_code: cust_IUserInfoCSV_name
-# 服务名称（对应 auto_test_pro 的 funcSerName）
-ms_func_ser_name: name
-# 注册中心名称（对应 auto_test_pro 的 registryName）
-ms_registry_name: zk-test
-
-
-# ---------------------- 弹性计算 - 通用 ----------------------
-# Extensions apikey（extentions/ 路径下的接口鉴权）
-ec_apikey: 186cc9f603c4fed3742ff4160f2beec2
-# 通用资源名（configmap / pod 等同值）
-ec_name: cm-demo
-# 通用 apiVersion
-ec_api_version: v1
-
-# ---------------------- 弹性计算 - CustomResource (namespace 级) ----------------------
-ec_group: keda.sh
-ec_version: v1alpha1
-ec_kind: ScaledObject
-ec_cr_name: test-cr-so001
-
-# ---------------------- 弹性计算 - CustomResource (cluster 级) ----------------------
-ec_cr_cluster_kind: Apple
-ec_cr_cluster_group: test.example.com
-ec_cr_cluster_version: v1
-ec_cr_cluster_name: test-apple
-
-# ---------------------- 弹性计算 - Workload ----------------------
-# workload kind（Deployment/StatefulSet 等，覆盖 app_kinds / so_workload_kind / recovery_workload_kind）
-ec_workload_kind: Deployment
-# workload 名称（覆盖 service_name / service_account_name / endpoints_name / recovery_workload_name）
-ec_workload_name: app-nginx
-# workload appCode（对应 auto_test_pro 的 appCodeDeploy，同时覆盖 helm_app_code）
-ec_app_code: test-app
-# workload cron 调度表达式
-ec_workload_schedule: "0/1 * * * ?"
-# workload pod 内文件路径（探针检查）
-ec_workload_file_path_in_pod: /docker-entrypoint.sh
-
-# ---------------------- 弹性计算 - Pod / Container ----------------------
-ec_container_name: container0
-# 通用镜像（对应 auto_test_pro 的 nginxImageName）
-ec_image: hpe_containers/nginx:latest
-# 通用镜像 tag（覆盖 image_version / image_delete_version / helm_image_tag）
-ec_image_tag: latest
-# 应用查询关键字
-ec_app_search_keyword: nginx
-# 轮询间隔（ms）
-ec_interval_time: "10000"
-
-# ---------------------- 弹性计算 - HPA / ScaledObject ----------------------
-# HPA / PVC 名（同值）
-ec_pvc_name: test-hpa-001
-# ScaledObject 名
-ec_so_name: test-so-001
-# ScaledObject 关联 workload 名
-ec_so_workload_name: dev
-
-# ---------------------- 弹性计算 - 存储 (PV / StorageClass) ----------------------
-# PV 名（对应 auto_test_pro 的 pvName）
-ec_pv_name: test-pv-001
-# StorageClass 名（对应 auto_test_pro 的 storageClassName）
-ec_storage_class_name: test-sc-001
-
-# ---------------------- 弹性计算 - PriorityClass / Secret ----------------------
-ec_priority_class_name: pc-test
-ec_secret_name: app-nginx-secret3
-
-# ---------------------- 弹性计算 - Quota ----------------------
-# quota-manager 租户编码（body 内）
-ec_quota_tenant_code: lzm
-# quota-manager 用户名（body 内）
-ec_quota_username: lzm-admin
-
-# ---------------------- 弹性计算 - Recovery ----------------------
-ec_recovery_resource_name: test-resource-deploy-001
-ec_recovery_app_code: probe-deploy
-ec_recovery_tenant_code: monitor-group
-
-# ---------------------- 弹性计算 - Ingress / Domain ----------------------
-ec_istio_ingress_sys_code: istio-ingress
-ec_domain_name: probetest.a.b.c.e.f
-# nodePort 单端口
-ec_nodeport: "10001"
-# 租户 nodePort 端口范围（对应 auto_test_pro 的 ports）
-ec_nodeport_ports: 30011-30030
-
-
-# ---------------------- 弹性计算 - Harbor ----------------------
-# Harbor id（对应 auto_test_pro 的 harborId）
-ec_harbor_id: "3"
-# Harbor 项目名
-ec_harbor_project_name: test-harbor-project001
-# Harbor 项目成员
-ec_harbor_project_member_name: ec-harbor-admin
-# 复制 Harbor 名称（对应 auto_test_pro 的 copyHarborName）
-ec_harbor_copy_name: test-harbor-test001
-# 复制 Harbor URL（对应 auto_test_pro 的 copyHarborUrl）
-ec_harbor_copy_url: http://192.168.142.3:1121
-# 复制 Harbor 访问账号 / 密码
-ec_harbor_copy_access_id: admin
-ec_harbor_copy_access_secret: Harbor12345
-# 复制项目名（对应 auto_test_pro 的 copyProjectName）
-ec_harbor_copy_project_name: test
-# 复制过滤规则（对应 auto_test_pro 的 copyFilters）
-ec_harbor_copy_filters: test/**
-# 复制镜像 tag（对应 auto_test_pro 的 copyImageTag）
-ec_harbor_copy_image_tag: "1.21"
-# 目标 Harbor id（对应 auto_test_pro 的 targetId）
-ec_harbor_target_id: "2"
-# 复制策略名
-ec_harbor_policy_name: test-replication-policiy-name001
-
-
-# ---------------------- 弹性计算 - Image API ----------------------
-# 镜像名（对应 auto_test_pro 的 copyRepName / nginxRepoName）
-ec_image_name: nginx
-# 待删除镜像名（含项目前缀）
-ec_image_delete_name: test/nginx
-
-
-# ---------------------- 弹性计算 - Helm ----------------------
-ec_helm_release_name: nginx-demo
-# Helm chart 使用的镜像地址（不含 tag，对应 auto_test_pro 的 nginxImageRepo）
-ec_helm_image: hpe_containers/nginx
-ec_helm_chart_name: nginx
-ec_helm_chart_version: 0.1.0
-ec_helm_chart_file_path: ""
+#---------------------- 20250805，插件中心接口，黄昱桥 ----------------------
+# 插件名称，可以在插件中心，我的插件中找到 | 用于查询接口
+pluginName: kubectl
 
 
 # ---------------------- UI 测试配置 ----------------------
 # UI 测试入口地址
-ui_base_url: http://portal.nbpod3-31-181-20030.4a.cmit.cloud:20030/portal/web/#/login
+uiBaseUrl: http://portal.nbpod3-31-181-20030.4a.cmit.cloud:20030/portal/web/#/login
 # UI 登录用户名
-ui_username: huangyuqiao
+uiUsername: huangyuqiao
 # UI 登录密码
-ui_password: PJ2025@ceshi
+uiPassword: PJ2025@ceshi

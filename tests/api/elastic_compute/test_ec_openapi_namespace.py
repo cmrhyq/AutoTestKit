@@ -36,7 +36,7 @@ class TestEcOpenapiNamespace:
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
         service = PanJiElasticComputeOpenService(
-            base_url=api_env.get("api_base_url"),
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -47,7 +47,7 @@ class TestEcOpenapiNamespace:
     def test_list_namespaces(self, ec_service, api_env, api_cache):
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送 GET 请求查询 Namespace 列表"):
-                cell_code = api_env.get("ec_cell_code")
+                cell_code = api_env.get("cellCode")
                 response_json = ec_service.list_namespaces(cell_code)
             with AllureHelper.step("验证响应并缓存第一条 sysCode"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
@@ -63,12 +63,12 @@ class TestEcOpenapiNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_detail(self, ec_service, api_env, api_cache):
         with AllureHelper.api_test(ec_service):
-            with AllureHelper.step("确定 sys_code：优先取缓存 ec_first_sys_code，否则用 env ec_sys_code"):
-                cell_code = api_env.get("ec_cell_code")
+            with AllureHelper.step("确定 sys_code：优先取缓存 ec_first_sys_code，否则用 env sysCode"):
+                cell_code = api_env.get("cellCode")
                 sys_code = (
                     api_cache.get("ec_first_sys_code")
                     if api_cache.has("ec_first_sys_code")
-                    else api_env.get("ec_sys_code")
+                    else api_env.get("sysCode")
                 )
                 if not sys_code:
                     pytest.skip("缺少 upstream 依赖：无法解析 sys_code")
