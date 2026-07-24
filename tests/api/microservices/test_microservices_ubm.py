@@ -23,7 +23,7 @@ from core.reporting.allure_helper import AllureHelper
 @pytest.mark.api
 @allure.feature("磐基微服务 UBM OpenAPI 服务")
 @allure.story("Microservices UBM OpenAPI 接口测试")
-class TestMicroservicesUbmOpenApi:
+class TestMicroservicesUbm:
     """
     Microservices UBM OpenAPI 测试
 

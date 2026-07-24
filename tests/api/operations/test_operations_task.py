@@ -15,13 +15,9 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("运营运维OpenAPI服务")
-@allure.story("operations-task 巡检任务")
+@allure.feature("磐基运营运维OpenAPI服务")
+@allure.story("observable-task 巡检任务接口")
 class TestOperationsTask:
-    """
-    对应 JMeter 脚本: operations-task.jmx
-    线程组: 运营运维巡检中心-openapi调用
-    """
 
     TENANT = "tenant_admin"
 
@@ -43,14 +39,15 @@ class TestOperationsTask:
     @allure.description("POST /openapi/monitor-inspection/cluster-inspection/api/inspectionTask/executeTask - 执行巡检任务")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_execute_inspection_task(self, operation_service, api_env, api_cache):
-        task_name = api_env.get("taskName", "test1119")
+        with AllureHelper.api_test(operation_service):
+            task_name = api_env.get("taskName", "test1119")
 
-        with AllureHelper.step(f"发送 POST 请求执行巡检任务: {task_name}"):
-            response_json = operation_service.execute_inspection_task(task_name=task_name)
+            with AllureHelper.step(f"发送 POST 请求执行巡检任务: {task_name}"):
+                response_json = operation_service.execute_inspection_task(task_name=task_name)
 
-        with AllureHelper.step("验证响应数据"):
-            assert isinstance(response_json, dict), "响应应该是字典类型"
-            # JMX 中断言 test_type=16 (NOT) 包含 resultCode:000000
-            # 即验证接口不会返回错误码，允许正常响应
-            assert response_json.get("resultCode") != "000000" or "data" in response_json, \
-                "接口应返回有效响应"
+            with AllureHelper.step("验证响应数据"):
+                assert isinstance(response_json, dict), "响应应该是字典类型"
+                # JMX 中断言 test_type=16 (NOT) 包含 resultCode:000000
+                # 即验证接口不会返回错误码，允许正常响应
+                assert response_json.get("resultCode") != "000000" or "data" in response_json, \
+                    "接口应返回有效响应"

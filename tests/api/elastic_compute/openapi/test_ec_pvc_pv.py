@@ -31,7 +31,7 @@ class TestEcOpenapiPvcPv:
     线程组: Thread Group - pvc
     """
 
-    TENANT = "tenant_admin"
+    TENANT = "monitor-group"
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):

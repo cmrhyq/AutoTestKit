@@ -1,11 +1,11 @@
 """
-弹性计算 extentions/applications 接口测试脚本
+弹性计算 extensions/applications 接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/elastic-compute/extentions/applications.jmx 转换。
+基于 JMeter auto_test_pro/auto-test/files/elastic-compute/extensions/applications.jmx 转换。
 覆盖 elastic-compute 应用搜索 1 个用例：
 - searchApp by kinds
 
-extentions 类走 apikey 鉴权（不走 Bearer token），因此本类不需要 _login。
+extensions 类走 apikey 鉴权（不走 Bearer token），因此本类不需要 _login。
 """
 from typing import Dict
 
@@ -21,7 +21,7 @@ from core.reporting.allure_helper import AllureHelper
 @pytest.mark.api
 @allure.feature("磐基弹性计算 Extensions 服务")
 @allure.story("Elastic Compute Extensions Application 接口测试")
-class TestEcExtentionsApplication:
+class TestEcExtensionsApplication:
     """
     Elastic Compute Extensions Application 测试
 

@@ -25,7 +25,7 @@ class TestEcOpenapiCluster:
     Elastic Compute Cluster OpenAPI 测试（Bearer 鉴权）
     """
 
-    TENANT = "tenant_admin"
+    TENANT = "monitor-group"
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):

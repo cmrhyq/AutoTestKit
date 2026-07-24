@@ -22,7 +22,7 @@ from core.reporting.allure_helper import AllureHelper
 @pytest.mark.api
 @allure.feature("磐基微服务 Istio Gateway OpenAPI 服务")
 @allure.story("Microservices Istio Gateway OpenAPI 接口测试")
-class TestMicroservicesIstioOpenApi:
+class TestMicroservicesIstio:
     """
     Microservices Istio Gateway OpenAPI 测试
 

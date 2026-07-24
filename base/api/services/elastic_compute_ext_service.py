@@ -1,7 +1,7 @@
 """
 弹性计算 Extensions 服务封装（apikey 鉴权）
 
-基于 auto_test_pro 的 auto-test/files/elastic-compute/extentions/*.jmx 转换：
+基于 auto_test_pro 的 auto-test/files/elastic-compute/extensions/*.jmx 转换：
 - applications.jmx：查询应用服务列表
 
 Extensions 类接口使用 apikey/username/tenantCode 三件头鉴权，
@@ -65,7 +65,7 @@ class PanJiElasticComputeExtService(BaseService):
         """
         查询当前租户的所有应用服务信息。
 
-        对应 JMX：弹性计算_extentions_applications_查询应用服务列表
+        对应 JMX：弹性计算_extensions_applications_查询应用服务列表
         GET /elastic-compute/v2/searchApp?kinds=Deployment
 
         Args:

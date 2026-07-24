@@ -324,14 +324,14 @@ def test_xxx(self, ec_service, api_env, api_cache):
 
 ```bash
 ruff check base/api/services/elastic_compute_open_service.py
-ruff check tests/api/elastic_compute/test_ec_openapi_pvc_pv.py
+ruff check tests/api/elastic_compute/test_ec_pvc_pv.py
 ```
 
 确保无错误。如有格式问题：
 
 ```bash
 ruff format base/api/services/elastic_compute_open_service.py
-ruff format tests/api/elastic_compute/test_ec_openapi_pvc_pv.py
+ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
 ```
 
 ### Step 14：核对检查清单

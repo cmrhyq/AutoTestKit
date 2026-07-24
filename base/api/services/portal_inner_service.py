@@ -188,7 +188,7 @@ class PanJiPortalInnerService(BaseService):
         """
         self.logger.info("Getting User's Full Data")
         # 本地调用时需要在portal后加入/server，其他情况则去除
-        url = "/portal/api/user/list"
+        url = "/portal/server/api/user/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -203,7 +203,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 用户信息
         """
         self.logger.info(f"Getting user info for: {username}")
-        url = f"/portal/api/v2/users/{username}"
+        url = f"/portal/server/api/v2/users/{username}"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -218,7 +218,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 创建结果
         """
         self.logger.info(f"Creating role: {user.username}")
-        url = "/portal/api/v2/tenant"
+        url = "/portal/server/api/v2/tenant"
         payload = {
             "userName": user.username,
             "alias": user.alias,
@@ -242,7 +242,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 删除结果
         """
         self.logger.info(f"Deleting user: {username}")
-        url = f"/portal/api/v2/users/{username}"
+        url = f"/portal/server/api/v2/users/{username}"
         response = self.delete(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -256,7 +256,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 租户列表数据
         """
         self.logger.info("Getting Tenant's Full Data")
-        url = "/portal/api/tenant/list"
+        url = "/portal/server/api/tenant/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -272,7 +272,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 绑定结果
         """
         self.logger.info(f"Binding user {username} to tenant {tenant_code}")
-        url = f"/portal/api/v2/users/{username}/tenants/{tenant_code}/bind"
+        url = f"/portal/server/api/v2/users/{username}/tenants/{tenant_code}/bind"
         response = self.post(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -288,7 +288,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 解绑结果
         """
         self.logger.info(f"Unbinding user {username} from tenant {tenant_code}")
-        url = f"/portal/api/v2/users/{username}/tenants/{tenant_code}/unbind"
+        url = f"/portal/server/api/v2/users/{username}/tenants/{tenant_code}/unbind"
         response = self.post(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -305,7 +305,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 绑定结果
         """
         self.logger.info(f"Binding role {role_code} to user {username} in tenant {tenant_code}")
-        url = f"/portal/api/v2/users/{username}/tenants/{tenant_code}/roles/{role_code}/bind"
+        url = f"/portal/server/api/v2/users/{username}/tenants/{tenant_code}/roles/{role_code}/bind"
         response = self.post(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -322,7 +322,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 解绑结果
         """
         self.logger.info(f"Unbinding role {role_code} from user {username} in tenant {tenant_code}")
-        url = f"/portal/api/v2/users/{username}/tenants/{tenant_code}/roles/{role_code}/unbind"
+        url = f"/portal/server/api/v2/users/{username}/tenants/{tenant_code}/roles/{role_code}/unbind"
         response = self.post(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -337,7 +337,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 租户列表数据
         """
         self.logger.info("Getting Tenant's info")
-        url = f"/portal/api/v2/tenants/{tenant_code}"
+        url = f"/portal/server/api/v2/tenants/{tenant_code}"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -352,7 +352,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 创建结果
         """
         self.logger.info(f"Creating tenant: {tenant.tenant_code}")
-        url = "/portal/api/v2/tenant"
+        url = "/portal/server/api/v2/tenant"
         payload = {
             "tenantCode": tenant.tenant_code,
             "tenantName": tenant.tenant_name,
@@ -377,7 +377,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 删除结果
         """
         self.logger.info(f"Deleting tenant: {tenant_code}")
-        url = f"/portal/api/v2/tenants/{tenant_code}"
+        url = f"/portal/server/api/v2/tenants/{tenant_code}"
         response = self.delete(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -391,7 +391,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 角色列表数据
         """
         self.logger.info("Getting Role's Full Data")
-        url = "/portal/api/role/list"
+        url = "/portal/server/api/role/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -403,7 +403,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 角色列表数据
         """
         self.logger.info("Getting roles (v2)")
-        url = "/portal/api/v2/roles"
+        url = "/portal/server/api/v2/roles"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -418,7 +418,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 创建结果
         """
         self.logger.info(f"Creating role: {role.role_code}")
-        url = "/portal/api/role/add"
+        url = "/portal/server/api/role/add"
         payload = {
             "roleName": role.role_name,
             "roleCode": role.role_code,
@@ -441,7 +441,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 修改结果
         """
         self.logger.info(f"Updating role: {role.role_name}")
-        url = f"/portal/api/v2/roles/{role.role_name}"
+        url = f"/portal/server/api/v2/roles/{role.role_name}"
         payload = {
             "roleName": role.role_name,
             "roleDesc": role.role_desc,
@@ -462,7 +462,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 删除结果
         """
         self.logger.info(f"Deleting role: {role_code}")
-        url = f"/portal/api/v2/roles/{role_code}"
+        url = f"/portal/server/api/v2/roles/{role_code}"
         response = self.delete(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -480,7 +480,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 字典数据
         """
         self.logger.info(f"Getting dict data for module: {module_name}")
-        url = f"/portal/api/dict/list/{module_name}"
+        url = f"/portal/server/api/dict/list/{module_name}"
         params = {}
         if dict_type:
             params["dictType"] = dict_type
@@ -497,7 +497,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: API列表数据
         """
         self.logger.info("Getting Role API Full Data")
-        url = "/portal/api/roleApi/list"
+        url = "/portal/server/api/roleApi/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -512,7 +512,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: API列表数据
         """
         self.logger.info("Getting API list")
-        url = "/portal/api/v2/apiDefines"
+        url = "/portal/server/api/v2/apiDefines"
         params = {
             "moduleName": module_name
         }
@@ -532,7 +532,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 授权结果
         """
         self.logger.info(f"API bulk authorization")
-        url = f"/portal/api/v2/roles/{role_code}/apis/auth"
+        url = f"/portal/server/api/v2/roles/{role_code}/apis/auth"
         payload = api_list
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
@@ -550,7 +550,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 解除授权结果
         """
         self.logger.info(f"API bulk authorization")
-        url = f"/portal/api/v2/roles/{role_code}/apis/unAuth"
+        url = f"/portal/server/api/v2/roles/{role_code}/apis/unAuth"
         payload = api_list
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
@@ -568,7 +568,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 系统参数数据
         """
         self.logger.info(f"Getting system config, key: {key}")
-        url = "/portal/api/systemConfig/list"
+        url = "/portal/server/api/systemConfig/list"
         params = {}
         if key:
             params["key"] = key
@@ -590,7 +590,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 添加结果
         """
         self.logger.info(f"Adding version info for component: {component_code}")
-        url = "/portal/api/version/addVersionInfo"
+        url = "/portal/server/api/version/addVersionInfo"
         payload = {
             "componentName": component_name,
             "componentCode": component_code,
@@ -610,7 +610,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: license信息
         """
         self.logger.info(f"Getting license info for module: {module_code}")
-        url = f"/portal/api/license/{module_code}"
+        url = f"/portal/server/api/license/{module_code}"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -622,7 +622,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 平台版本信息
         """
         self.logger.info("Getting platform version")
-        url = "/portal/api/v1/version"
+        url = "/portal/server/api/v1/version"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -636,7 +636,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 平台基本信息
         """
         self.logger.info("Getting platform base info")
-        url = "/portal/api/v1/platform/baseInfo"
+        url = "/portal/server/api/v1/platform/baseInfo"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -648,7 +648,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 开启的模块列表
         """
         self.logger.info("Getting platform enabled modules")
-        url = "/portal/api/v1/platform/enableModules"
+        url = "/portal/server/api/v1/platform/enableModules"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -662,7 +662,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 全局配置数据
         """
         self.logger.info("Getting PaaS config")
-        url = "/portal/api/paasConfig"
+        url = "/portal/server/api/paasConfig"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -677,7 +677,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 修改结果
         """
         self.logger.info("Updating global config")
-        url = "/portal/api/globalConfig/update"
+        url = "/portal/server/api/globalConfig/update"
         payload = {"modules": modules}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
@@ -692,7 +692,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 授权信息
         """
         self.logger.info("Getting auth info")
-        url = "/portal/api/getAuthInfo"
+        url = "/portal/server/api/getAuthInfo"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -710,7 +710,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 发送结果
         """
         self.logger.info(f"Sending message to users: {users}")
-        url = "/portal/api/msg/send"
+        url = "/portal/server/api/msg/send"
         payload = {
             "users": users,
             "content": content
@@ -729,7 +729,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 一级域列表
         """
         self.logger.info("Getting first field list")
-        url = "/portal/api/firstFieldInfo/list"
+        url = "/portal/server/api/firstFieldInfo/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -744,7 +744,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 二级域列表
         """
         self.logger.info(f"Getting second field list for system: {system_id}")
-        url = "/portal/api/secondFieldInfo/list"
+        url = "/portal/server/api/secondFieldInfo/list"
         params = {"systemId": system_id}
         response = self.get(endpoint=url, params=params, headers=_get_default_headers())
         return response.json()
@@ -762,7 +762,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 创建结果
         """
         self.logger.info(f"Creating system: {system.system_code}")
-        url = "/portal/api/system/add"
+        url = "/portal/server/api/system/add"
         payload = {
             "systemName": system.system_name,
             "fieldOne": system.field_one,
@@ -787,7 +787,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 系统列表数据
         """
         self.logger.info("Getting system full data")
-        url = "/portal/api/system/list"
+        url = "/portal/server/api/system/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -804,7 +804,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 创建结果
         """
         self.logger.info(f"Creating application: {app.app_code}")
-        url = "/portal/api/application/add"
+        url = "/portal/server/api/application/add"
         payload = {
             "environment": app.environment,
             "applicationSourceName": app.app_name,
@@ -828,7 +828,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 应用列表数据
         """
         self.logger.info("Getting application full data")
-        url = "/portal/api/application/list"
+        url = "/portal/server/api/application/list"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
@@ -845,7 +845,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 实例列表数据
         """
         self.logger.info(f"Getting all instances for model: {model_code}")
-        url = "/portal/api/all-instances"
+        url = "/portal/server/api/all-instances"
         payload = {"modelCode": model_code}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
@@ -862,7 +862,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 实例列表数据
         """
         self.logger.info(f"Getting instances by example for model: {model_code}")
-        url = "/portal/api/list-instance-by-example"
+        url = "/portal/server/api/list-instance-by-example"
         payload = {
             "modelCode": model_code,
             "modelExample": {
@@ -887,7 +887,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 菜单列表数据
         """
         self.logger.info(f"Getting menu list for source: {source_code}")
-        url = "/portal/api/menu/list"
+        url = "/portal/server/api/menu/list"
         params = {
             "sourceCode": source_code,
             "allMenu": all_menu
@@ -906,7 +906,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 添加结果
         """
         self.logger.info(f"Adding menu: {menu.menu_name}")
-        url = "/portal/api/menu/add"
+        url = "/portal/server/api/menu/add"
         payload = {
             "viewType": menu.view_type,
             "menuName": menu.menu_name,
@@ -936,7 +936,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 删除结果
         """
         self.logger.info(f"Deleting menus: {menu_ids}")
-        url = "/portal/api/menu/delete"
+        url = "/portal/server/api/menu/delete"
         payload = {"menuIds": menu_ids}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
@@ -952,7 +952,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 停用结果
         """
         self.logger.info(f"Disabling menus: {menu_ids}")
-        url = "/portal/api/menu/disable"
+        url = "/portal/server/api/menu/disable"
         payload = {"menuIds": menu_ids}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()
@@ -968,7 +968,7 @@ class PanJiPortalInnerService(BaseService):
             Dict[str, Any]: 启用结果
         """
         self.logger.info(f"Enabling menus: {menu_ids}")
-        url = "/portal/api/menu/enable"
+        url = "/portal/server/api/menu/enable"
         payload = {"menuIds": menu_ids}
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
         return response.json()

@@ -31,7 +31,7 @@ basicAuthUsername: panji_probe
 basicAuthPassword: Abc123!@#$
 # 兜底认证（预留）
 bearerToken: null
-apiKey: null
+apiKey: 67d5da7b76b1030ea6888f7644e05195
 apiKeyHeader: null
 
 # 多租户账号（key = tenantCode），tests/api/conftest.py 的 get_token fixture 按需登录

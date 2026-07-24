@@ -15,13 +15,9 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("插件中心InnerAPI服务")
+@allure.feature("磐基插件中心InnerAPI服务")
 @allure.story("plugin-count 统计插件安装数")
 class TestPluginCount:
-    """
-    对应 JMeter 脚本: plugin-count.jmx
-    线程组: 插件接口测试
-    """
 
     TENANT = "tenant_admin"
 
@@ -43,9 +39,10 @@ class TestPluginCount:
     @allure.description("GET /plugin/api/v1/plugin/list/instance - 验证能够成功获取插件安装数量列表")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_count(self, plugin_inner_service, api_cache):
-        with AllureHelper.step("发送 GET 请求统计插件安装数"):
-            response_json = plugin_inner_service.get_plugin_install_count()
+        with AllureHelper.api_test(plugin_inner_service):
+            with AllureHelper.step("发送 GET 请求统计插件安装数"):
+                response_json = plugin_inner_service.get_plugin_install_count()
 
-        with AllureHelper.step("验证响应数据"):
-            assert isinstance(response_json, dict), "响应应该是字典类型"
-            assert "data" in response_json, "响应应包含 data 字段"
+            with AllureHelper.step("验证响应数据"):
+                assert isinstance(response_json, dict), "响应应该是字典类型"
+                assert "data" in response_json, "响应应包含 data 字段"

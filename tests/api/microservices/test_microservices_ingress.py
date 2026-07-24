@@ -62,11 +62,10 @@ def _build_ingress_config(api_env, soft_load_code: str = None) -> IngressConfig:
 # =============================================================================
 @pytest.mark.api
 @allure.feature("磐基微服务 Ingress OpenAPI 服务")
-@allure.story("msingressgw - nginx 参数模板与网关实例")
-class TestMsIngressGw:
-    """msingressgw.jmx 转换（12 用例）"""
+@allure.story("Microservices Ingress Gateway OpenAPI 接口测试")
+class TestMsIngressGateway:
 
-    TENANT = "tenant_admin"
+    TENANT = "monitor-group"
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):
@@ -205,11 +204,10 @@ class TestMsIngressGw:
 # =============================================================================
 @pytest.mark.api
 @allure.feature("磐基微服务 Ingress OpenAPI 服务")
-@allure.story("ingressnginx - ingress 网关实例和配置")
-class TestIngressNginx:
-    """ingressnginx.jmx 转换（9 用例）"""
+@allure.story("Microservices Ingress Nginx OpenAPI 接口测试")
+class TestMsIngressNginx:
 
-    TENANT = "tenant_admin"
+    TENANT = "monitor-group"
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):
