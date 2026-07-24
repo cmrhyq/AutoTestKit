@@ -23,8 +23,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基可观测OpenAPI服务")
-@allure.story("observable-log 日志接口")
+@allure.feature("磐基可观测OpenAPI接口")
+@allure.story("observable Log 日志接口")
 class TestObservableLog:
     """
     对应 JMeter 脚本: observable-log.jmx

@@ -23,8 +23,8 @@ PVC_CREATE_WAIT_SECONDS = 3
 
 
 @pytest.mark.api
-@allure.feature("磐基弹性计算 OpenAPI 服务")
-@allure.story("PVC/PV/StorageClass 生命周期接口测试")
+@allure.feature("磐基弹性计算OpenAPI接口")
+@allure.story("PVC/PV/StorageClass 生命周期接口")
 class TestEcOpenapiPvcPv:
     """
     对应 JMeter 脚本: pvc-pv.jmx

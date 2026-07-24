@@ -19,8 +19,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基微服务 CMF OpenAPI 服务")
-@allure.story("Microservices CMF OpenAPI 接口测试")
+@allure.feature("磐基微服务OpenAPI接口")
+@allure.story("CMF OpenAPI 接口")
 class TestMicroservicesCmf:
     """
     Microservices CMF（Central Management Framework）OpenAPI 测试

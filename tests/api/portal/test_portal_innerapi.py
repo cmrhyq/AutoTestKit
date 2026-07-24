@@ -21,8 +21,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基门户InnerAPI服务")
-@allure.story("portal-inner 门户内部接口")
+@allure.feature("磐基门户InnerAPI接口")
+@allure.story("Portal Inner 门户内部接口")
 class TestPortalInnerAPI:
 
     TENANT = "monitor-group"

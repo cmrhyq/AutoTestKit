@@ -61,8 +61,8 @@ def _build_ingress_config(api_env, soft_load_code: str = None) -> IngressConfig:
 # msingressgw.jmx — nginx 参数模板 CRUD + ingress 网关实例
 # =============================================================================
 @pytest.mark.api
-@allure.feature("磐基微服务 Ingress OpenAPI 服务")
-@allure.story("Microservices Ingress Gateway OpenAPI 接口测试")
+@allure.feature("磐基微服务OpenAPI接口")
+@allure.story("Ingress Gateway OpenAPI 接口")
 class TestMsIngressGateway:
 
     TENANT = "monitor-group"
@@ -203,8 +203,8 @@ class TestMsIngressGateway:
 # ingressnginx.jmx — ingress 网关配置 CRUD
 # =============================================================================
 @pytest.mark.api
-@allure.feature("磐基微服务 Ingress OpenAPI 服务")
-@allure.story("Microservices Ingress Nginx OpenAPI 接口测试")
+@allure.feature("磐基微服务OpenAPI接口")
+@allure.story("Ingress Nginx OpenAPI 接口")
 class TestMsIngressNginx:
 
     TENANT = "monitor-group"
@@ -290,9 +290,9 @@ class TestMsIngressNginx:
 # msingressksr.jmx — ingress 网关实例启停/扩缩容
 # =============================================================================
 @pytest.mark.api
-@allure.feature("磐基微服务 Ingress OpenAPI 服务")
-@allure.story("msingressksr - ingress 实例启停扩缩容")
-class TestMsIngressKsr:
+@allure.feature("磐基微服务OpenAPI接口")
+@allure.story("Ingress Scaling 扩容/缩容接口")
+class TestIngressScaling:
     """msingressksr.jmx 转换（7 用例）"""
 
     TENANT = "tenant_admin"

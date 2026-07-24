@@ -18,7 +18,7 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基门户OpenAPI服务")
+@allure.feature("磐基门户OpenAPI接口")
 @allure.story("Portal OpenAPI 接口")
 class TestPortalOpenAPI:
 

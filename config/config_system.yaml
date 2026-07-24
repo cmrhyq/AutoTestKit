@@ -56,7 +56,7 @@ parallel_dist_mode: loadscope
 
 # ======================= 用例失败重跑配置（pytest-rerunfailures） =======================
 # 用例失败重跑次数，0 表示不重跑
-rerun_count: 2
+rerun_count: 0
 # 用例失败重跑延迟时间（秒）
 rerun_delay: 1
 

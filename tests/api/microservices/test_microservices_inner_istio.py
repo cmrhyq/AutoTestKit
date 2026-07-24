@@ -25,8 +25,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基微服务 Inner API 服务")
-@allure.story("Microservices ISTIO 网关 Inner API 接口测试")
+@allure.feature("磐基微服务InnerAPI接口")
+@allure.story("ISTIO 网关 Inner API 接口")
 class TestMicroservicesInnerIstio:
     """
     Microservices ISTIO Inner API 测试

@@ -15,8 +15,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基运营运维OpenAPI服务")
-@allure.story("observable-task 巡检任务接口")
+@allure.feature("磐基运营运维OpenAPI接口")
+@allure.story("observable Task 巡检任务接口")
 class TestOperationsTask:
 
     TENANT = "tenant_admin"

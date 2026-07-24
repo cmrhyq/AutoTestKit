@@ -162,6 +162,12 @@ grantUser: monitor-admin
 # 授权appCode
 grantAppCode: test-probe-deploy1
 
+#---------------------- Native K8s API 特权接口 ----------------------
+# ServiceAccount 测试用名称
+nativeSaName: test-sa
+# Native 接口 X-API-KEY
+nativeXApiKey: 814bc561e79c079fc2356c8631bfd3ce
+
 #---------------------- 门户Open接口参数，黄昱桥 ----------------------
 # 门户Open部分接口做测试用的，要替换就随便在对应环境上找一个有平台管理员权限的账号就行
 portalUsername: hyq

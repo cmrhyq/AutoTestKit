@@ -17,8 +17,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基弹性计算 OpenAPI 服务")
-@allure.story("Elastic Compute Resource Collection OpenAPI 接口测试")
+@allure.feature("磐基弹性计算OpenAPI接口")
+@allure.story("Resource Collection OpenAPI 接口")
 class TestEcOpenapiResourceCollection:
     """
     Elastic Compute Resource Collection OpenAPI 测试（Bearer 鉴权）

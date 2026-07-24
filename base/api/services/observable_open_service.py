@@ -221,5 +221,5 @@ class PanJiObservableOpenService(BaseService):
         """
         self.logger.info("Search conf items")
         url = "/openapi/monitor-o11y/amdb-console/publish/v3/confs/search/conf-items"
-        response = self.get(endpoint=url, json=query, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=query, headers=_get_default_headers())
         return response.json()

@@ -18,8 +18,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基弹性计算 OpenAPI 服务")
-@allure.story("Elastic Compute Namespace OpenAPI 接口测试")
+@allure.feature("磐基弹性计算OpenAPI接口")
+@allure.story("Namespace OpenAPI 接口")
 class TestEcOpenapiNamespace:
     """
     Elastic Compute Namespace OpenAPI 测试（Bearer 鉴权）

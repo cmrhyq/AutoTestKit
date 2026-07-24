@@ -15,8 +15,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基插件中心InnerAPI服务")
-@allure.story("plugin-count 统计插件安装数")
+@allure.feature("磐基插件中心InnerAPI接口")
+@allure.story("Plugin Count 接口")
 class TestPluginCount:
 
     TENANT = "tenant_admin"

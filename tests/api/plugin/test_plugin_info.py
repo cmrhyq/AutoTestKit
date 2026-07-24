@@ -20,8 +20,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基插件中心OpenAPI服务")
-@allure.story("plugin-info 插件信息接口")
+@allure.feature("磐基插件中心OpenAPI接口")
+@allure.story("Plugin Info 插件信息接口")
 class TestPluginInfo:
 
     TENANT = "tenant_admin"

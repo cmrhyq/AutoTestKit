@@ -19,8 +19,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("磐基弹性计算 Extensions 服务")
-@allure.story("Elastic Compute Extensions Application 接口测试")
+@allure.feature("磐基弹性计算Extensions接口")
+@allure.story("Application 接口")
 class TestEcExtensionsApplication:
     """
     Elastic Compute Extensions Application 测试

@@ -21,8 +21,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
-@allure.feature("可观测OpenAPI服务")
-@allure.story("observable-query 查询接口")
+@allure.feature("磐基可观测OpenAPI接口")
+@allure.story("Observable Query 查询接口")
 class TestObservableQuery:
     """
     对应 JMeter 脚本: observable-query.jmx
