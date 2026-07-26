@@ -43,6 +43,7 @@ class TestPortalInnerAPI:
 
     # ==================== 基础数据查询接口 ====================
 
+    @pytest.mark.run(order=1)
     @allure.title("获取用户全量数据")
     @allure.description("GET /portal/api/user/list - 验证能够成功获取用户全量数据")
     @allure.severity(allure.severity_level.CRITICAL)

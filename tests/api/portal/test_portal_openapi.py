@@ -41,6 +41,7 @@ class TestPortalOpenAPI:
 
     # ==================== 域信息查询 ====================
 
+    @pytest.mark.dependency()
     @allure.title("获取一级域")
     @allure.description("获取一级域列表数据")
     @allure.severity(allure.severity_level.NORMAL)
@@ -58,6 +59,7 @@ class TestPortalOpenAPI:
                 api_cache.set("firstFieldId", response_json["data"][0]["systemId"])
                 api_logger.info(f"已缓存一级域Id: {response_json['data'][0]['systemId']}")
 
+    @pytest.mark.dependency()
     @allure.title("获取二级域")
     @allure.description("获取二级域列表数据")
     @allure.severity(allure.severity_level.NORMAL)
@@ -268,6 +270,7 @@ class TestPortalOpenAPI:
     @allure.title("创建系统")
     @allure.description("当系统不存在时创建新系统")
     @allure.severity(allure.severity_level.NORMAL)
+    @pytest.mark.dependency(depends=["test_get_first_field_info", "test_get_second_field_info"])
     def test_create_system(self, portal_open_service, api_env, api_cache, api_logger):
         if api_cache.get("systemExists"):
             pytest.skip("系统已存在，跳过创建")
