@@ -9,21 +9,6 @@
 apiBaseUrl: http://openapi.portal.panji-102-53-20030.4a.cmit.cloud:20030
 # InnerAPI 服务基础地址（内部接口，区别于 openapi）
 apiInnerBaseUrl: http://portal.panji-102-53-20030.4a.cmit.cloud:20030
-# 请求超时/SSL/重试
-apiTimeout: 30
-apiVerifySsl: true
-maxRetries: 3
-retryDelay: 1
-enableRetry: true
-# 并行执行
-parallelWorkers: auto
-enableParallel: true
-logLevel: INFO
-# 浏览器（UI 测试用）
-browserType: chromium
-headless: true
-browserTimeout: 30000
-
 
 # ---------------------- 认证 / 凭证 ----------------------
 # Basic Auth 凭证（对应 auto_test_pro 的 user/userPwd）

@@ -7,18 +7,6 @@
 # ---------------------- 框架基础配置 ----------------------
 apiBaseUrl: https://test-api.example.com
 apiInnerBaseUrl: https://test-inner-api.example.com
-apiTimeout: 30
-apiVerifySsl: true
-maxRetries: 3
-retryDelay: 1
-enableRetry: true
-parallelWorkers: auto
-enableParallel: true
-logLevel: INFO
-browserType: chromium
-headless: true
-browserTimeout: 30000
-
 
 # ---------------------- 认证 / 凭证 ----------------------
 basicAuthUsername: test-user
