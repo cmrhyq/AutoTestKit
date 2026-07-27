@@ -276,7 +276,7 @@ class TestPortalInnerAPI:
 
             with AllureHelper.step("缓存一级域数据，供后续测试使用"):
                 api_cache.set("first1", response_json["data"][0]["systemId"])
-                api_logger.info(f"已缓存一级域Id: {response_json['data'][0]['moduleId']}")
+                api_logger.info(f"已缓存一级域Id: {response_json['data'][0]['systemId']}")
 
     @allure.title("查询二级域列表")
     @allure.description("按一级域查询二级域列表")
@@ -455,8 +455,8 @@ class TestPortalInnerAPI:
 
             with AllureHelper.step("提取产品实例编码"):
                 data = response_json.get("data", [])
-                if len(data) > 2:
-                    prod_inst_code = data[2].get("prodInstCode")
+                if len(data) > 1:
+                    prod_inst_code = data[0].get("prodInstCode")
                     api_cache.set("prodInstCode", prod_inst_code)
                     api_logger.info(f"已缓存prodInstCode: {prod_inst_code}")
 
