@@ -43,6 +43,7 @@ class TestEcOpenapiNamespace:
         service.close()
 
     @allure.title("查询 Namespace 列表")
+    @allure.description("查询指定单元下的 Namespace 列表并缓存首条 sysCode")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_namespaces(self, ec_service, api_env, api_cache):
         with AllureHelper.api_test(ec_service):
@@ -60,6 +61,7 @@ class TestEcOpenapiNamespace:
                             api_cache.set("ec_first_sys_code", first_sys_code)
 
     @allure.title("查询 Namespace 详情")
+    @allure.description("查询指定单元与系统的 Namespace 详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_detail(self, ec_service, api_env, api_cache):
         with AllureHelper.api_test(ec_service):

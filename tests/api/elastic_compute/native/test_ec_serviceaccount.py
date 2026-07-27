@@ -73,13 +73,7 @@ class TestEcNativeServiceAccount:
     # ==================== 生命周期测试 ====================
 
     @allure.title("ServiceAccount 完整生命周期（查询→清理→创建→删除）")
-    @allure.description(
-        "完整测试 ServiceAccount CRUD 流程：\n"
-        "1. 查询指定 SA 确认当前状态\n"
-        "2. 若已存在则先删除（幂等处理）\n"
-        "3. 创建 SA\n"
-        "4. 创建成功后删除（清理）"
-    )
+    @allure.description("覆盖 Native ServiceAccount 的查询、清理、创建、删除完整生命周期")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_service_account_lifecycle(self, native_service, api_env, api_cache, api_logger):
         cluster_id = str(api_env.get("clusterId"))

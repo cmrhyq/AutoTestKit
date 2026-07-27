@@ -42,6 +42,7 @@ class TestEcExtensionsApplication:
         service.close()
 
     @allure.title("按 kinds 搜索应用")
+    @allure.description("按 kinds 关键字搜索弹性计算应用（Extensions apikey 鉴权）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_search_app(self, ec_ext_service, api_env):
         with AllureHelper.api_test(ec_ext_service):

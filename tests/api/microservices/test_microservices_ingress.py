@@ -72,6 +72,7 @@ class TestMsIngressGateway:
         get_token(self.TENANT)
 
     @allure.title("新增 nginx 参数模板")
+    @allure.description("新增自定义 nginx 参数模板")
     def test_add_nginx_param(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 nginx 参数模板"):
@@ -85,6 +86,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("修改 nginx 参数模板")
+    @allure.description("修改已有的 nginx 参数模板")
     def test_update_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求修改 nginx 参数模板"):
@@ -98,6 +100,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("查询 nginx 参数模板列表")
+    @allure.description("查询全量 nginx 参数模板列表")
     def test_query_all_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 nginx 参数模板列表"):
@@ -106,6 +109,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("nginx 参数模板上线接口")
+    @allure.description("上线指定 nginx 参数模板")
     def test_online_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求上线 nginx 参数模板"):
@@ -115,6 +119,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("分页查询 nginx 参数模板列表")
+    @allure.description("分页查询 nginx 参数模板列表")
     def test_list_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求分页查询 nginx 参数模板"):
@@ -124,6 +129,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("nginx 参数模板下线接口")
+    @allure.description("下线指定 nginx 参数模板")
     def test_offline_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求下线 nginx 参数模板"):
@@ -133,6 +139,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("根据 nginx 参数模板删除接口")
+    @allure.description("根据编码删除指定 nginx 参数模板")
     def test_delete_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 nginx 参数模板"):
@@ -143,6 +150,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("新增 ingress 网关实例")
+    @allure.description("新增 ingress 网关实例")
     def test_add_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
@@ -151,6 +159,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("根据编码查询 ingress 网关实例详情")
+    @allure.description("根据编码查询 ingress 网关实例详情")
     def test_get_ingress_instance_by_code(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):
@@ -159,6 +168,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("查询 ingress 网关实例信息分页")
+    @allure.description("分页查询 ingress 网关实例列表")
     def test_list_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求分页查询 ingress 网关实例"):
@@ -175,6 +185,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("修改 ingress 网关实例")
+    @allure.description("修改指定 ingress 网关实例的配置")
     def test_update_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求修改 ingress 网关实例"):
@@ -191,6 +202,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("根据网关实例编码删除网关实例")
+    @allure.description("按编码删除 ingress 网关实例")
     def test_delete_ingress_instance_by_code(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关实例"):
@@ -214,6 +226,7 @@ class TestMsIngressNginx:
         get_token(self.TENANT)
 
     @allure.title("新增 ingress 网关实例")
+    @allure.description("新增 ingress 网关实例（Nginx 配置流程前置）")
     def test_add_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
@@ -222,6 +235,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("根据编码查询 ingress 网关实例详情")
+    @allure.description("根据编码查询 ingress 网关实例详情（Nginx 配置流程前置）")
     def test_get_ingress_instance_by_code(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):
@@ -230,6 +244,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("新增 ingress 网关配置")
+    @allure.description("为指定 ingress 网关新增配置")
     def test_add_ingress_config(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关配置"):
@@ -238,6 +253,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("查询 ingress 网关配置列表")
+    @allure.description("查询指定 ingress 网关下的配置列表")
     def test_list_ingress_config(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求查询 ingress 网关配置列表"):
@@ -246,6 +262,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("更新 ingress 网关配置")
+    @allure.description("更新指定 ingress 网关配置")
     def test_update_ingress_config(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求更新 ingress 网关配置"):
@@ -254,6 +271,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("ingress 网关配置详情")
+    @allure.description("查询指定 ingress 网关配置详情")
     def test_get_ingress_config_detail(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关配置详情"):
@@ -262,6 +280,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("ingress 网关配置通过 service 获取配置详情")
+    @allure.description("按 service 名称获取 ingress 网关配置详情")
     def test_get_ingress_by_service_name(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求通过 service 获取网关配置详情"):
@@ -270,6 +289,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("ingress 网关配置删除接口")
+    @allure.description("删除指定 ingress 网关配置")
     def test_delete_ingress_config_by_code(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关配置"):
@@ -278,6 +298,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
     @allure.title("根据网关实例编码删除网关实例")
+    @allure.description("按编码删除 ingress 网关实例（Nginx 配置流程收尾）")
     def test_delete_ingress_instance_by_code(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关实例"):
@@ -302,6 +323,7 @@ class TestIngressScaling:
         get_token(self.TENANT)
 
     @allure.title("新增 ingress 网关实例")
+    @allure.description("新增 ingress 网关实例并缓存 instance_id 供扩缩容使用")
     def test_add_ingress_instance(self, ingress_service, api_env, api_cache):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
@@ -314,6 +336,7 @@ class TestIngressScaling:
                         api_cache.set("ms_ingress_instance_id", instance_id)
 
     @allure.title("根据编码查询 ingress 网关实例详情 - 第1次")
+    @allure.description("首次查询 ingress 网关实例详情，确认启动前状态")
     def test_get_ingress_instance_first(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):
@@ -322,6 +345,7 @@ class TestIngressScaling:
                 assert "code" in response_json
 
     @allure.title("根据编码查询 ingress 网关实例详情 - 第2次")
+    @allure.description("启动后再次查询 ingress 网关实例详情，确认状态变化")
     def test_get_ingress_instance_second(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求再次查询 ingress 网关实例详情"):
@@ -330,6 +354,7 @@ class TestIngressScaling:
                 assert "code" in response_json
 
     @allure.title("根据网关实例编码启动 ingress 网关实例")
+    @allure.description("启动指定 ingress 网关实例")
     def test_start_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求启动 ingress 网关实例"):
@@ -338,6 +363,7 @@ class TestIngressScaling:
                 assert "code" in response_json
 
     @allure.title("ingress 网关实例扩缩容")
+    @allure.description("对指定 ingress 网关实例进行副本数扩缩容")
     def test_scale_ingress_instance(self, ingress_service, api_cache):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("从缓存读取 instance_id 并发送扩缩容请求"):
@@ -351,6 +377,7 @@ class TestIngressScaling:
                 assert "code" in response_json
 
     @allure.title("根据网关实例编码停止 ingress 网关实例")
+    @allure.description("停止指定 ingress 网关实例")
     def test_stop_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求停止 ingress 网关实例"):
@@ -359,6 +386,7 @@ class TestIngressScaling:
                 assert "code" in response_json
 
     @allure.title("根据网关实例编码删除网关实例")
+    @allure.description("按编码删除 ingress 网关实例（扩缩容流程收尾）")
     def test_delete_ingress_instance(self, ingress_service, api_env):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关实例"):

@@ -69,10 +69,7 @@ class TestEcOpenapiPvcPv:
         }
 
     @allure.title("PVC 完整生命周期测试")
-    @allure.description(
-        "GET/POST/DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc - "
-        "查询指定PVC → 若存在先删除 → 创建 → 查列表 → 查全集群列表 → 删除"
-    )
+    @allure.description("覆盖 PVC 的查询、创建、列表、删除完整生命周期")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_pvc_lifecycle(self, ec_service, api_env, api_cache):
         cell_code = api_env.get("cellCode")
@@ -135,9 +132,7 @@ class TestEcOpenapiPvcPv:
                 api_cache.set("ec_pvc_created", False)
 
     @allure.title("查询指定 PV")
-    @allure.description(
-        "GET /openapi/elastic-compute/v2/cells/{cellCode}/pv/{pvName} - 验证 PV 查询接口"
-    )
+    @allure.description("按名称查询指定 PV 的详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_pv(self, ec_service, api_env):
         cell_code = api_env.get("cellCode")
@@ -156,10 +151,7 @@ class TestEcOpenapiPvcPv:
                 )
 
     @allure.title("查询指定 StorageClass")
-    @allure.description(
-        "GET /openapi/elastic-compute/v2/cells/{cellCode}/storageClass/{storageClassName} - "
-        "验证 StorageClass 查询接口"
-    )
+    @allure.description("按名称查询指定 StorageClass 的详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_storage_class(self, ec_service, api_env):
         cell_code = api_env.get("cellCode")

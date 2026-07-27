@@ -50,6 +50,7 @@ class TestMicroservicesUbm:
     # ==================== UBM 查询接口 ====================
 
     @allure.title("查询平面单元列表")
+    @allure.description("查询微服务平面单元列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cells(self, ubm_service):
         with AllureHelper.api_test(ubm_service):
@@ -61,6 +62,7 @@ class TestMicroservicesUbm:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("查询租户信息")
+    @allure.description("查询当前登录租户的详细信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_detail(self, ubm_service):
         with AllureHelper.api_test(ubm_service):
@@ -74,6 +76,7 @@ class TestMicroservicesUbm:
     # ==================== UBM 策略接口 ====================
 
     @allure.title("批量新增策略")
+    @allure.description("批量新增 UBM 路由策略")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_add_strategy(self, ubm_service, api_env):
         with AllureHelper.api_test(ubm_service):
@@ -115,6 +118,7 @@ class TestMicroservicesUbm:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("批量更新策略状态")
+    @allure.description("批量更新 UBM 策略状态并返回 batchCode")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_update_strategy_status(self, ubm_service, api_env, api_cache):
         with AllureHelper.api_test(ubm_service):
@@ -146,6 +150,7 @@ class TestMicroservicesUbm:
                         api_cache.set("ms_batch_code", batch_code)
 
     @allure.title("批量更新策略状态进度查询")
+    @allure.description("根据 batchCode 查询批量策略状态更新进度")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_strategy_batch_detail(self, ubm_service, api_cache):
         with AllureHelper.api_test(ubm_service):

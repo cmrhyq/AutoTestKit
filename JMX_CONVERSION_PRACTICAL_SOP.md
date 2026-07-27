@@ -278,7 +278,7 @@ def test_pvc_lifecycle(self, ec_service, api_env, api_cache):
 
 ```python
 @allure.title("中文标题")
-@allure.description("HTTP方法 路径 - 验证描述")
+@allure.description("简洁的业务动作描述")
 @allure.severity(allure.severity_level.CRITICAL)  # 生命周期=CRITICAL，单查=NORMAL
 def test_xxx(self, ec_service, api_env, api_cache):
     # 从 api_env 获取参数（禁止硬编码）
@@ -298,6 +298,93 @@ def test_xxx(self, ec_service, api_env, api_cache):
 **severity 选择：**
 - `CRITICAL`：完整生命周期测试（CRUD 全流程）
 - `NORMAL`：单个查询接口
+
+#### Step 11.1：@allure.title 编写规范（强制）
+
+**核心原则：一句话业务动词短语，让人 3 秒看懂测什么。**
+
+| 规则 | 说明 |
+|------|------|
+| 长度 | 中文 6–20 字，一句话 |
+| 视角 | 业务/场景（动词开头），不写实现细节 |
+| 内容 | 只写「做什么」，不塞 HTTP 方法、URL、断言细节、参数名 |
+| 唯一性 | 同一 class 内 title 唯一；跨 class 允许重名（如生命周期各阶段） |
+| 参数化 | 支持 `{param}` 占位符 |
+
+正例 vs 反例：
+
+| ❌ 不推荐 | ✅ 推荐 |
+|---------|--------|
+| `test_get_user_list` | `查询用户全量数据` |
+| `GET /portal/api/user/list 成功` | `查询用户全量数据` |
+| `获取用户全量数据接口测试` | `查询用户全量数据` |
+| `case_001` | `新增用户后可在列表中查询到` |
+| `PVC测试` | `PVC 完整生命周期测试` |
+
+参数化用例写法：
+
+```python
+@pytest.mark.parametrize("role,expected_count", [
+    ("admin", 100),
+    ("user", 10),
+])
+@allure.title("角色为 {role} 的用户查询列表，返回 {expected_count} 条")
+def test_query_user_list_by_role(role, expected_count):
+    ...
+```
+
+#### Step 11.2：@allure.description 编写规范（强制）
+
+**核心原则：一句业务动词描述，补充 title 未表达的场景/前置/预期。**
+
+| 规则 | 说明 |
+|------|------|
+| 长度 | 中文 8–40 字，一句话；生命周期类可稍长 |
+| 内容 | 只写「做什么/预期什么」；**禁止**再写 HTTP 方法 + URL |
+| 与 title 关系 | 补充而非重复；不能是 title 的换句话说 |
+| 多行 | 除生命周期串联流程外，禁用多行字符串；单行更清晰 |
+
+正例 vs 反例：
+
+| ❌ 不推荐（禁止风格） | ✅ 推荐（本仓库标准风格） |
+|-------------------|---------------------|
+| `GET /portal/api/user/list - 验证能够成功获取用户全量数据` | `查询用户全量数据` |
+| `验证接口能否成功` | `查询平台版本信息` |
+| （与 title 完全一致） | 补充场景条件、缓存字段、串联步骤 |
+| 多行 + HTTP 方法 + URL + 「验证 XXX」 | 一句业务动词描述 |
+
+生命周期/复合流程类允许「箭头串联」描述：
+
+```python
+@allure.title("PVC 完整生命周期测试")
+@allure.description("覆盖 PVC 的查询、创建、列表、删除完整生命周期")
+
+@allure.title("角色管理（创建/修改/删除）")
+@allure.description("完整测试角色CRUD流程：查询 -> 清理 -> 创建 -> 修改 -> 删除")
+```
+
+带缓存传递的用例，用 description 提示下游依赖：
+
+```python
+@allure.title("查询 Namespace 列表")
+@allure.description("查询指定单元下的 Namespace 列表并缓存首条 sysCode")
+```
+
+#### Step 11.3：与其他 allure 装饰器的层次关系
+
+| 装饰器 | 位置 | 内容 | 示例 |
+|--------|------|------|------|
+| `@allure.feature` | 类级 | 一级业务领域 | `"磐基弹性计算OpenAPI接口"` |
+| `@allure.story` | 类级 | 二级功能故事 | `"PVC/PV/StorageClass 生命周期接口"` |
+| `@allure.title` | 方法级 | 用例做什么（业务动词） | `"PVC 完整生命周期测试"` |
+| `@allure.description` | 方法级 | 一句业务描述，补场景/预期 | `"覆盖 PVC 的查询、创建、列表、删除完整生命周期"` |
+| `@allure.severity` | 方法级 | 严重级别 | `CRITICAL` / `NORMAL` |
+
+**禁止的组合：**
+- 只有 title 没有 description（或反之）
+- title 与 description 内容完全一样
+- description 里塞 HTTP 方法与 URL（信息重复且过时时维护成本高）
+- description 只写「验证接口能否成功」这类空话
 
 ### Step 12：映射断言
 
@@ -344,6 +431,9 @@ ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
 - [ ] 类装饰器包含 `@pytest.mark.api`、`@allure.feature`、`@allure.story`
 - [ ] 测试类顶部声明 `TENANT = "..."`，并有 `autouse` 的 `_login` fixture
 - [ ] 每个测试方法有 `@allure.title`、`@allure.description`、`@allure.severity`
+- [ ] `@allure.title` 是一句业务动词短语（6–20 字），不含 HTTP 方法/URL/断言细节
+- [ ] `@allure.description` 是一句业务描述，**不含** HTTP 方法+URL，且**不与 title 完全一致**
+- [ ] title 与 description 数量一致，与 `def test_` 数量一致（三者匹配）
 - [ ] 测试方法体最外层用 `AllureHelper.api_test(service)` 包裹
 - [ ] 关键操作用 `AllureHelper.step()` 分段
 - [ ] Service 方法调用带 `_get_default_headers()`
@@ -386,6 +476,31 @@ ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
 | 测试方法 | `test_{功能描述}` | `test_pvc_lifecycle`, `test_get_pv` |
 | YAML 参数 | `{domain_prefix}_{resource}_{field}` | `ec_pvc_name`, `ec_cell_code` |
 
+### title / description 一键校验
+
+CR 提交前建议本地跑一次校验，确保每个 `def test_` 都同时具备 `@allure.title` 与 `@allure.description`，且三者数量匹配：
+
+```bash
+python -c "
+import os, re
+mismatch = []
+for r,_,fs in os.walk('tests/api'):
+    for f in fs:
+        if not f.startswith('test_') or not f.endswith('.py'):
+            continue
+        p = os.path.join(r, f)
+        s = open(p, encoding='utf-8').read()
+        n_t = len(re.findall(r'@allure\.title', s))
+        n_d = len(re.findall(r'@allure\.description', s))
+        n_c = len(re.findall(r'^    def test_', s, flags=re.M))
+        if n_t != n_c or n_d != n_c:
+            mismatch.append((p, n_c, n_t, n_d))
+print('MISMATCH:', mismatch) if mismatch else print('MATCH_OK')
+"
+```
+
+期望输出：`MATCH_OK`。若出现 `MISMATCH` 列表，按文件补齐缺失装饰器。
+
 ### 常见陷阱
 
 | 陷阱 | 后果 | 预防 |
@@ -397,3 +512,7 @@ ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
 | dataclass 字段末尾加逗号 | 值变成 tuple | 严格禁止尾逗号 |
 | 条件分支拆成独立测试方法 | 丢失上下文/顺序依赖 | CRUD 生命周期合并为一个方法 |
 | JMX test_type 理解错误 | 断言方向反转 | 查表确认 test_type 含义 |
+| description 塞 HTTP 方法+URL | 与 title 重复、URL 变更即失效 | 只写业务动词一句话 |
+| title 塞方法/断言/URL 细节 | 报告可读性差、语义弱 | 一句业务动词短语 |
+| title 与 description 内容一致 | 信息冗余、无增量 | description 补场景/依赖/预期 |
+| 缺 title 或 缺 description | Allure 报告用例失去可读标题/说明 | 检查清单：三者数量必须相等 |

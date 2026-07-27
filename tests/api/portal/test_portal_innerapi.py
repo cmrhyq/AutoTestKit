@@ -45,7 +45,7 @@ class TestPortalInnerAPI:
 
     @pytest.mark.run(order=1)
     @allure.title("获取用户全量数据")
-    @allure.description("GET /portal/api/user/list - 验证能够成功获取用户全量数据")
+    @allure.description("查询用户全量数据")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_user_full_data(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -58,7 +58,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取用户全量数据成功, code={response_json.get('code')}")
 
     @allure.title("获取租户全量数据")
-    @allure.description("GET /portal/api/tenant/list - 验证能够成功获取租户全量数据")
+    @allure.description("查询租户全量数据")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_tenant_full_data(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -71,7 +71,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取租户全量数据成功, code={response_json.get('code')}")
 
     @allure.title("获取角色全量数据")
-    @allure.description("GET /portal/api/role/list - 验证能够成功获取角色全量数据")
+    @allure.description("查询角色全量数据")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_role_full_data(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -84,7 +84,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取角色全量数据成功, code={response_json.get('code')}")
 
     @allure.title("根据模块名称查询字典数据")
-    @allure.description("GET /portal/api/dict/list/{moduleName}?dictType=ENVIRONMENT - 验证能够根据模块名称查询字典数据")
+    @allure.description("按模块名称查询指定类型的字典数据")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_dict_by_module(self, portal_inner_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -100,7 +100,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"查询字典数据成功, code={response_json.get('code')}")
 
     @allure.title("获取API全量数据")
-    @allure.description("GET /portal/api/roleApi/list - 验证能够成功获取API全量数据")
+    @allure.description("查询 API 全量数据")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_role_api_full_data(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -112,7 +112,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取API全量数据成功, code={response_json.get('code')}")
 
     @allure.title("获取系统参数")
-    @allure.description("GET /portal/api/systemConfig/list?key=platformCode - 验证能够成功获取系统参数")
+    @allure.description("按 key 查询系统参数配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_system_config(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -127,7 +127,7 @@ class TestPortalInnerAPI:
     # ==================== 版本与License接口 ====================
 
     @allure.title("添加组件版本信息")
-    @allure.description("POST /portal/api/version/addVersionInfo - 验证能够添加组件版本信息")
+    @allure.description("添加组件版本信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_version_info(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -143,7 +143,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"添加组件版本信息成功, code={response_json.get('code')}")
 
     @allure.title("获取license信息")
-    @allure.description("GET /portal/api/license/{moduleCode} - 验证能够获取license信息")
+    @allure.description("按 moduleCode 获取 license 信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_license_info(self, portal_inner_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -157,7 +157,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取license信息成功, code={response_json.get('code')}")
 
     @allure.title("获取平台版本信息")
-    @allure.description("GET /portal/api/v1/version - 验证能够获取平台版本信息")
+    @allure.description("查询平台版本信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_platform_version(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -171,7 +171,7 @@ class TestPortalInnerAPI:
     # ==================== 平台信息接口 ====================
 
     @allure.title("获取平台基本信息")
-    @allure.description("GET /portal/api/v1/platform/baseInfo - 验证能够获取平台基本信息")
+    @allure.description("查询平台基本信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_platform_base_info(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -183,7 +183,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取平台基本信息成功, code={response_json.get('code')}")
 
     @allure.title("获取平台开启模块信息")
-    @allure.description("GET /portal/api/v1/platform/enableModules - 验证能够获取平台开启模块信息")
+    @allure.description("查询平台开启的模块列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_platform_enable_modules(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -197,7 +197,7 @@ class TestPortalInnerAPI:
     # ==================== 全局配置接口 ====================
 
     @allure.title("全局配置接口查询")
-    @allure.description("GET /portal/api/paasConfig - 验证能够获取全局配置")
+    @allure.description("查询平台全局配置信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_paas_config(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -209,7 +209,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取全局配置成功, code={response_json.get('code')}")
 
     @allure.title("全局配置修改与还原")
-    @allure.description("POST /portal/api/globalConfig/update - 验证能够修改全局配置并还原")
+    @allure.description("修改全局配置并在测试结束后还原")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_global_config(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -234,7 +234,7 @@ class TestPortalInnerAPI:
     # ==================== 授权与消息接口 ====================
 
     @allure.title("获取系统应用全量授权信息")
-    @allure.description("GET /portal/api/getAuthInfo - 验证能够获取系统应用全量授权信息")
+    @allure.description("查询系统应用的全量授权信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_auth_info(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -246,7 +246,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"获取授权信息成功, code={response_json.get('code')}")
 
     @allure.title("站内消息发送")
-    @allure.description("POST /portal/api/msg/send - 验证能够发送站内消息")
+    @allure.description("发送站内消息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_send_message(self, portal_inner_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -263,7 +263,7 @@ class TestPortalInnerAPI:
     # ==================== 域查询接口 ====================
 
     @allure.title("查询一级域列表")
-    @allure.description("GET /portal/api/firstFieldInfo/list - 验证能够查询一级域列表")
+    @allure.description("查询一级域列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_first_field_list(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -279,7 +279,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"已缓存一级域Id: {response_json['data'][0]['moduleId']}")
 
     @allure.title("查询二级域列表")
-    @allure.description("GET /portal/api/secondFieldInfo/list?systemId={first1} - 验证能够查询二级域列表")
+    @allure.description("按一级域查询二级域列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_second_field_list(self, portal_inner_service, api_cache, api_logger):
         first1 = api_cache.get("first1")
@@ -305,7 +305,7 @@ class TestPortalInnerAPI:
     # ==================== 系统管理接口 ====================
 
     @allure.title("创建系统")
-    @allure.description("POST /portal/api/system/add - 验证能够创建系统")
+    @allure.description("创建新系统")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_system(self, portal_inner_service, api_env, api_cache, api_logger):
         first1 = api_cache.get("first1")
@@ -332,7 +332,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"创建系统成功, code={response_json.get('code')}")
 
     @allure.title("获取系统全量数据")
-    @allure.description("GET /portal/api/system/list - 验证能够获取系统全量数据并提取systemId")
+    @allure.description("查询系统全量数据并提取 systemId 供后续用例使用")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_system_full_data(self, portal_inner_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -356,7 +356,7 @@ class TestPortalInnerAPI:
     # ==================== 应用管理接口 ====================
 
     @allure.title("创建应用")
-    @allure.description("POST /portal/api/application/add - 验证能够创建应用")
+    @allure.description("在指定系统下创建应用")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_application(self, portal_inner_service, api_env, api_cache, api_logger):
         system_id = api_cache.get("systemId")
@@ -383,7 +383,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"创建应用成功, code={response_json.get('code')}")
 
     @allure.title("获取应用全量数据")
-    @allure.description("GET /portal/api/application/list - 验证能够获取应用全量数据并提取应用信息")
+    @allure.description("查询应用全量数据并提取应用信息供后续用例使用")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_application_full_data(self, portal_inner_service, api_env, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -406,7 +406,7 @@ class TestPortalInnerAPI:
     # ==================== 实例查询接口 ====================
 
     @allure.title("环境查询接口（全量查询）")
-    @allure.description("POST /portal/api/all-instances - modelCode=ENVIRONMENT")
+    @allure.description("按 ENVIRONMENT 模型全量查询环境实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_all_instances_environment(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -418,7 +418,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"环境全量查询成功, code={response_json.get('code')}")
 
     @allure.title("平面查询接口（全量查询）")
-    @allure.description("POST /portal/api/all-instances - modelCode=PLANE")
+    @allure.description("按 PLANE 模型全量查询平面实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_all_instances_plane(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -430,7 +430,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"平面全量查询成功, code={response_json.get('code')}")
 
     @allure.title("单元查询接口（全量查询）")
-    @allure.description("POST /portal/api/all-instances - modelCode=CELL")
+    @allure.description("按 CELL 模型全量查询单元实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_all_instances_cell(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -442,7 +442,7 @@ class TestPortalInnerAPI:
                 api_logger.info(f"单元全量查询成功, code={response_json.get('code')}")
 
     @allure.title("产品实例查询接口（全量查询）")
-    @allure.description("POST /portal/api/all-instances - modelCode=PROD_INST")
+    @allure.description("按 PROD_INST 模型全量查询产品实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_all_instances_prod_inst(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
@@ -461,7 +461,7 @@ class TestPortalInnerAPI:
                     api_logger.info(f"已缓存prodInstCode: {prod_inst_code}")
 
     @allure.title("按条件查询接口（产品实例）")
-    @allure.description("POST /portal/api/list-instance-by-example - 按prodInstCode条件查询")
+    @allure.description("按 prodInstCode 条件查询产品实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_instances_by_example(self, portal_inner_service, api_cache, api_logger):
         prod_inst_code = api_cache.get("prodInstCode")
@@ -623,11 +623,7 @@ class TestPortalInnerAPI:
     # ==================== 用户/租户/角色绑定管理接口 ====================
 
     @allure.title("用户-租户-角色绑定全流程")
-    @allure.description(
-        "完整测试用户租户角色管理流程：\n"
-        "查询用户 -> 清理旧数据 -> 创建角色 -> 创建租户 -> 创建用户 -> "
-        "API授权 -> API解除授权 -> 查询验证 -> 用户租户绑定 -> 角色绑定"
-    )
+    @allure.description("完整测试用户租户角色管理流程：查询 -> 清理 -> 创建角色/租户/用户 -> API 授权/解除 -> 用户租户绑定 -> 角色绑定")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_user_tenant_role_bindflow(self, portal_inner_service, api_env, api_cache, api_logger):
         username2 = "test0930"

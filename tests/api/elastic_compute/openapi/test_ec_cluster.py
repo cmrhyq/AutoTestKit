@@ -41,6 +41,7 @@ class TestEcOpenapiCluster:
         service.close()
 
     @allure.title("v1 查询集群列表")
+    @allure.description("使用 v1 接口查询 paas 系统下的集群列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_cluster_info_v1(self, ec_service):
         with AllureHelper.api_test(ec_service):
@@ -51,6 +52,7 @@ class TestEcOpenapiCluster:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("v2 查询集群列表")
+    @allure.description("使用 v2 接口查询运行面集群信息列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_cluster_info_v2(self, ec_service):
         with AllureHelper.api_test(ec_service):

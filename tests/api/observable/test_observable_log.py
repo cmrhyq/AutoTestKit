@@ -48,10 +48,7 @@ class TestObservableLog:
         service.close()
 
     @allure.title("根据四元组检索日志")
-    @allure.description(
-        "GET /openapi/monitor-o11y/webgate-log-console/3rd/log/query - "
-        "通过 namespace/cluster/pod/container 四元组检索日志"
-    )
+    @allure.description("按 namespace/cluster/pod/container 四元组检索日志并缓存 requestId")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_log_by_quadruple(self, observable_service, api_env, api_cache):
         with AllureHelper.api_test(observable_service):
@@ -81,10 +78,7 @@ class TestObservableLog:
                 api_cache.set("log_request_id", request_id)
 
     @allure.title("根据日志检索requestId轮询拉取日志列表")
-    @allure.description(
-        "GET /openapi/monitor-o11y/webgate-log-console/3rd/log/pull - "
-        "通过requestId轮询获取日志数据"
-    )
+    @allure.description("按 requestId 轮询拉取日志列表数据")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_pull_log_by_request_id(self, observable_service, api_cache):
         with AllureHelper.api_test(observable_service):
@@ -101,10 +95,7 @@ class TestObservableLog:
                     f"statusCode 应为 200，实际为 {response_json.get('statusCode')}"
 
     @allure.title("查询日志上下文")
-    @allure.description(
-        "GET /openapi/monitor-o11y/webgate-log-console/3rd/log/context - "
-        "根据日志ID查询上下文信息"
-    )
+    @allure.description("按日志 ID 查询上下文信息并缓存 contextRequestId")
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_log_context(self, observable_service, api_env, api_cache):
         with AllureHelper.api_test(observable_service):
@@ -139,10 +130,7 @@ class TestObservableLog:
                 api_cache.set("context_request_id", context_request_id)
 
     @allure.title("根据上下文检索requestId获取上下文日志列表")
-    @allure.description(
-        "GET /openapi/monitor-o11y/webgate-log-console/3rd/log/context/pull - "
-        "通过上下文requestId拉取上下文日志"
-    )
+    @allure.description("按上下文 requestId 拉取上下文日志列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_pull_log_context_by_request_id(self, observable_service, api_cache):
         with AllureHelper.api_test(observable_service):

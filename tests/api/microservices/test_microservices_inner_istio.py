@@ -83,6 +83,7 @@ class TestMicroservicesInnerIstio:
     # ==================== KEM 统一操作 ====================
 
     @allure.title("统一校验接口")
+    @allure.description("对 KEM 参数进行统一校验")
     @allure.severity(allure.severity_level.NORMAL)
     def test_kem_check(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -92,6 +93,7 @@ class TestMicroservicesInnerIstio:
                 assert "code" in response_json
 
     @allure.title("统一创建接口")
+    @allure.description("基于 KEM 参数一键创建网关、规则、虚拟服务等")
     @allure.severity(allure.severity_level.NORMAL)
     def test_kem_create(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -103,6 +105,7 @@ class TestMicroservicesInnerIstio:
     # ==================== 虚拟服务查询 ====================
 
     @allure.title("查询虚拟服务列表")
+    @allure.description("查询指定网关下的虚拟服务列表（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_virtual_service(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -112,6 +115,7 @@ class TestMicroservicesInnerIstio:
                 assert "code" in response_json
 
     @allure.title("查询网关配置名称")
+    @allure.description("查询当前租户可用的网关配置名称列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_gateway_name(self, inner_service):
         with AllureHelper.api_test(inner_service):
@@ -121,6 +125,7 @@ class TestMicroservicesInnerIstio:
                 assert "code" in response_json
 
     @allure.title("查询节点列表")
+    @allure.description("查询指定集群下的网关节点列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_node(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -130,6 +135,7 @@ class TestMicroservicesInnerIstio:
                 assert "code" in response_json
 
     @allure.title("批量上传证书")
+    @allure.description("为网关批量上传 TLS 证书")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_create_secret(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -139,6 +145,7 @@ class TestMicroservicesInnerIstio:
                 assert "code" in response_json
 
     @allure.title("精确查询虚拟服务信息")
+    @allure.description("按名称精确查询虚拟服务详情（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_virtual_service(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -150,6 +157,7 @@ class TestMicroservicesInnerIstio:
     # ==================== 虚拟服务变更 ====================
 
     @allure.title("删除虚拟服务")
+    @allure.description("删除指定虚拟服务（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_virtual_service(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -159,6 +167,7 @@ class TestMicroservicesInnerIstio:
                 assert "code" in response_json
 
     @allure.title("新增虚拟服务")
+    @allure.description("新增虚拟服务（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_virtual_service(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):
@@ -170,6 +179,7 @@ class TestMicroservicesInnerIstio:
     # ==================== KEM 统一删除 ====================
 
     @allure.title("统一删除接口")
+    @allure.description("基于 KEM 参数一键清理网关、规则、虚拟服务等")
     @allure.severity(allure.severity_level.NORMAL)
     def test_kem_delete(self, inner_service, api_env):
         with AllureHelper.api_test(inner_service):

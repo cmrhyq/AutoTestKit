@@ -57,6 +57,7 @@ class TestMicroservicesCmf:
     # ==================== 服务信息 ====================
 
     @allure.title("批量新增单体服务 SINGLE")
+    @allure.description("批量新增 SINGLE 类型的单体服务")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_add_funcser(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -77,6 +78,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("根据服务编码批量精确查询服务信息")
+    @allure.description("按服务编码列表批量精确查询服务信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_get_funcser(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -92,6 +94,7 @@ class TestMicroservicesCmf:
     # ==================== CMF 降级 CRUD ====================
 
     @allure.title("CMF 新增降级配置")
+    @allure.description("为指定服务新增降级配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_cmf_degrade(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -103,6 +106,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 获取降级配置详情")
+    @allure.description("获取指定服务的降级配置详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cmf_degrade_detail(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -116,6 +120,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 修改降级配置")
+    @allure.description("修改指定服务的降级配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_cmf_degrade(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -127,6 +132,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 降级配置上线或者下线")
+    @allure.description("上线或下线指定服务的降级配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_cmf_degrade_state(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -138,6 +144,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 删除降级配置")
+    @allure.description("删除指定服务的降级配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_cmf_degrade(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -150,6 +157,7 @@ class TestMicroservicesCmf:
     # ==================== CMF 熔断 CRUD ====================
 
     @allure.title("CMF 新增熔断配置")
+    @allure.description("为指定服务新增熔断配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_cmf_circuit_breaking(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -161,6 +169,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 获取熔断配置详情")
+    @allure.description("获取指定服务的熔断配置详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cmf_circuit_breaking_detail(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -174,6 +183,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 修改熔断配置")
+    @allure.description("修改指定服务的熔断配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_cmf_circuit_breaking(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -185,6 +195,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 熔断配置上线或者下线")
+    @allure.description("上线或下线指定服务的熔断配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_cmf_circuit_breaking_state(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):
@@ -196,6 +207,7 @@ class TestMicroservicesCmf:
                 assert "code" in response_json
 
     @allure.title("CMF 删除熔断配置")
+    @allure.description("删除指定服务的熔断配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_cmf_circuit_breaking(self, cmf_service, api_env):
         with AllureHelper.api_test(cmf_service):

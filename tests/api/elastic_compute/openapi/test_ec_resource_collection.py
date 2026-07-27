@@ -40,6 +40,7 @@ class TestEcOpenapiResourceCollection:
         service.close()
 
     @allure.title("查询集群配额信息")
+    @allure.description("查询集群维度的配额信息（clusterQuota 指标）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_cluster_quota(self, ec_service):
         with AllureHelper.api_test(ec_service):
@@ -50,6 +51,7 @@ class TestEcOpenapiResourceCollection:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("查询租户配额信息")
+    @allure.description("查询当前租户的配额信息（tenantQuota 指标）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_tenant_quota(self, ec_service):
         with AllureHelper.api_test(ec_service):
@@ -60,6 +62,7 @@ class TestEcOpenapiResourceCollection:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("查询集群资源信息")
+    @allure.description("查询集群维度的资源信息（clusterResource 指标）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_cluster_resource(self, ec_service):
         with AllureHelper.api_test(ec_service):
@@ -70,6 +73,7 @@ class TestEcOpenapiResourceCollection:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("查询中间件信息")
+    @allure.description("查询集群下的中间件运行信息（middlewareInfo 指标）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_middleware_info(self, ec_service):
         with AllureHelper.api_test(ec_service):
@@ -80,6 +84,7 @@ class TestEcOpenapiResourceCollection:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("查询应用/组件系统配额信息")
+    @allure.description("查询应用/组件系统维度的配额信息（systemQuota 指标）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_system_quota(self, ec_service):
         with AllureHelper.api_test(ec_service):

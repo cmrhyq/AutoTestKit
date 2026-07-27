@@ -36,7 +36,7 @@ class TestOperationsTask:
         service.close()
 
     @allure.title("通过任务名称执行巡检任务")
-    @allure.description("POST /openapi/monitor-inspection/cluster-inspection/api/inspectionTask/executeTask - 执行巡检任务")
+    @allure.description("执行指定巡检任务")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_execute_inspection_task(self, operation_service, api_env, api_cache):
         with AllureHelper.api_test(operation_service):

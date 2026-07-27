@@ -36,7 +36,7 @@ class TestPluginCount:
         service.close()
 
     @allure.title("统计插件安装数")
-    @allure.description("GET /plugin/api/v1/plugin/list/instance - 验证能够成功获取插件安装数量列表")
+    @allure.description("查询插件安装数量列表")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_count(self, plugin_inner_service, api_cache):
         with AllureHelper.api_test(plugin_inner_service):

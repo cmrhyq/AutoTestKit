@@ -50,6 +50,7 @@ class TestEcOpenapiNode:
         }
 
     @allure.title("查询指定 Node")
+    @allure.description("按名称查询指定 Node 详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_node_detail(self, ec_service, api_env):
         cell_code = api_env.get("cellCode")
@@ -64,6 +65,7 @@ class TestEcOpenapiNode:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("查询全集群所有 Node 列表")
+    @allure.description("查询指定单元下全集群的 Node 列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_nodes(self, ec_service, api_env):
         cell_code = api_env.get("cellCode")
@@ -75,6 +77,7 @@ class TestEcOpenapiNode:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("增量更新指定 Node")
+    @allure.description("以 strategic merge patch 方式增量更新指定 Node")
     @allure.severity(allure.severity_level.NORMAL)
     def test_patch_node(self, ec_service, api_env):
         cell_code = api_env.get("cellCode")
@@ -90,6 +93,7 @@ class TestEcOpenapiNode:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("全量更新指定 Node")
+    @allure.description("以完整 Node 对象全量更新指定 Node")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_node(self, ec_service, api_env):
         cell_code = api_env.get("cellCode")

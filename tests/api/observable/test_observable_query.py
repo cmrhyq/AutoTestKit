@@ -46,10 +46,7 @@ class TestObservableQuery:
         service.close()
 
     @allure.title("查询模型列表")
-    @allure.description(
-        "GET /openapi/monitor-o11y/amdb-console/publish/v3/confs/models - "
-        "验证能够分页查询模型列表"
-    )
+    @allure.description("分页查询可观测模型列表")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_models(self, observable_service, api_cache):
         with AllureHelper.api_test(observable_service):
@@ -70,10 +67,7 @@ class TestObservableQuery:
                 assert isinstance(response_json, dict), "响应应该是字典类型"
 
     @allure.title("根据ID或名称获取模型")
-    @allure.description(
-        "GET /openapi/monitor-o11y/amdb-console/publish/v3/confs/models/{modelsIdOrName} - "
-        "验证能够根据模型ID或名称获取模型详情"
-    )
+    @allure.description("按模型 ID 或名称获取可观测模型详情")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_model_by_id_or_name(self, observable_service, api_env, api_cache):
         with AllureHelper.api_test(observable_service):
@@ -90,10 +84,7 @@ class TestObservableQuery:
                 assert isinstance(response_json, dict), "响应应该是字典类型"
 
     @allure.title("配置项结构化查询")
-    @allure.description(
-        "GET /openapi/monitor-o11y/amdb-console/publish/v3/confs/search/conf-items - "
-        "验证配置项结构化查询接口"
-    )
+    @allure.description("按结构化条件查询可观测配置项")
     @allure.severity(allure.severity_level.NORMAL)
     def test_search_conf_items(self, observable_service, api_env, api_cache):
         with AllureHelper.api_test(observable_service):

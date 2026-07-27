@@ -54,6 +54,7 @@ class TestMicroservicesIstio:
     # ==================== 入口网关实例 ====================
 
     @allure.title("新增入口网关实例")
+    @allure.description("新增 Istio 入口网关实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_gateway_instance(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -68,6 +69,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("精确查询入口网关实例信息")
+    @allure.description("按名称精确查询指定入口网关实例的详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_gateway_instance(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -81,6 +83,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("查询入口网关实例信息 分页展示")
+    @allure.description("分页查询入口网关实例列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_gateway_instance(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -96,6 +99,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("更新入口网关实例")
+    @allure.description("更新指定入口网关实例的配置信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_gateway_instance(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -111,6 +115,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("查询网关实例信息 分页展示包含入口和出口网关")
+    @allure.description("分页查询包含入口/出口在内的所有网关实例列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_ingress_egress_gateway(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -123,6 +128,7 @@ class TestMicroservicesIstio:
     # ==================== 网关规则 ====================
 
     @allure.title("新增网关规则")
+    @allure.description("为指定网关新增路由规则")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_gateway_rule(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -139,6 +145,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("查询网关规则信息 分页展示")
+    @allure.description("分页查询指定网关下的规则列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_gateway_rule(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -154,6 +161,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("精确查询网关配置信息")
+    @allure.description("按网关名和规则名精确查询网关配置详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_gateway_rule(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -168,6 +176,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("更新网关规则")
+    @allure.description("更新指定网关规则的配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_gateway_rule(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -187,6 +196,7 @@ class TestMicroservicesIstio:
     # ==================== 虚拟服务 ====================
 
     @allure.title("新增虚拟服务")
+    @allure.description("新增 Istio 虚拟服务并绑定到指定网关规则")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_virtual_service(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -202,6 +212,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("根据网关规则查询虚拟服务列表")
+    @allure.description("按网关规则查询关联的虚拟服务列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_virtualservice_by_gateway_config(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -216,6 +227,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("精确查询虚拟服务信息")
+    @allure.description("按名称精确查询虚拟服务详情")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_virtual_service(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -229,6 +241,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("更新虚拟服务")
+    @allure.description("更新指定虚拟服务的配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_virtual_service(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -245,6 +258,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("查询虚拟服务列表")
+    @allure.description("分页查询当前范围下的虚拟服务列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_virtual_service(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -257,6 +271,7 @@ class TestMicroservicesIstio:
     # ==================== 清理操作 ====================
 
     @allure.title("删除虚拟服务")
+    @allure.description("删除指定的虚拟服务")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_virtual_service(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -270,6 +285,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("删除网关规则")
+    @allure.description("删除指定的网关规则")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_gateway_rule(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):
@@ -284,6 +300,7 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("删除入口网关实例")
+    @allure.description("删除指定的入口网关实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_gateway_instance(self, istio_service, api_env):
         with AllureHelper.api_test(istio_service):

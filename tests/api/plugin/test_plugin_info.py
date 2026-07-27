@@ -41,7 +41,7 @@ class TestPluginInfo:
         service.close()
 
     @allure.title("查询指定插件的安装信息")
-    @allure.description("GET /openapi/plugin-mgmt/api/v1/plugin/{pluginName}/installationInfo - 验证能够查询指定插件安装信息")
+    @allure.description("查询指定插件的安装信息")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_info(self, plugin_open_service, api_env, api_cache):
         with AllureHelper.api_test(plugin_open_service):
@@ -56,7 +56,7 @@ class TestPluginInfo:
                 assert "code" in response_json, "响应应包含 code 字段"
 
     @allure.title("获取当前环境插件数据")
-    @allure.description("GET /openapi/plugin-mgmt/api/v1/plugin/version/data-report - 验证能够获取当前环境插件数据")
+    @allure.description("查询当前环境的插件版本数据")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_current_env_list(self, plugin_open_service, api_cache):
         with AllureHelper.api_test(plugin_open_service):
@@ -68,7 +68,7 @@ class TestPluginInfo:
                 assert "code" in response_json, "响应应包含 code 字段"
 
     @allure.title("验证任务配置")
-    @allure.description("POST /openapi/plugin-mgmt/api/v1/mcp/validate/task - 验证Kubernetes任务配置格式")
+    @allure.description("校验 Kubernetes 任务配置的格式合法性")
     @allure.severity(allure.severity_level.NORMAL)
     def test_verify_task_config(self, plugin_open_service, api_cache):
         with AllureHelper.api_test(plugin_open_service):
@@ -80,7 +80,7 @@ class TestPluginInfo:
                 assert "code" in response_json, "响应应包含 code 字段"
 
     @allure.title("验证feature")
-    @allure.description("POST /openapi/plugin-mgmt/api/v1/mcp/validate/feature - 验证Feature配置格式")
+    @allure.description("校验 Feature 配置的格式合法性")
     @allure.severity(allure.severity_level.NORMAL)
     def test_verify_task_feature(self, plugin_open_service, api_cache):
         with AllureHelper.api_test(plugin_open_service):
@@ -92,7 +92,7 @@ class TestPluginInfo:
                 assert "code" in response_json, "响应应包含 code 字段"
 
     @allure.title("获取所有支持权限转让的插件")
-    @allure.description("GET /openapi/plugin-mgmt/api/v1/auth-transfer/all - 验证能够获取支持权限转让的插件列表")
+    @allure.description("查询支持权限转让的插件列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_plugin_support_permission_transfer(self, plugin_open_service, api_cache):
         with AllureHelper.api_test(plugin_open_service):
