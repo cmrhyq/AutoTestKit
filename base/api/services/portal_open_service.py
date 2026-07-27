@@ -1,74 +1,15 @@
 import logging
-from dataclasses import dataclass
 from typing import Dict, Any
 
 from base.api.services.base_service import BaseService
 from core import DataCache
 
-
-@dataclass
-class PortalUserEntity(object):
-    """
-    用户相关的实体类
-    user_id: 用户编号
-    username: 登陆用户名
-    password: 登陆密码
-    tenant_code: 租户编码
-    phone: DES加密后的手机号
-    email: DES加密后的邮箱
-    expire_time: token过期时间，默认18000000
-    """
-    user_id: str = None
-    username: str = None
-    password: str = None
-    tenant_code: str = None
-    phone: str = None
-    email: str = None
-    expire_time: int = 18000000
-
-@dataclass
-class ClusterPlaneEntity(object):
-    """
-    集群平面相关的实体类
-    instance_id: 实例id
-    prod_inst_name: pord实例名称
-    """
-    instance_id: str = None
-    prod_inst_name: str = None
-
-@dataclass
-class OpenSystemEntity(object):
-    """
-    创建 or 更新系统需要的参数实体
-    system_id: 系统编号
-    system_name: 系统名称
-    system_code: 系统编码
-    system_desc: 系统描述
-    field_one: 一级域编号
-    field_two: 二级域编号
-    create_id: 创建者编号
-    username: 创建者用户名
-    """
-    system_id: str = None
-    system_name: str = None
-    system_code: str = None
-    system_desc: str = None
-    field_one: str = None
-    field_two: str = None
-    create_id: str = None
-    username: str = None
-
-@dataclass
-class BasicCodeEntity(object):
-    """
-    测试时会用到的一些code实体
-    cell_code: 单元编号
-    tenant_code: 租户编号
-    system_code: 系统编号
-    """
-    cell_code: str = None
-    tenant_code: str = None
-    system_code: str = None
+from base.api.entity.portal import (
+    PortalUserEntity,
+    ClusterPlaneEntity,
+    OpenSystemEntity,
+    BasicCodeEntity,
+)
 
 
 def _get_default_headers() -> Dict[str, str]:

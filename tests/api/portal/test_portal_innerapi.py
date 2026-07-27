@@ -2,8 +2,6 @@
 磐基门户 InnerAPI 接口测试
 """
 
-from typing import Dict, Any
-
 import allure
 import pytest
 

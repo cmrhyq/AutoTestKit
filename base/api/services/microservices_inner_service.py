@@ -1,59 +1,14 @@
 import logging
-from dataclasses import dataclass
 from typing import Dict, Any
 
 from base import BaseService
 from core.config import env_manager
 
-
-@dataclass
-class Kem(object):
-    """
-    sysCode: 系统编码
-    cellCode: 单元编码
-    planeCode: 平面编码
-    tenantCode: 租户编码
-    username: 用户名
-    gatewayInsName: 网关实例名称
-    gatewayName: 网关名称
-    gatewayNodePort: 网关节点端口
-    vsName: 虚拟服务名称
-    """
-    sysCode: str = None
-    cellCode: str = None
-    planeCode: str = None
-    tenantCode: str = None
-    username: str = None
-    gatewayInsName: str = None
-    gatewayName: str = None
-    gatewayNodePort: str = None
-    vsName: str = None
-
-@dataclass
-class MeshVS(object):
-    """
-    sysCode: 系统编码
-    cellCode: 单元编码
-    planeCode: 平面编码
-    clusterId: 集群编号
-    """
-    vsName: str = None
-    gatewayName: str = None
-    sysCode: str = None
-    cellCode: str = None
-    planeCode: str = None
-    clusterId: str = None
-
-@dataclass
-class MeshNode(object):
-    """
-    cellCode: 单元编码
-    planeCode: 平面编码
-    clusterId: 集群编号
-    """
-    cellCode: str = None
-    planeCode: str = None
-    clusterId: str = None
+from base.api.entity.microservices import (
+    Kem,
+    MeshVS,
+    MeshNode,
+)
 
 
 def _get_default_headers() -> Dict[str, str]:
