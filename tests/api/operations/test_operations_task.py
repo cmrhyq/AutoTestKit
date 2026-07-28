@@ -1,7 +1,6 @@
 """
 运营运维 OpenAPI 巡检任务接口测试
 
-转换自 JMeter 脚本: operations-task.jmx
 测试内容：通过任务名称执行巡检任务
 """
 
@@ -15,6 +14,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.operation
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基运营运维OpenAPI接口")
 @allure.story("observable Task 巡检任务接口")
 class TestOperationsTask:

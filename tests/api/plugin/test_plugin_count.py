@@ -1,7 +1,6 @@
 """
 插件中心 统计插件安装数 接口测试
 
-转换自 JMeter 脚本: plugin-count.jmx
 测试内容：统计插件安装数量接口
 """
 
@@ -15,6 +14,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.plugin
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基插件中心InnerAPI接口")
 @allure.story("Plugin Count 接口")
 class TestPluginCount:

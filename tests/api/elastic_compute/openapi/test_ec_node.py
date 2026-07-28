@@ -1,7 +1,6 @@
 """
 弹性计算 OpenAPI Node 节点接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/elastic-compute/openapi/Node.jmx 转换。
 覆盖 4 个 Node 接口：
 - 查询指定 Node / 查询全集群 Node 列表 / 增量更新 Node / 全量更新 Node
 """
@@ -17,6 +16,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.openapi
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("Node OpenAPI 接口")
 class TestEcOpenapiNode:

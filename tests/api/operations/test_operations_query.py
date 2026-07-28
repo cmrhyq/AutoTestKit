@@ -1,7 +1,6 @@
 """
 运营运维 OpenAPI 查询接口测试
 
-转换自 JMeter 脚本: operations-query.jmx
 测试内容：
 - 查询最近3小时指定告警数量
 - 查询接口拨测日志详情
@@ -19,6 +18,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.operation
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基运营运维OpenAPI接口")
 @allure.story("Operations Query 查询接口")
 class TestOperationsQuery:

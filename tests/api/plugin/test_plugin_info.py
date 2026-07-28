@@ -1,7 +1,6 @@
 """
 插件中心 OpenAPI 插件信息接口测试
 
-转换自 JMeter 脚本: plugin-info.jmx
 测试内容：
 - 查询指定插件的安装信息
 - 获取当前环境插件数据
@@ -20,6 +19,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.plugin
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基插件中心OpenAPI接口")
 @allure.story("Plugin Info 插件信息接口")
 class TestPluginInfo:

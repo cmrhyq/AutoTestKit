@@ -1,7 +1,6 @@
 """
 弹性计算 OpenAPI PVC/PV/StorageClass 接口测试
 
-转换自 JMeter 脚本: pvc-pv.jmx
 测试内容：PVC 完整生命周期（创建、查询、列表、删除）+ PV 查询 + StorageClass 查询
 """
 import json
@@ -23,6 +22,8 @@ PVC_CREATE_WAIT_SECONDS = 3
 
 
 @pytest.mark.api
+@pytest.mark.openapi
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("PVC/PV/StorageClass 生命周期接口")
 class TestEcOpenapiPvcPv:

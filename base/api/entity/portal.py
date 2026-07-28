@@ -93,7 +93,7 @@ class MenuEntity(object):
     roles: List[str] = field(default_factory=lambda: ["platform_manager"])
     view_type: str = "1"
     sort_no: int = 1
-    status: int = 0,
+    status: int = 0
     menu_type: str = "D"
     menu_icon: str = ""
     permission_code: str = ""

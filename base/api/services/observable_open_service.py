@@ -15,7 +15,7 @@ def _get_default_headers() -> Dict[str, str]:
     """获取默认请求头"""
     cache = DataCache.get_instance()
     return {
-        "Authorization": cache.get("token"),
+        "Authorization": f"Bearer {cache.get('token')}",
     }
 
 

@@ -1,7 +1,6 @@
 """
 可观测 OpenAPI 日志接口测试
 
-转换自 JMeter 脚本: observable-log.jmx
 测试内容：
 - 根据四元组检索日志
 - 根据日志检索requestId轮询拉取日志列表
@@ -23,6 +22,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.observable
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基可观测OpenAPI接口")
 @allure.story("observable Log 日志接口")
 class TestObservableLog:

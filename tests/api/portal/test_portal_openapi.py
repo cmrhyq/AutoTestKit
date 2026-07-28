@@ -18,6 +18,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.portal
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基门户OpenAPI接口")
 @allure.story("Portal OpenAPI 接口")
 class TestPortalOpenAPI:
@@ -270,7 +272,6 @@ class TestPortalOpenAPI:
     @allure.title("创建系统")
     @allure.description("当系统不存在时创建新系统")
     @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.dependency(depends=["test_get_first_field_info", "test_get_second_field_info"])
     def test_create_system(self, portal_open_service, api_env, api_cache, api_logger):
         if api_cache.get("systemExists"):
             pytest.skip("系统已存在，跳过创建")
@@ -462,10 +463,10 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求进行用户系统授权"):
-                user_id_list = ["200685", api_env.get("portalUserId")]
+                user_id_list = [str(api_env.get('portalUserId'))]
                 response_json = portal_open_service.user_system_authorization(
                     user_id_list=user_id_list,
-                    system_id_list=[system_id]
+                    system_id_list=[str(system_id)]
                 )
 
             with AllureHelper.step("验证响应数据"):
@@ -482,10 +483,10 @@ class TestPortalOpenAPI:
 
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求进行用户应用授权"):
-                user_id_list = [api_env.get("portalUserId"), "200685"]
+                user_id_list = [f"{api_env.get('portalUserId')}", "200685"]
                 response_json = portal_open_service.user_application_authorization(
                     user_id_list=user_id_list,
-                    application_id_list=[app_id]
+                    application_id_list=[str(app_id)]
                 )
 
             with AllureHelper.step("验证响应数据"):

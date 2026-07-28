@@ -1,7 +1,6 @@
 """
 微服务 CMF OpenAPI 接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/microservices/openapi/mscmf.jmx 转换。
 覆盖 CMF（配置管理面）12 个用例：
 - 批量新增单体服务 & 批量查询服务
 - 降级配置 CRUD（新增/详情/修改/上下线/删除）
@@ -19,6 +18,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("CMF OpenAPI 接口")
 class TestMicroservicesCmf:

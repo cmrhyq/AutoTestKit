@@ -72,7 +72,7 @@ class PanJiElasticComputeExtService(BaseService):
             kinds: 应用类型，如 "Deployment"、"StatefulSet" 等
         """
         self.logger.info(f"Search app with kinds: {kinds}")
-        url = "/elastic-compute/v2/searchApp"
+        url = "/elastic-compute/server/v2/searchApp"
         params = {"kinds": kinds}
         response = self.get(endpoint=url, params=params, headers=_get_ext_headers())
         return response.json()

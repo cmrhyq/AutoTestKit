@@ -1,10 +1,10 @@
 """
 微服务 Ingress OpenAPI 接口测试脚本
 
-基于以下 3 个 JMeter 脚本转换合并（同属 ms-ingress 域，路径前缀相同，有明显数据依赖）：
-- msingressgw.jmx（12 用例）：nginx 参数模板 + ingress 网关实例 CRUD
-- ingressnginx.jmx（9 用例）：ingress 网关实例 + 网关配置 CRUD
-- msingressksr.jmx（7 用例）：ingress 网关实例 CRUD + 启停/扩缩容
+覆盖 ingress的 28 个用例：
+- ingress gateway（12 用例）：nginx 参数模板 + ingress 网关实例 CRUD
+- ingress nginx（9 用例）：ingress 网关实例 + 网关配置 CRUD
+- ingress scaling（7 用例）：ingress 网关实例 CRUD + 启停/扩缩容
 
 共 28 用例。
 """
@@ -61,6 +61,8 @@ def _build_ingress_config(api_env, soft_load_code: str = None) -> IngressConfig:
 # msingressgw.jmx — nginx 参数模板 CRUD + ingress 网关实例
 # =============================================================================
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("Ingress Gateway OpenAPI 接口")
 class TestMsIngressGateway:
@@ -215,6 +217,8 @@ class TestMsIngressGateway:
 # ingressnginx.jmx — ingress 网关配置 CRUD
 # =============================================================================
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("Ingress Nginx OpenAPI 接口")
 class TestMsIngressNginx:
@@ -311,6 +315,8 @@ class TestMsIngressNginx:
 # msingressksr.jmx — ingress 网关实例启停/扩缩容
 # =============================================================================
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("Ingress Scaling 扩容/缩容接口")
 class TestIngressScaling:

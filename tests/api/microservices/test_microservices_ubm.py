@@ -1,7 +1,6 @@
 """
 微服务 UBM OpenAPI 接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/microservices/openapi/msubm.jmx 转换。
 覆盖 UBM 相关 5 个用例：
 - 查询平面单元列表
 - 查询租户信息
@@ -21,6 +20,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("UBM OpenAPI 接口")
 class TestMicroservicesUbm:

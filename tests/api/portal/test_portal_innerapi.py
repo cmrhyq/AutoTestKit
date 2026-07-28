@@ -19,6 +19,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.portal
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基门户InnerAPI接口")
 @allure.story("Portal Inner 门户内部接口")
 class TestPortalInnerAPI:

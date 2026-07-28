@@ -1,7 +1,6 @@
 """
 弹性计算 OpenAPI 集群信息接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/elastic-compute/openapi/cluster.jmx 转换。
 覆盖 elastic-compute 集群相关 2 个用例：
 - v1 查询集群列表
 - v2 查询集群列表
@@ -18,6 +17,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.openapi
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("Cluster OpenAPI 接口")
 class TestEcOpenapiCluster:

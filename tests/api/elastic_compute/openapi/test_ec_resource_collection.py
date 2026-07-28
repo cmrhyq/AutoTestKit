@@ -1,7 +1,6 @@
 """
 弹性计算 OpenAPI 资源采集接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/elastic-compute/openapi/elastic-computer-resource-collection.jmx 转换。
 覆盖 5 个采集类只读接口：
 - 集群配额信息 / 租户配额信息 / 集群资源信息 / 中间件信息 / 应用组件系统配额信息
 """
@@ -17,6 +16,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.openapi
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("Resource Collection OpenAPI 接口")
 class TestEcOpenapiResourceCollection:

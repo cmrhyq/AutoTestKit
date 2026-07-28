@@ -1,7 +1,6 @@
 """
 弹性计算 Native ServiceAccount 接口测试
 
-转换自 JMeter 脚本: serviceaccount.jmx
 测试内容：ServiceAccount 原生接口-特权接口，针对 ServiceAccount 增删改查进行测试
 - 查询指定 ServiceAccount
 - 创建 ServiceAccount
@@ -25,6 +24,8 @@ HTTP_NOT_FOUND = 404
 
 
 @pytest.mark.api
+@pytest.mark.native
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("ServiceAccount 原生接口")
 class TestEcNativeServiceAccount:

@@ -1,7 +1,6 @@
 """
 微服务 Istio Gateway OpenAPI 接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/microservices/openapi/msistiogateway.jmx 转换。
 覆盖 Istio Gateway 相关 17 个用例：
 - 入口网关实例 CRUD
 - 网关规则 CRUD
@@ -20,6 +19,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("Istio Gateway OpenAPI 接口")
 class TestMicroservicesIstio:

@@ -1,7 +1,6 @@
 """
 微服务 Inner API 接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/microservices/innerapi/microserviceIstioInner.jmx 转换。
 覆盖 ISTIO 网关 Inner API 相关 10 个用例：
 - KEM 统一校验/创建/删除
 - 虚拟服务查询/精确/新增/删除
@@ -25,6 +24,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.microservice
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基微服务InnerAPI接口")
 @allure.story("ISTIO 网关 Inner API 接口")
 class TestMicroservicesInnerIstio:

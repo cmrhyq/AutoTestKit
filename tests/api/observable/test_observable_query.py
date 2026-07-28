@@ -1,7 +1,6 @@
 """
 可观测 OpenAPI 模型查询接口测试
 
-转换自 JMeter 脚本: observable-query.jmx
 测试内容：
 - 查询模型列表
 - 根据ID或名称获取模型
@@ -21,6 +20,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.observable
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基可观测OpenAPI接口")
 @allure.story("Observable Query 查询接口")
 class TestObservableQuery:

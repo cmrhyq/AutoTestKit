@@ -1,7 +1,6 @@
 """
 弹性计算 extensions/applications 接口测试脚本
 
-基于 JMeter auto_test_pro/auto-test/files/elastic-compute/extensions/applications.jmx 转换。
 覆盖 elastic-compute 应用搜索 1 个用例：
 - searchApp by kinds
 
@@ -19,6 +18,8 @@ from core.reporting.allure_helper import AllureHelper
 
 
 @pytest.mark.api
+@pytest.mark.extension
+@allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("Application 接口")
 class TestEcExtensionsApplication:
@@ -35,7 +36,7 @@ class TestEcExtensionsApplication:
     @pytest.fixture(scope="class")
     def ec_ext_service(self, api_env, api_logger):
         service = PanJiElasticComputeExtService(
-            base_url=api_env.get("apiBaseUrl"),
+            base_url=api_env.get("apiInnerBaseUrl"),
             logger=api_logger,
         )
         yield service
