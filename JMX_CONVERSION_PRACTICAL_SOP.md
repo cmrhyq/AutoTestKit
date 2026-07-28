@@ -1,6 +1,9 @@
 # JMX 转 Python 实操 SOP（以 pvc-pv.jmx 为例）
 
-本文档是 `JMX_TO_PYTHON_SOP.md`（规范文档）的实操补充，以 `pvc-pv.jmx` 真实转换过程为例，展示完整的转换步骤和决策过程。
+本文档以 `pvc-pv.jmx` 真实转换过程为例，展示 JMeter 脚本 → Pytest + Allure 用例的完整转换步骤、目录/命名约定与决策过程。所有示例均与仓库现存代码（`base/api/services/*.py`、`tests/api/**/test_*.py`、`config/env_*.yaml`）保持一致。
+
+> 项目栈：Python 3.10+ / pytest 9 / requests / allure-pytest / pytest-xdist / ruff。
+> 目标框架：`AutoTestKit`（本仓库）。
 
 ---
 
@@ -52,17 +55,21 @@
 
 ### Step 4：识别参数并映射到 YAML
 
-检查现有 `config/env_*.yaml` 中是否已有对应参数：
+检查现有 `config/env_*.yaml` 中是否已有对应参数。**本仓库统一使用 camelCase 作为 yaml key**（与 `env_test.yaml` / `env_bcv25_arm.yaml` 保持一致）。
 
 | JMX 变量 | YAML 参数名 | 是否已存在 | 值（示例） |
 |----------|-----------|-----------|-----------|
-| cellCode | `ec_cell_code` | 已存在 | TEST |
-| sysCode | `ec_sys_code` | 已存在 | test-admin |
-| name | `ec_pvc_name` | 已存在 | test-hpa-001 |
-| pvName | `ec_pv_name` | 已存在 | test-pv-001 |
-| storageClassName | `ec_storage_class_name` | 已存在 | test-sc-001 |
+| cellCode | `cellCode` | 已存在 | test |
+| sysCode | `sysCode` | 已存在 | test-sys |
+| name | `pvcName` | 已存在 | test-pvc-0001 |
+| pvName | `pvName` | 已存在 | test-pv-0001 |
+| storageClassName | `storageClassName` | 已存在 | nfs-test |
 
-如果有新参数，需同步写入**所有** `env_*.yaml` 文件（硬约束）。
+**硬约束：**
+- 所有新增 key 必须**同步写入**每一份 `config/env_*.yaml`（当前至少 `env_test.yaml` / `env_bcv25_arm.yaml`），否则切换环境时会读到 `None`，导致鉴权 / 请求失败。
+- 命名统一 **camelCase**（如 `apiBaseUrl`、`nativeXApiKey`、`pvcName`），禁止 snake_case / kebab-case。
+- 敏感信息（密码、token、api-key）不得硬编码在测试文件中，一律从 `api_env` / `api_cache` 读取。
+- 租户账号信息集中在 yaml 的 `tenants` 字典下：`tenants.<tenant_code>.username / password`。
 
 ---
 
@@ -72,9 +79,10 @@
 
 | 决策点 | 结果 |
 |--------|------|
-| 属于哪个业务域？ | elastic-compute OpenAPI |
-| 已有 Service 文件？ | `elastic_compute_open_service.py` ✔ |
-| 需要新建还是追加？ | 追加方法 |
+| 属于哪个业务域？ | elastic-compute OpenAPI（Bearer 鉴权） |
+| 已有 Service 文件？ | `base/api/services/elastic_compute_open_service.py` ✔ |
+| 已有 Service 类？ | `PanJiElasticComputeOpenService` ✔ |
+| 需要新建还是追加？ | 在已有类中**追加**方法 |
 
 **决策树：**
 
@@ -83,38 +91,74 @@ JMX 文件归属哪个 domain？
 ├── 已有 Service → 检查已有方法是否覆盖接口
 │   ├── 已覆盖 → 直接使用，跳到 Step 8
 │   └── 未覆盖 → 在已有 Service 中追加方法
-└── 没有 Service → 创建新的 Service 类继承 BaseService
+└── 没有 Service → 新建 `PanJi{Domain}{Type}Service` 类继承 `BaseService`
 ```
+
+**当前仓库已有 Service 一览（`base/api/services/`）：**
+
+| 文件 | 类 | 鉴权方式 |
+|------|-----|---------|
+| `portal_open_service.py` | `PanJiPortalOpenService` | 登录换 token / Bearer |
+| `portal_inner_service.py` | `PanJiPortalInnerService` | X-API-KEY |
+| `elastic_compute_open_service.py` | `PanJiElasticComputeOpenService` | Bearer（`cache["token"]`） |
+| `elastic_compute_ext_service.py` | `PanJiElasticComputeExtService` | Bearer |
+| `elastic_compute_native_service.py` | `PanJiElasticComputeNativeService` | X-API-KEY（`nativeXApiKey`） |
+| `microservices_open_service.py` | `PanJiMicroservicesOpenService` | Bearer |
+| `microservices_inner_service.py` | `PanJiMicroservicesInnerService` | X-API-KEY |
+| `observable_open_service.py` | `PanJiObservableOpenService` | Bearer |
+| `operation_open_service.py` | `PanJiOperationOpenService` | Bearer |
+| `plugin_open_service.py` / `plugin_inner_service.py` | `PanJiPlugin*Service` | Bearer / X-API-KEY |
 
 ### Step 6：编写 Service 方法
 
-遵循以下模式为每个接口添加方法：
+遵循以下模式为每个接口添加方法（与 `elastic_compute_open_service.py` 现有方法风格保持一致）：
 
 ```python
-def method_name(self, param1: str, ...) -> Dict[str, Any]:
-    """
-    中文功能描述。
+from typing import Any, Dict
 
-    对应 JMX：弹性计算_openapi_pvc-pv_{接口中文名}
-    {HTTP方法} {路径模板}
+from base import BaseService
+from core import DataCache
 
-    Args:
-        param1: 参数说明
-    """
-    self.logger.info(f"操作描述: {param1}")
-    url = f"/openapi/elastic-compute/v2/..."
-    response = self.get(endpoint=url, headers=_get_default_headers())
-    return response.json()
+
+def _get_default_headers() -> Dict[str, str]:
+    """获取默认请求头（走 Portal 登录得到的 Bearer Token）。"""
+    cache = DataCache.get_instance()
+    return {
+        "Authorization": cache.get("token"),
+    }
+
+
+class PanJiElasticComputeOpenService(BaseService):
+
+    def get_pvc(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 PVC。
+
+        对应 JMX：弹性计算_openapi_pvc-pv_查询指定pvc
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: PVC 名称
+        """
+        self.logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
+        response = self.get(endpoint=url, headers=_get_default_headers())
+        return response.json()
 ```
 
 **关键规范：**
 
-- 方法名 `snake_case`，动词前缀（get/create/delete/list/update/patch）
-- 带 `_get_default_headers()` 做鉴权（免鉴权接口除外）
-- 返回 `response.json()` 的 `Dict[str, Any]`
-- POST 请求体由调用方传入（`payload: Dict[str, Any]`），不在 Service 中写死
-- 路径参数用 f-string 插值
-- 不修改已有方法签名，只新增方法
+- 类命名 `PanJi{Domain}{Type}Service`（例 `PanJiElasticComputeOpenService`）。
+- 方法名 `snake_case`，动词前缀：`get_/list_/create_/update_/patch_/delete_`。
+- 每个方法首行 `self.logger.info(...)` 描述业务动作；docstring 必须包含**对应 JMX 名称**和 **HTTP 方法+路径**，方便与源脚本对照。
+- 需要鉴权的接口：`headers=_get_default_headers()`；Native / Inner 接口改用对应的 `_get_default_headers()`（读 `nativeXApiKey` 等）。
+- 返回 `response.json()`，类型标注 `Dict[str, Any]`（响应可能是列表时用 `Any`）。
+- POST/PUT/PATCH 请求体由调用方传入 `payload: Dict[str, Any]`，**不在 Service 中写死**。
+- 路径参数用 f-string 插值：`f"/openapi/.../cells/{cell_code}/..."`。
+- 只新增方法，不修改已有方法签名，避免破坏其他用例。
+- Service 类顶端建议保留 `DEFAULT_BASE_URL` 常量，构造函数签名统一 `(self, base_url: str = None, logger: logging.Logger = None)`。
 
 ### Step 7：处理 POST 请求体
 
@@ -169,15 +213,26 @@ def _build_pvc_payload(name: str, storage_class_name: str) -> Dict[str, Any]:
 
 ### Step 8：创建测试文件
 
-文件路径规则：`tests/api/{domain}/test_{jmx文件名去横线}.py`
+文件路径规则：`tests/api/{domain}/{api_type?}/test_{模块名}.py`。elastic-compute 领域按 API 类型再分子目录（`openapi/` / `native/` / `extensions/`），其它领域直接放 `{domain}/` 下。
 
 | JMX 路径 | 测试文件路径 |
 |---------|------------|
-| `elastic-compute/openapi/pvc-pv.jmx` | `tests/api/elastic_compute/test_ec_openapi_pvc_pv.py` |
-| `elastic-compute/openapi/Node.jmx` | `tests/api/elastic_compute/test_ec_openapi_node.py` |
+| `elastic-compute/openapi/pvc-pv.jmx` | `tests/api/elastic_compute/openapi/test_ec_pvc_pv.py` |
+| `elastic-compute/openapi/Node.jmx` | `tests/api/elastic_compute/openapi/test_ec_node.py` |
+| `elastic-compute/native/ServiceAccount.jmx` | `tests/api/elastic_compute/native/test_ec_serviceaccount.py` |
+| `elastic-compute/extensions/application.jmx` | `tests/api/elastic_compute/extensions/test_ec_application.py` |
 | `portal/openapi/portal-openapi.jmx` | `tests/api/portal/test_portal_openapi.py` |
+| `portal/inner/portal-innerapi.jmx` | `tests/api/portal/test_portal_innerapi.py` |
+| `microservices/openapi/istio.jmx` | `tests/api/microservices/test_microservices_istio.py` |
+| `observable/openapi/log.jmx` | `tests/api/observable/test_observable_log.py` |
+| `operations/openapi/task.jmx` | `tests/api/operations/test_operations_task.py` |
+| `plugin/openapi/info.jmx` | `tests/api/plugin/test_plugin_info.py` |
+
+每个新目录需存在 `__init__.py`（当前所有子目录均已就位，直接放文件即可）。
 
 ### Step 9：搭建测试类骨架
+
+对齐仓库现有测试类（如 `tests/api/elastic_compute/openapi/test_ec_pvc_pv.py`）：
 
 ```python
 """
@@ -193,20 +248,30 @@ from typing import Any, Dict
 import allure
 import pytest
 
-from base.api.services.xxx_service import XxxService
+from base.api.services.elastic_compute_open_service import (
+    PanJiElasticComputeOpenService,
+)
 from core.reporting.allure_helper import AllureHelper
 
 
+# 顶部常量抽取（禁止在方法内使用魔法数字）
+BUSINESS_SUCCESS_CODE = 2000
+RESOURCE_NOT_FOUND_CODE = 4004
+PVC_CREATE_WAIT_SECONDS = 3
+
+
 @pytest.mark.api
-@allure.feature("{模块名}")
-@allure.story("{JMX 对应的测试故事}")
-class TestXxx:
+@pytest.mark.openapi                       # 按业务模块选择：openapi/portal/extension/native/microservice/observable/operation/plugin
+@allure.epic("磐基API自动化测试")            # 项目级 epic，所有 API 用例统一
+@allure.feature("磐基弹性计算OpenAPI接口")   # 一级业务域
+@allure.story("PVC/PV/StorageClass 生命周期接口")  # 二级故事
+class TestEcOpenapiPvcPv:
     """
-    对应 JMeter 脚本: {filename}.jmx
-    线程组: {线程组名称}
+    对应 JMeter 脚本: pvc-pv.jmx
+    线程组: Thread Group - pvc
     """
 
-    TENANT = "tenant_admin"
+    TENANT = "monitor-group"                # 显式声明本类使用的租户，值必须存在于 yaml.tenants
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):
@@ -215,9 +280,9 @@ class TestXxx:
 
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
-        """创建服务实例，base_url 从 env yaml 显式传入。"""
-        service = XxxService(
-            base_url=api_env.get("api_base_url"),
+        """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
+        service = PanJiElasticComputeOpenService(
+            base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
         yield service
@@ -225,9 +290,20 @@ class TestXxx:
 ```
 
 **必须项（缺一不可）：**
-- `TENANT` 类属性
-- `_login` autouse fixture
-- service fixture 使用 `yield` + `service.close()`
+- 类装饰器四件套：`@pytest.mark.api` + `@pytest.mark.<module>` + `@allure.epic` + `@allure.feature` + `@allure.story`
+- `TENANT` 类属性 + `autouse` 的 `_login` fixture（调用 `get_token(self.TENANT)`）
+- Service fixture 使用 `yield` + `service.close()`（scope 建议 `class`，全类共用一个 session）
+- `base_url=api_env.get("apiBaseUrl")`（**camelCase key**，不要写 `api_base_url`）
+- 顶部常量抽取：业务码（`BUSINESS_SUCCESS_CODE = 2000`）、等待时长（`XXX_WAIT_SECONDS`）等
+
+**可用的项目级 fixtures（由 `base/api/fixtures.py` + `tests/api/conftest.py` 提供）：**
+
+| Fixture | Scope | 说明 |
+|---------|-------|------|
+| `api_env` | session | 当前环境 yaml 全量字典 |
+| `api_logger` | session | 项目统一日志器 |
+| `api_cache` | session | `DataCache` 单例，跨用例数据传递 |
+| `get_token(tenant_code)` | session | 多租户 token 懒加载工厂，切租户只需再调用一次 |
 
 ### Step 10：处理条件分支逻辑
 
@@ -240,64 +316,100 @@ JMX 中的 IfController 转换策略：
 | 创建后验证的等待 | `time.sleep(N)` | 对应 JMX `ConstantTimer` |
 | 条件判断后续操作是否执行 | if 语句包裹后续调用 | 创建成功才删除 |
 
-**合并实例（pvc-pv.jmx）：**
+**合并实例（pvc-pv.jmx，对齐 `test_ec_pvc_pv.py`）：**
 
 ```python
 def test_pvc_lifecycle(self, ec_service, api_env, api_cache):
+    cell_code = api_env.get("cellCode")
+    sys_code = api_env.get("sysCode")
+    pvc_name = api_env.get("pvcName", "auto-test-probe-pvc-test-0001")
+    storage_class_name = api_env.get("storageClassName")
+
     with AllureHelper.api_test(ec_service):
         # Step 1: 查询当前状态
         with AllureHelper.step("查询指定 PVC 确认当前状态"):
-            response_json = ec_service.get_pvc(...)
+            response_json = ec_service.get_pvc(
+                cell_code=cell_code, sys_code=sys_code, name=pvc_name,
+            )
             ec_get_code = response_json.get("code")
 
         # Step 2: 若已存在，先删除（对应 IfController code==2000）
-        if ec_get_code == 2000:
+        if ec_get_code == BUSINESS_SUCCESS_CODE:
             with AllureHelper.step("PVC 已存在，先删除"):
-                ec_service.delete_pvc(...)
+                del_resp = ec_service.delete_pvc(
+                    cell_code=cell_code, sys_code=sys_code, name=pvc_name,
+                )
+                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                    f"删除已存在的 PVC 失败: {del_resp}"
+                )
 
-        # Step 3: 创建（两个分支共同操作）
+        # Step 3: 创建（两分支共同操作）
         with AllureHelper.step("创建 PVC"):
-            create_resp = ec_service.create_pvc(...)
-            assert create_resp.get("code") == 2000
+            payload = self._build_pvc_payload(pvc_name, storage_class_name)
+            create_resp = ec_service.create_pvc(
+                cell_code=cell_code, sys_code=sys_code, payload=payload,
+            )
+            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"创建 PVC 失败: {create_resp}"
+            )
+            api_cache.set("ec_pvc_created", True)
 
         # Step 4: 等待（对应 ConstantTimer 3000ms）
-        time.sleep(3)
+        with AllureHelper.step(f"等待 {PVC_CREATE_WAIT_SECONDS}s PVC 就绪"):
+            time.sleep(PVC_CREATE_WAIT_SECONDS)
 
         # Step 5: 验证
-        with AllureHelper.step("查询列表验证"):
-            list_resp = ec_service.list_pvc(...)
+        with AllureHelper.step("查询 PVC 列表并验证新创建的 PVC 存在"):
+            list_resp = ec_service.list_pvc(cell_code=cell_code, sys_code=sys_code)
+            assert pvc_name in json.dumps(list_resp, ensure_ascii=False)
 
         # Step 6: 清理（对应内层 IfController ec_create_code==2000）
         with AllureHelper.step("删除创建的 PVC"):
-            ec_service.delete_pvc(...)
+            del_resp = ec_service.delete_pvc(
+                cell_code=cell_code, sys_code=sys_code, name=pvc_name,
+            )
+            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE
+            api_cache.set("ec_pvc_created", False)
 ```
 
 ### Step 11：编写测试方法
 
-每个测试方法遵循以下结构：
+每个测试方法遵循以下结构（对齐 `test_ec_pvc_pv.py::test_get_pv`）：
 
 ```python
 @allure.title("中文标题")
-@allure.description("简洁的业务动作描述")
+@allure.description("一句业务动词描述，补场景/依赖/预期")
 @allure.severity(allure.severity_level.CRITICAL)  # 生命周期=CRITICAL，单查=NORMAL
 def test_xxx(self, ec_service, api_env, api_cache):
-    # 从 api_env 获取参数（禁止硬编码）
-    param = api_env.get("param_name")
+    # 从 api_env 获取参数（camelCase key，禁止硬编码）
+    cell_code = api_env.get("cellCode")
+    pv_name = api_env.get("pvName")
 
     with AllureHelper.api_test(ec_service):
         with AllureHelper.step("操作描述"):
-            response_json = ec_service.some_method(param)
+            response_json = ec_service.get_pv(
+                cell_code=cell_code, pv_name=pv_name,
+            )
 
         with AllureHelper.step("验证响应"):
-            assert response_json.get("code") == 2000, f"失败: {response_json}"
+            assert isinstance(response_json, dict), "响应应该是字典类型"
+            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询 PV 失败: {response_json}"
+            )
 
         with AllureHelper.step("缓存数据（如有下游依赖）"):
             api_cache.set("some_key", response_json["data"]["id"])
 ```
 
 **severity 选择：**
-- `CRITICAL`：完整生命周期测试（CRUD 全流程）
-- `NORMAL`：单个查询接口
+- `CRITICAL`：完整生命周期测试（CRUD 全流程）、关键鉴权/数据入口
+- `NORMAL`：单个查询、非关键路径接口
+- `MINOR`：辅助工具类接口
+
+**变量取值原则：**
+- 一律从 `api_env.get("<camelCaseKey>")` 读取，禁止直接写字面量
+- 下游依赖数据用 `api_cache.set(key, value)` 传递，另一个用例用 `api_cache.get(key)` 消费
+- 断言业务码用顶部常量（`BUSINESS_SUCCESS_CODE` 等），不写魔法数字
 
 #### Step 11.1：@allure.title 编写规范（强制）
 
@@ -409,42 +521,66 @@ def test_query_user_list_by_role(role, expected_count):
 
 ### Step 13：Linter 检查
 
+项目使用 `ruff`（配置在 `pyproject.toml`：`line-length=120`，`target-version=py310`，规则集 `E,F,W,I`）。
+
 ```bash
+# 静态检查
 ruff check base/api/services/elastic_compute_open_service.py
-ruff check tests/api/elastic_compute/test_ec_pvc_pv.py
+ruff check tests/api/elastic_compute/openapi/test_ec_pvc_pv.py
+
+# 全量检查（新增/修改文件推荐）
+ruff check base tests
 ```
 
-确保无错误。如有格式问题：
+如有格式问题：
 
 ```bash
 ruff format base/api/services/elastic_compute_open_service.py
-ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
+ruff format tests/api/elastic_compute/openapi/test_ec_pvc_pv.py
 ```
+
+### Step 13.5：本地运行验证
+
+```bash
+# 单文件运行（先跑一遍，确认能收集+能通过）
+pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -v
+
+# 只跑本次新增标记
+pytest -m "api and openapi" -v
+
+# 并行 + Allure
+pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -n auto --alluredir=report/allure-results
+```
+
+期望：所有用例 `PASSED`，无 warning，Allure 报告结构完整（epic/feature/story/title/description 全部渲染）。
 
 ### Step 14：核对检查清单
 
-- [ ] 测试文件在 `tests/api/<domain>/` 目录下
-- [ ] 文件名格式：`test_{模块名}.py`
-- [ ] 所有参数在**每一份** `config/env_*.yaml` 中都有对应 key
-- [ ] YAML 参数名全部是 snake_case
-- [ ] import 路径正确（`from base.api.services.xxx import ...`）
-- [ ] 类装饰器包含 `@pytest.mark.api`、`@allure.feature`、`@allure.story`
-- [ ] 测试类顶部声明 `TENANT = "..."`，并有 `autouse` 的 `_login` fixture
-- [ ] 每个测试方法有 `@allure.title`、`@allure.description`、`@allure.severity`
-- [ ] `@allure.title` 是一句业务动词短语（6–20 字），不含 HTTP 方法/URL/断言细节
-- [ ] `@allure.description` 是一句业务描述，**不含** HTTP 方法+URL，且**不与 title 完全一致**
-- [ ] title 与 description 数量一致，与 `def test_` 数量一致（三者匹配）
+- [ ] 测试文件在 `tests/api/<domain>/[<api_type>/]` 目录下，且父目录都有 `__init__.py`
+- [ ] 文件名格式：`test_{domain_prefix}_{module}.py`（例 `test_ec_pvc_pv.py`）
+- [ ] 所有参数在**每一份** `config/env_*.yaml` 中都有对应 key（同步！）
+- [ ] YAML 参数名全部是 **camelCase**（不是 snake_case）
+- [ ] Service 类为 `PanJi{Domain}{Type}Service`，方法名 `snake_case + 动词前缀`
+- [ ] import 路径正确（`from base.api.services.xxx_service import PanJi...Service`）
+- [ ] 类装饰器齐全：`@pytest.mark.api` + `@pytest.mark.<module>` + `@allure.epic("磐基API自动化测试")` + `@allure.feature(...)` + `@allure.story(...)`
+- [ ] 测试类顶部声明 `TENANT = "..."`，值存在于 `yaml.tenants`，并有 `autouse` 的 `_login` fixture
+- [ ] Service fixture `scope="class"`，用 `yield` + `service.close()`
+- [ ] Service 构造参数 `base_url=api_env.get("apiBaseUrl")`（**不是** `api_base_url`）
+- [ ] 每个测试方法有 `@allure.title` + `@allure.description` + `@allure.severity`
+- [ ] `@allure.title` 一句业务动词短语（6–20 字），不含 HTTP 方法/URL/断言细节
+- [ ] `@allure.description` 一句业务描述，**不含** HTTP 方法+URL，且**不与 title 完全一致**
+- [ ] title / description / `def test_` 三者数量一致
 - [ ] 测试方法体最外层用 `AllureHelper.api_test(service)` 包裹
 - [ ] 关键操作用 `AllureHelper.step()` 分段
-- [ ] Service 方法调用带 `_get_default_headers()`
+- [ ] Service 方法调用带 `_get_default_headers()`（Bearer / X-API-KEY 按业务域选择）
 - [ ] 数据依赖通过 `api_cache` 传递
-- [ ] 断言的是业务字段（`code`），不是 HTTP status
-- [ ] 没有硬编码的 URL、账号、明文 token
-- [ ] Service fixture 使用 `yield` + `service.close()`
-- [ ] `@dataclass` 字段末尾无逗号（如果使用了 dataclass）
+- [ ] 断言的是业务字段（`code`），不是 HTTP status（`raise_for_status` 已覆盖）
+- [ ] 没有硬编码的 URL、账号、明文 token、魔法数字
+- [ ] 业务码 / 等待时长抽取为**模块顶部常量**（如 `BUSINESS_SUCCESS_CODE = 2000`、`PVC_CREATE_WAIT_SECONDS = 3`）
 - [ ] JMX 中所有 `HTTPSamplerProxy` 都有对应的测试步骤
-- [ ] JMX 中的 `JSONPostProcessor` 逻辑都有对应的数据提取和缓存
-- [ ] 常量抽取到模块顶部（如 `BUSINESS_SUCCESS_CODE = 2000`）
+- [ ] JMX 中的 `JSONPostProcessor` 都有对应的数据提取和缓存
+- [ ] `@dataclass` 字段末尾无逗号（如果使用了 dataclass）
+- [ ] `ruff check` 无错误、`pytest` 本地能通过
 
 ---
 
@@ -454,15 +590,16 @@ ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
 
 | JMX 元素 | Python 产出 | 存放位置 |
 |----------|-----------|---------|
-| 用户定义变量 | `env_*.yaml` 参数 | `config/` |
-| HTTPSamplerProxy | Service 方法 | `base/api/services/` |
-| ThreadGroup | 测试类 | `tests/api/{domain}/` |
+| 用户定义变量 | `env_*.yaml` 参数（camelCase） | `config/` |
+| HTTPSamplerProxy | Service 方法 | `base/api/services/<domain>_<type>_service.py` |
+| ThreadGroup | 测试类 | `tests/api/{domain}/[{api_type}/]test_*.py` |
 | IfController | if/else 分支 | 测试方法内 |
 | JSONPostProcessor | `api_cache.set()` | 测试方法内 |
 | ResponseAssertion / JSONPathAssertion | `assert` 语句 | 测试方法内 |
-| ConstantTimer | `time.sleep()` | 测试方法内 |
+| ConstantTimer | `time.sleep(常量)` | 测试方法内 |
 | HeaderManager + token | `_get_default_headers()` | Service 层自动处理 |
 | POST body (raw JSON) | helper 方法构造 dict | 测试类的 `@staticmethod` |
+| Login Sampler | `get_token(TENANT)` fixture | `tests/api/conftest.py` 已提供 |
 
 ### 命名约定速查
 
@@ -471,14 +608,17 @@ ruff format tests/api/elastic_compute/test_ec_pvc_pv.py
 | Service 文件 | `{domain}_{api_type}_service.py` | `elastic_compute_open_service.py` |
 | Service 类 | `PanJi{Domain}{Type}Service` | `PanJiElasticComputeOpenService` |
 | Service 方法 | `{verb}_{resource}` | `get_pvc`, `create_pvc`, `list_nodes` |
-| 测试文件 | `test_{domain}_{api_type}_{module}.py` | `test_ec_openapi_pvc_pv.py` |
-| 测试类 | `Test{Domain}{Module}` | `TestEcOpenapiPvcPv` |
+| 测试目录 | `tests/api/{domain}/[{api_type}/]` | `tests/api/elastic_compute/openapi/` |
+| 测试文件 | `test_{domain_prefix}_{module}.py` | `test_ec_pvc_pv.py` |
+| 测试类 | `Test{DomainPrefix}{ApiType?}{Module}` | `TestEcOpenapiPvcPv` |
 | 测试方法 | `test_{功能描述}` | `test_pvc_lifecycle`, `test_get_pv` |
-| YAML 参数 | `{domain_prefix}_{resource}_{field}` | `ec_pvc_name`, `ec_cell_code` |
+| YAML 参数 | camelCase 名词短语 | `pvcName`, `cellCode`, `apiBaseUrl` |
+| 顶部常量 | `UPPER_SNAKE_CASE` | `BUSINESS_SUCCESS_CODE`, `PVC_CREATE_WAIT_SECONDS` |
+| pytest marker | `@pytest.mark.api` + 模块 marker | `openapi/portal/extension/native/microservice/observable/operation/plugin` |
 
 ### title / description 一键校验
 
-CR 提交前建议本地跑一次校验，确保每个 `def test_` 都同时具备 `@allure.title` 与 `@allure.description`，且三者数量匹配：
+CR 提交前建议本地跑一次校验，确保每个 `def test_` 都同时具备 `@allure.title` 与 `@allure.description`，且三者数量匹配（脚本会递归扫描 `tests/api/**/test_*.py`，包括 `openapi/native/extensions/` 子目录）：
 
 ```bash
 python -c "
@@ -501,18 +641,53 @@ print('MISMATCH:', mismatch) if mismatch else print('MATCH_OK')
 
 期望输出：`MATCH_OK`。若出现 `MISMATCH` 列表，按文件补齐缺失装饰器。
 
+### YAML key 覆盖一键校验
+
+新用例落地前，用下面的脚本核对所有 `api_env.get("<key>")` 是否在**每一份** `env_*.yaml` 中都存在：
+
+```bash
+python -c "
+import os, re, yaml
+tests_root = 'tests/api'
+config_root = 'config'
+used = set()
+for r,_,fs in os.walk(tests_root):
+    for f in fs:
+        if not f.endswith('.py'): continue
+        s = open(os.path.join(r,f), encoding='utf-8').read()
+        used.update(re.findall(r'api_env\.get\([\"\\'](\w+)[\"\\']', s))
+envs = {}
+for f in os.listdir(config_root):
+    if f.startswith('env_') and f.endswith('.yaml'):
+        with open(os.path.join(config_root, f), encoding='utf-8') as fh:
+            envs[f] = set((yaml.safe_load(fh) or {}).keys())
+missing = {f: sorted(used - keys) for f, keys in envs.items() if used - keys}
+print('MISSING:', missing) if missing else print('YAML_OK')
+"
+```
+
+期望输出：`YAML_OK`。若有 `MISSING`，按文件补齐缺失 key（含默认值）。
+
 ### 常见陷阱
 
 | 陷阱 | 后果 | 预防 |
 |------|------|------|
 | 遗漏 `_login` fixture | 全部请求 401 | 骨架模板强制包含 |
-| 参数只加了一个 yaml | 切环境后 None → 401 | 同步所有 env_*.yaml |
+| 参数只加了一个 yaml | 切环境后 `None` → 401 / 500 | 同步所有 `env_*.yaml` |
+| YAML key 用 snake_case | `api_env.get()` 拿到 `None` | 统一 camelCase（对齐现有 yaml） |
+| Service 构造用 `api_env.get("api_base_url")` | base_url = `None`，请求全部失败 | 用 `apiBaseUrl` |
+| 忘记 `@pytest.mark.<module>` marker | `-m openapi` 收集不到用例 | 类装饰器 4 件套齐全 |
+| 缺 `@allure.epic` | Allure 报告归属层次断裂 | 项目统一 `@allure.epic("磐基API自动化测试")` |
 | POST body 在 Service 中写死 | 无法参数化测试 | body 由调用方传入 |
-| 断言 HTTP status 而非业务码 | raise_for_status 已覆盖 | 只断 response_json["code"] |
-| dataclass 字段末尾加逗号 | 值变成 tuple | 严格禁止尾逗号 |
+| 断言 HTTP status 而非业务码 | `raise_for_status` 已覆盖，冗余断言 | 只断 `response_json["code"]` |
+| 用魔法数字断言（`== 2000`） | 语义弱、无法搜索 | 顶部常量 `BUSINESS_SUCCESS_CODE` |
+| dataclass 字段末尾加逗号 | 值变成 `tuple` | 严格禁止尾逗号 |
 | 条件分支拆成独立测试方法 | 丢失上下文/顺序依赖 | CRUD 生命周期合并为一个方法 |
-| JMX test_type 理解错误 | 断言方向反转 | 查表确认 test_type 含义 |
+| JMX `test_type` 理解错误 | 断言方向反转 | 查表确认 test_type 含义（2/8/16） |
 | description 塞 HTTP 方法+URL | 与 title 重复、URL 变更即失效 | 只写业务动词一句话 |
-| title 塞方法/断言/URL 细节 | 报告可读性差、语义弱 | 一句业务动词短语 |
+| title 塞方法/断言/URL 细节 | 报告可读性差、语义弱 | 一句业务动词短语（6–20 字） |
 | title 与 description 内容一致 | 信息冗余、无增量 | description 补场景/依赖/预期 |
 | 缺 title 或 缺 description | Allure 报告用例失去可读标题/说明 | 检查清单：三者数量必须相等 |
+| Service 直接调 `requests`，绕过 `BaseService` | 丢失日志/重试/session 复用 | 一律走 `self.get/post/put/patch/delete` |
+| 测试文件放错目录（少 `openapi/` 子目录） | 团队约定不一致，难查 | 严格按 `tests/api/{domain}/{api_type}/` |
+| Service fixture `scope="function"` | 每个用例重建 session，性能差 | 用 `scope="class"` + `yield` + `close()` |
