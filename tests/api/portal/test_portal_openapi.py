@@ -8,7 +8,7 @@ import pytest
 
 from base.api.fixtures import api_cache
 from base.api.services.portal_open_service import (
-    PanJiPortalOpenService,
+    PortalOpenService,
     PortalUserEntity,
     ClusterPlaneEntity,
     OpenSystemEntity,
@@ -25,6 +25,8 @@ from core.reporting.allure_helper import AllureHelper
 class TestPortalOpenAPI:
 
     TENANT = "tenant_admin"
+    SYSTEM_CODE = "portal_open_api_test_sys"
+    APP_CODE = "portal_open_api_test_app"
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):
@@ -34,7 +36,7 @@ class TestPortalOpenAPI:
     @pytest.fixture(scope="class")
     def portal_open_service(self, api_env, api_logger):
         """创建 Portal OpenAPI 服务实例"""
-        service = PanJiPortalOpenService(
+        service = PortalOpenService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger
         )
@@ -243,45 +245,18 @@ class TestPortalOpenAPI:
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
                 assert response_json["code"] == 0, "响应Code应等于0"
 
-    # ==================== 系统管理 ====================
-
-    @allure.title("查询系统")
-    @allure.description("查询系统列表，判断目标系统是否已存在")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_query_system(self, portal_open_service, api_env, api_cache, api_logger):
-        with AllureHelper.api_test(portal_open_service):
-            with AllureHelper.step("发送 POST 请求查询系统"):
-                system_code = "portal_open_api_test_sys"
-                response_json = portal_open_service.query_system(system_code)
-
-            with AllureHelper.step("验证响应数据"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
-
-            with AllureHelper.step("判断系统是否已存在并缓存"):
-                data_list = response_json["data"]["list"]
-                system_exists = False
-                for item in data_list:
-                    if item["systemCode"] == system_code:
-                        system_exists = True
-                        api_cache.set("systemId1", item["systemId"])
-                        api_logger.info(f"系统已存在，缓存systemId1: {item['systemId']}")
-                        break
-                api_cache.set("systemExists", system_exists)
+    # ==================== 系统管理（创建路径）====================
 
     @allure.title("创建系统")
-    @allure.description("当系统不存在时创建新系统")
+    @allure.description("创建新系统（cleanup fixture 已保证系统不存在）")
     @allure.severity(allure.severity_level.NORMAL)
     def test_create_system(self, portal_open_service, api_env, api_cache, api_logger):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，跳过创建")
-
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求创建系统"):
                 system = OpenSystemEntity(
-                    system_name="portal_open_api_test_sys",
-                    system_code="portal_open_api_test_sys",
-                    system_desc="portal_open_api_test_sys",
+                    system_name=self.SYSTEM_CODE,
+                    system_code=self.SYSTEM_CODE,
+                    system_desc=self.SYSTEM_CODE,
                     field_one=api_cache.get("firstFieldId"),
                     field_two=api_cache.get("secondFieldId"),
                     create_id=api_env.get("portalUserId"),
@@ -300,16 +275,13 @@ class TestPortalOpenAPI:
     @allure.title("系统资源配额分配")
     @allure.description("为新创建的系统分配资源配额（CPU/内存）")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_system_resource_allocation(self, portal_open_service, api_env, api_cache):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，跳过资源配额分配")
-
+    def test_system_resource_allocation(self, portal_open_service, api_env):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求分配系统资源配额"):
                 code_entity = BasicCodeEntity(
                     cell_code=api_env.get("cellCode"),
                     tenant_code=api_env.get("tenantCode"),
-                    system_code="portal_open_api_test_sys"
+                    system_code=self.SYSTEM_CODE
                 )
                 response_json = portal_open_service.system_resource_allocation(
                     username=api_env.get("portalUsername"),
@@ -322,14 +294,10 @@ class TestPortalOpenAPI:
     @allure.title("创建后查询系统ID")
     @allure.description("创建系统后再次查询以获取systemId")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_query_system_id_after_create(self, portal_open_service, api_env, api_cache, api_logger):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，systemId已缓存")
-
+    def test_query_system_id_after_create(self, portal_open_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求查询系统"):
-                system_code = "portal_open_api_test_sys"
-                response_json = portal_open_service.query_system(system_code)
+                response_json = portal_open_service.query_system(self.SYSTEM_CODE)
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
@@ -338,7 +306,7 @@ class TestPortalOpenAPI:
             with AllureHelper.step("缓存systemId"):
                 data_list = response_json["data"]["list"]
                 for item in data_list:
-                    if item["systemCode"] == system_code:
+                    if item["systemCode"] == self.SYSTEM_CODE:
                         api_cache.set("systemId1", item["systemId"])
                         api_logger.info(f"已缓存systemId1: {item['systemId']}")
                         break
@@ -348,18 +316,19 @@ class TestPortalOpenAPI:
     @allure.title("创建应用")
     @allure.description("在系统下创建新应用")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_create_application(self, portal_open_service, api_env, api_cache, api_logger):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，跳过创建应用")
+    def test_create_application(self, portal_open_service, api_cache, api_logger):
+        system_id = api_cache.get("systemId1")
+        if not system_id:
+            pytest.skip("未获取到systemId1，跳过创建应用")
 
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求创建应用"):
                 response_json = portal_open_service.create_application(
-                    app_code="portal_open_api_test_app",
-                    app_name="portal_open_api_test_app",
+                    app_code=self.APP_CODE,
+                    app_name=self.APP_CODE,
                     app_type="web_type",
                     workload_type="Deployment",
-                    system_id=api_cache.get("systemId1")
+                    system_id=system_id
                 )
 
             with AllureHelper.step("验证响应数据"):
@@ -370,86 +339,6 @@ class TestPortalOpenAPI:
                 app_id = response_json["data"]["applicationSourceId"]
                 api_cache.set("applicationSourceId", app_id)
                 api_logger.info(f"已缓存applicationSourceId: {app_id}")
-
-    @allure.title("更新系统")
-    @allure.description("更新系统信息")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_update_system(self, portal_open_service, api_env, api_cache):
-        system_id = api_cache.get("systemId1")
-        if not system_id:
-            pytest.skip("未获取到systemId1，跳过更新系统")
-
-        with AllureHelper.api_test(portal_open_service):
-            with AllureHelper.step("发送 POST 请求更新系统"):
-                system = OpenSystemEntity(
-                    system_id=system_id,
-                    system_name="portal_open_api_test_sys",
-                    system_code="portal_open_api_test_sys",
-                    create_id=api_env.get("portalUserId"),
-                    username=api_env.get("portalUsername")
-                )
-                response_json = portal_open_service.update_system(system)
-
-            with AllureHelper.step("验证响应数据"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
-
-    @allure.title("更新应用")
-    @allure.description("更新应用信息")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_update_application(self, portal_open_service, api_cache):
-        app_id = api_cache.get("applicationSourceId")
-        if not app_id:
-            pytest.skip("未获取到applicationSourceId，跳过更新应用")
-
-        with AllureHelper.api_test(portal_open_service):
-            with AllureHelper.step("发送 POST 请求更新应用"):
-                response_json = portal_open_service.update_application(
-                    app_id=app_id,
-                    system_id=api_cache.get("systemId1")
-                )
-
-            with AllureHelper.step("验证响应数据"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
-
-    @allure.title("查询应用列表")
-    @allure.description("分页查询应用列表")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_query_application_list(self, portal_open_service, api_env, api_cache, api_logger):
-        with AllureHelper.api_test(portal_open_service):
-            with AllureHelper.step("发送 POST 请求查询应用列表"):
-                app_code = "portal_open_api_test_app"
-                response_json = portal_open_service.query_application_list(app_code)
-
-            with AllureHelper.step("验证响应数据"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
-
-            with AllureHelper.step("缓存应用信息（系统已存在场景）"):
-                if api_cache.get("systemExists"):
-                    data_list = response_json["data"]["list"]
-                    for item in data_list:
-                        if item.get("applicationSourceCode") == app_code:
-                            api_cache.set("applicationSourceId", item["applicationSourceId"])
-                            api_logger.info(f"已缓存applicationSourceId: {item['applicationSourceId']}")
-                            break
-
-    @allure.title("查看应用详细信息")
-    @allure.description("根据applicationSourceId查看应用详情")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_query_application_detail(self, portal_open_service, api_cache):
-        app_id = api_cache.get("applicationSourceId")
-        if not app_id:
-            pytest.skip("未获取到applicationSourceId，跳过查看应用详情")
-
-        with AllureHelper.api_test(portal_open_service):
-            with AllureHelper.step("发送 GET 请求查看应用详情"):
-                response_json = portal_open_service.query_application_detail(app_id=app_id)
-
-            with AllureHelper.step("验证响应数据"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
 
     # ==================== 授权管理 ====================
 
@@ -493,6 +382,78 @@ class TestPortalOpenAPI:
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
                 assert response_json["code"] == 2000, "响应Code应等于2000"
 
+    # ==================== 更新操作 ====================
+
+    @allure.title("更新系统")
+    @allure.description("更新系统信息")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_update_system(self, portal_open_service, api_env, api_cache):
+        system_id = api_cache.get("systemId1")
+        if not system_id:
+            pytest.skip("未获取到systemId1，跳过更新系统")
+
+        with AllureHelper.api_test(portal_open_service):
+            with AllureHelper.step("发送 POST 请求更新系统"):
+                system = OpenSystemEntity(
+                    system_id=system_id,
+                    system_name=self.SYSTEM_CODE,
+                    system_code=self.SYSTEM_CODE,
+                    create_id=api_env.get("portalUserId"),
+                    username=api_env.get("portalUsername")
+                )
+                response_json = portal_open_service.update_system(system)
+
+            with AllureHelper.step("验证响应数据"):
+                assert isinstance(response_json, Dict), "响应应该是字典类型"
+                assert response_json["code"] == 2000, "响应Code应等于2000"
+
+    @allure.title("更新应用")
+    @allure.description("更新应用信息")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_update_application(self, portal_open_service, api_cache):
+        app_id = api_cache.get("applicationSourceId")
+        if not app_id:
+            pytest.skip("未获取到applicationSourceId，跳过更新应用")
+
+        with AllureHelper.api_test(portal_open_service):
+            with AllureHelper.step("发送 POST 请求更新应用"):
+                response_json = portal_open_service.update_application(
+                    app_id=app_id,
+                    system_id=api_cache.get("systemId1")
+                )
+
+            with AllureHelper.step("验证响应数据"):
+                assert isinstance(response_json, Dict), "响应应该是字典类型"
+                assert response_json["code"] == 2000, "响应Code应等于2000"
+
+    @allure.title("查询应用列表")
+    @allure.description("分页查询应用列表")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_query_application_list(self, portal_open_service):
+        with AllureHelper.api_test(portal_open_service):
+            with AllureHelper.step("发送 POST 请求查询应用列表"):
+                response_json = portal_open_service.query_application_list(self.APP_CODE)
+
+            with AllureHelper.step("验证响应数据"):
+                assert isinstance(response_json, Dict), "响应应该是字典类型"
+                assert response_json["code"] == 2000, "响应Code应等于2000"
+
+    @allure.title("查看应用详细信息")
+    @allure.description("根据applicationSourceId查看应用详情")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_query_application_detail(self, portal_open_service, api_cache):
+        app_id = api_cache.get("applicationSourceId")
+        if not app_id:
+            pytest.skip("未获取到applicationSourceId，跳过查看应用详情")
+
+        with AllureHelper.api_test(portal_open_service):
+            with AllureHelper.step("发送 GET 请求查看应用详情"):
+                response_json = portal_open_service.query_application_detail(app_id=app_id)
+
+            with AllureHelper.step("验证响应数据"):
+                assert isinstance(response_json, Dict), "响应应该是字典类型"
+                assert response_json["code"] == 2000, "响应Code应等于2000"
+
     # ==================== 资源配额管理 ====================
 
     @allure.title("系统资源配额详情")
@@ -504,7 +465,7 @@ class TestPortalOpenAPI:
                 code_entity = BasicCodeEntity(
                     cell_code=api_env.get("cellCode"),
                     tenant_code=api_env.get("tenantCode"),
-                    system_code="portal_open_api_test_sys"
+                    system_code=self.SYSTEM_CODE
                 )
                 response_json = portal_open_service.system_resource_quota_detail(code_entity)
 
@@ -523,16 +484,13 @@ class TestPortalOpenAPI:
     @allure.title("系统资源配额释放")
     @allure.description("释放/删除系统资源配额")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_system_resource_quota_remove(self, portal_open_service, api_env, api_cache):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，跳过配额释放")
-
+    def test_system_resource_quota_remove(self, portal_open_service, api_env):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求释放系统资源配额"):
                 code_entity = BasicCodeEntity(
                     cell_code=api_env.get("cellCode"),
                     tenant_code=api_env.get("tenantCode"),
-                    system_code="portal_open_api_test_sys"
+                    system_code=self.SYSTEM_CODE
                 )
                 response_json = portal_open_service.system_resource_quota_remove(code_entity)
 
@@ -543,8 +501,6 @@ class TestPortalOpenAPI:
     @allure.description("删除已创建的应用")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_application(self, portal_open_service, api_cache):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，跳过删除应用")
         app_id = api_cache.get("applicationSourceId")
         if not app_id:
             pytest.skip("未获取到applicationSourceId，跳过删除应用")
@@ -560,11 +516,8 @@ class TestPortalOpenAPI:
     @allure.title("删除系统")
     @allure.description("删除已创建的系统")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_delete_system(self, portal_open_service, api_env, api_cache):
-        if api_cache.get("systemExists"):
-            pytest.skip("系统已存在，跳过删除系统")
+    def test_delete_system(self, portal_open_service, api_cache):
         system_id = api_cache.get("systemId1")
-        system_code = "portal_open_api_test_sys"
         if not system_id:
             pytest.skip("未获取到systemId1，跳过删除系统")
 
@@ -572,7 +525,7 @@ class TestPortalOpenAPI:
             with AllureHelper.step("发送 POST 请求删除系统"):
                 response_json = portal_open_service.delete_system(
                     system_id=system_id,
-                    system_code=system_code
+                    system_code=self.SYSTEM_CODE
                 )
 
             with AllureHelper.step("验证响应数据"):
