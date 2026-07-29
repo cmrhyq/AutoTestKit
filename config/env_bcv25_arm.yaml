@@ -135,6 +135,10 @@ storageClassName: nfs-51
 # nfs名称
 nfsName: nfs-51
 
+#---------------------- K8s 标准资源 ----------------------
+# configmap name - 生命周期
+configmapName: auto-test-probe-cm-test-0001
+
 #---------------------- 其他杂项 ----------------------
 # physicalHostId - 裸金属主机id
 physicalHostId: 1
