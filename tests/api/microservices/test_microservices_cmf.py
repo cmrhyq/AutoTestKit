@@ -12,7 +12,7 @@ import allure
 import pytest
 
 from base.api.services.microservices_open_service import (
-    PanJiMicroservicesOpenService,
+    MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -37,7 +37,7 @@ class TestMicroservicesCmf:
 
     @pytest.fixture(scope="class")
     def cmf_service(self, api_env, api_logger):
-        service = PanJiMicroservicesOpenService(
+        service = MicroservicesOpenService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )

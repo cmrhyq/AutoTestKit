@@ -13,7 +13,7 @@ from typing import Dict, Any
 import allure
 import pytest
 
-from base.api.services.operation_open_service import PanJiOperationOpenService
+from base.api.services.operation_open_service import OperationOpenService
 from core.reporting.allure_helper import AllureHelper
 
 
@@ -34,7 +34,7 @@ class TestOperationsQuery:
     @pytest.fixture(scope="class")
     def operation_service(self, api_env, api_logger):
         """创建 Operation OpenAPI 服务实例"""
-        service = PanJiOperationOpenService(
+        service = OperationOpenService(
             base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service

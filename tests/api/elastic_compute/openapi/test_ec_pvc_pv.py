@@ -11,7 +11,7 @@ import allure
 import pytest
 
 from base.api.services.elastic_compute_open_service import (
-    PanJiElasticComputeOpenService,
+    ElasticComputeOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -42,7 +42,7 @@ class TestEcOpenapiPvcPv:
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
         """创建服务实例，base_url 从 env yaml 显式传入。"""
-        service = PanJiElasticComputeOpenService(
+        service = ElasticComputeOpenService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )

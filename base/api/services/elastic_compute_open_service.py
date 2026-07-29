@@ -41,7 +41,7 @@ def _get_default_headers() -> Dict[str, str]:
     }
 
 
-class PanJiElasticComputeOpenService(BaseService):
+class ElasticComputeOpenService(BaseService):
     """
     弹性计算 OpenAPI 服务
 

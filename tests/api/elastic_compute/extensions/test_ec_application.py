@@ -12,7 +12,7 @@ import allure
 import pytest
 
 from base.api.services.elastic_compute_ext_service import (
-    PanJiElasticComputeExtService,
+    ElasticComputeExtService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -35,7 +35,7 @@ class TestEcExtensionsApplication:
 
     @pytest.fixture(scope="class")
     def ec_ext_service(self, api_env, api_logger):
-        service = PanJiElasticComputeExtService(
+        service = ElasticComputeExtService(
             base_url=api_env.get("apiInnerBaseUrl"),
             logger=api_logger,
         )

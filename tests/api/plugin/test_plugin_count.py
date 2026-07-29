@@ -9,7 +9,7 @@ from typing import Dict, Any
 import allure
 import pytest
 
-from base.api.services.plugin_inner_service import PanJiPluginInnerService
+from base.api.services.plugin_inner_service import PluginInnerService
 from core.reporting.allure_helper import AllureHelper
 
 
@@ -30,7 +30,7 @@ class TestPluginCount:
     @pytest.fixture(scope="class")
     def plugin_inner_service(self, api_env, api_logger):
         """创建 Plugin Inner API 服务实例"""
-        service = PanJiPluginInnerService(
+        service = PluginInnerService(
             base_url=api_env.get("apiInnerBaseUrl"), logger=api_logger
         )
         yield service

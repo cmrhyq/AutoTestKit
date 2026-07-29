@@ -14,7 +14,7 @@ import allure
 import pytest
 
 from base.api.services.microservices_open_service import (
-    PanJiMicroservicesOpenService,
+    MicroservicesOpenService,
     Ingress,
     IngressConfig,
     NginxParam,
@@ -27,7 +27,7 @@ from core.reporting.allure_helper import AllureHelper
 @pytest.fixture(scope="module")
 def ingress_service(api_env, api_logger):
     """模块级 Ingress OpenAPI 服务实例"""
-    service = PanJiMicroservicesOpenService(
+    service = MicroservicesOpenService(
         base_url=api_env.get("apiBaseUrl"),
         logger=api_logger,
     )

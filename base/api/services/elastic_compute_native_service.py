@@ -35,7 +35,7 @@ def _get_native_headers() -> Dict[str, str]:
     }
 
 
-class PanJiElasticComputeNativeService(BaseService):
+class ElasticComputeNativeService(BaseService):
     """
     弹性计算 Native K8s API 服务（特权接口）
 

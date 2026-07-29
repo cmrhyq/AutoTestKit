@@ -14,7 +14,7 @@ import allure
 import pytest
 
 from base.api.services.microservices_open_service import (
-    PanJiMicroservicesOpenService,
+    MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -41,7 +41,7 @@ class TestMicroservicesUbm:
     @pytest.fixture(scope="class")
     def ubm_service(self, api_env, api_logger):
         """创建 Microservices OpenAPI 服务实例"""
-        service = PanJiMicroservicesOpenService(
+        service = MicroservicesOpenService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )

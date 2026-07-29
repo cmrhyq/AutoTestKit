@@ -31,7 +31,7 @@ def _get_ext_headers() -> Dict[str, str]:
     }
 
 
-class PanJiElasticComputeExtService(BaseService):
+class ElasticComputeExtService(BaseService):
     """
     弹性计算 Extensions 服务（apikey 鉴权）
 

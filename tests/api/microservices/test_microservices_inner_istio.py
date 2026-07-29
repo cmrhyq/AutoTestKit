@@ -15,7 +15,7 @@ import allure
 import pytest
 
 from base.api.services.microservices_inner_service import (
-    PanJiMicroservicesInnerService,
+    MicroservicesInnerService,
     Kem,
     MeshVS,
     MeshNode,
@@ -44,7 +44,7 @@ class TestMicroservicesInnerIstio:
 
     @pytest.fixture(scope="class")
     def inner_service(self, api_env, api_logger):
-        service = PanJiMicroservicesInnerService(
+        service = MicroservicesInnerService(
             base_url=api_env.get("apiInnerBaseUrl") or api_env.get("apiBaseUrl"),
             logger=api_logger,
         )

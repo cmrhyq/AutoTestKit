@@ -7,11 +7,11 @@ API 服务封装模块
 """
 
 from base.api.services.base_service import BaseService
-from base.api.services.portal_inner_service import PanJiPortalInnerService
-from base.api.services.portal_open_service import PanJiPortalOpenService
+from base.api.services.portal_inner_service import PortalInnerService
+from base.api.services.portal_open_service import PortalOpenService
 
 __all__ = [
     'BaseService',
-    'PanJiPortalInnerService',
-    'PanJiPortalOpenService',
+    'PortalInnerService',
+    'PortalOpenService',
 ]

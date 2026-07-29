@@ -14,7 +14,7 @@ import allure
 import pytest
 
 from base.api.services.observable_open_service import (
-    PanJiObservableOpenService,
+    ObservableOpenService,
     Log,
     LogContext,
 )
@@ -42,7 +42,7 @@ class TestObservableLog:
     @pytest.fixture(scope="class")
     def observable_service(self, api_env, api_logger):
         """创建 Observable OpenAPI 服务实例"""
-        service = PanJiObservableOpenService(
+        service = ObservableOpenService(
             base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service

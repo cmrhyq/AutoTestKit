@@ -13,7 +13,7 @@ import allure
 import pytest
 
 from base.api.services.elastic_compute_native_service import (
-    PanJiElasticComputeNativeService,
+    ElasticComputeNativeService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -44,7 +44,7 @@ class TestEcNativeServiceAccount:
     @pytest.fixture(scope="class")
     def native_service(self, api_env, api_logger):
         """创建 Native API 服务实例，base_url 从 env yaml 显式传入。"""
-        service = PanJiElasticComputeNativeService(
+        service = ElasticComputeNativeService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )

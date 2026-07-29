@@ -14,7 +14,7 @@ from typing import Dict, Any
 import allure
 import pytest
 
-from base.api.services.plugin_open_service import PanJiPluginOpenService
+from base.api.services.plugin_open_service import PluginOpenService
 from core.reporting.allure_helper import AllureHelper
 
 
@@ -35,7 +35,7 @@ class TestPluginInfo:
     @pytest.fixture(scope="class")
     def plugin_open_service(self, api_env, api_logger):
         """创建 Plugin OpenAPI 服务实例"""
-        service = PanJiPluginOpenService(
+        service = PluginOpenService(
             base_url=api_env.get("apiBaseUrl"), logger=api_logger
         )
         yield service

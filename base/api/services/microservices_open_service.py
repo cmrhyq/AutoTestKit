@@ -22,7 +22,7 @@ def _get_default_headers() -> Dict[str, str]:
     }
 
 
-class PanJiMicroservicesOpenService(BaseService):
+class MicroservicesOpenService(BaseService):
     DEFAULT_BASE_URL = 'http://openapi.portal.nbpod3-31-181-20030.4a.cmit.cloud:20030'
 
     def __init__(self, base_url: str = None, logger: logging.Logger = None):

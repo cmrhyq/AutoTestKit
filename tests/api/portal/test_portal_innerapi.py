@@ -7,7 +7,7 @@ import pytest
 
 from base.api.fixtures import api_cache
 from base.api.services.portal_inner_service import (
-    PanJiPortalInnerService,
+    PortalInnerService,
     InnerSystemEntity,
     ApplicationEntity,
     MenuEntity,
@@ -35,7 +35,7 @@ class TestPortalInnerAPI:
     @pytest.fixture(scope="class")
     def portal_inner_service(self, api_env, api_logger):
         """创建 Portal Inner API 服务实例"""
-        service = PanJiPortalInnerService(
+        service = PortalInnerService(
             base_url=api_env.get("apiInnerBaseUrl"), logger=api_logger
         )
         yield service

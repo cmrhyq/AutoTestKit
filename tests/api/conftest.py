@@ -3,7 +3,7 @@ from base.api.fixtures import *  # noqa: F401,F403
 import pytest
 
 from base.api.services.portal_open_service import (
-    PanJiPortalOpenService,
+    PortalOpenService,
     PortalUserEntity,
 )
 
@@ -22,7 +22,7 @@ def get_token(api_env, api_cache, api_logger):
     - 再次调用同租户 -> 命中缓存，仅刷新 cache["token"] 为该租户 token（相当于切租户）。
     - 租户账号信息来自 config/env_{env}.yaml 的 `tenants` 字典。
     """
-    service = PanJiPortalOpenService(
+    service = PortalOpenService(
         base_url=api_env.get("apiBaseUrl"),
         logger=api_logger,
     )

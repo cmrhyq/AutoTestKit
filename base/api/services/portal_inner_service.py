@@ -23,7 +23,7 @@ def _get_default_headers() -> Dict[str, str]:
     }
 
 
-class PanJiPortalInnerService(BaseService):
+class PortalInnerService(BaseService):
     """
     盘古门户 InnerAPI 服务类
     提供门户系统内部 API 的调用方法

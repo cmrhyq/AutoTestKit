@@ -68,7 +68,6 @@
 **硬约束：**
 - 所有新增 key 必须**同步写入**每一份 `config/env_*.yaml`（当前至少 `env_test.yaml` / `env_bcv25_arm.yaml`），否则切换环境时会读到 `None`，导致鉴权 / 请求失败。
 - 命名统一 **camelCase**（如 `apiBaseUrl`、`nativeXApiKey`、`pvcName`），禁止 snake_case / kebab-case。
-- 敏感信息（密码、token、api-key）不得硬编码在测试文件中，一律从 `api_env` / `api_cache` 读取。
 - 租户账号信息集中在 yaml 的 `tenants` 字典下：`tenants.<tenant_code>.username / password`。
 
 ---
@@ -81,7 +80,7 @@
 |--------|------|
 | 属于哪个业务域？ | elastic-compute OpenAPI（Bearer 鉴权） |
 | 已有 Service 文件？ | `base/api/services/elastic_compute_open_service.py` ✔ |
-| 已有 Service 类？ | `PanJiElasticComputeOpenService` ✔ |
+| 已有 Service 类？ | `ElasticComputeOpenService` ✔ |
 | 需要新建还是追加？ | 在已有类中**追加**方法 |
 
 **决策树：**
@@ -91,23 +90,23 @@ JMX 文件归属哪个 domain？
 ├── 已有 Service → 检查已有方法是否覆盖接口
 │   ├── 已覆盖 → 直接使用，跳到 Step 8
 │   └── 未覆盖 → 在已有 Service 中追加方法
-└── 没有 Service → 新建 `PanJi{Domain}{Type}Service` 类继承 `BaseService`
+└── 没有 Service → 新建 `{Domain}{Type}Service` 类继承 `BaseService`
 ```
 
 **当前仓库已有 Service 一览（`base/api/services/`）：**
 
 | 文件 | 类 | 鉴权方式 |
 |------|-----|---------|
-| `portal_open_service.py` | `PanJiPortalOpenService` | 登录换 token / Bearer |
-| `portal_inner_service.py` | `PanJiPortalInnerService` | X-API-KEY |
-| `elastic_compute_open_service.py` | `PanJiElasticComputeOpenService` | Bearer（`cache["token"]`） |
-| `elastic_compute_ext_service.py` | `PanJiElasticComputeExtService` | Bearer |
-| `elastic_compute_native_service.py` | `PanJiElasticComputeNativeService` | X-API-KEY（`nativeXApiKey`） |
-| `microservices_open_service.py` | `PanJiMicroservicesOpenService` | Bearer |
-| `microservices_inner_service.py` | `PanJiMicroservicesInnerService` | X-API-KEY |
-| `observable_open_service.py` | `PanJiObservableOpenService` | Bearer |
-| `operation_open_service.py` | `PanJiOperationOpenService` | Bearer |
-| `plugin_open_service.py` / `plugin_inner_service.py` | `PanJiPlugin*Service` | Bearer / X-API-KEY |
+| `portal_open_service.py` | `PortalOpenService` | 登录换 token / Bearer |
+| `portal_inner_service.py` | `PortalInnerService` | X-API-KEY |
+| `elastic_compute_open_service.py` | `ElasticComputeOpenService` | Bearer（`cache["token"]`） |
+| `elastic_compute_ext_service.py` | `ElasticComputeExtService` | Bearer |
+| `elastic_compute_native_service.py` | `ElasticComputeNativeService` | X-API-KEY（`nativeXApiKey`） |
+| `microservices_open_service.py` | `MicroservicesOpenService` | Bearer |
+| `microservices_inner_service.py` | `MicroservicesInnerService` | X-API-KEY |
+| `observable_open_service.py` | `ObservableOpenService` | Bearer |
+| `operation_open_service.py` | `OperationOpenService` | Bearer |
+| `plugin_open_service.py` / `plugin_inner_service.py` | `Plugin*Service` | Bearer / X-API-KEY |
 
 ### Step 6：编写 Service 方法
 
@@ -128,7 +127,7 @@ def _get_default_headers() -> Dict[str, str]:
     }
 
 
-class PanJiElasticComputeOpenService(BaseService):
+class ElasticComputeOpenService(BaseService):
 
     def get_pvc(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -150,7 +149,7 @@ class PanJiElasticComputeOpenService(BaseService):
 
 **关键规范：**
 
-- 类命名 `PanJi{Domain}{Type}Service`（例 `PanJiElasticComputeOpenService`）。
+- 类命名 `{Domain}{Type}Service`（例 `ElasticComputeOpenService`）。
 - 方法名 `snake_case`，动词前缀：`get_/list_/create_/update_/patch_/delete_`。
 - 每个方法首行 `self.logger.info(...)` 描述业务动作；docstring 必须包含**对应 JMX 名称**和 **HTTP 方法+路径**，方便与源脚本对照。
 - 需要鉴权的接口：`headers=_get_default_headers()`；Native / Inner 接口改用对应的 `_get_default_headers()`（读 `nativeXApiKey` 等）。
@@ -249,7 +248,7 @@ import allure
 import pytest
 
 from base.api.services.elastic_compute_open_service import (
-    PanJiElasticComputeOpenService,
+    ElasticComputeOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -281,7 +280,7 @@ class TestEcOpenapiPvcPv:
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
         """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
-        service = PanJiElasticComputeOpenService(
+        service = ElasticComputeOpenService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
         )
@@ -560,8 +559,8 @@ pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -n auto --alluredir=r
 - [ ] 文件名格式：`test_{domain_prefix}_{module}.py`（例 `test_ec_pvc_pv.py`）
 - [ ] 所有参数在**每一份** `config/env_*.yaml` 中都有对应 key（同步！）
 - [ ] YAML 参数名全部是 **camelCase**（不是 snake_case）
-- [ ] Service 类为 `PanJi{Domain}{Type}Service`，方法名 `snake_case + 动词前缀`
-- [ ] import 路径正确（`from base.api.services.xxx_service import PanJi...Service`）
+- [ ] Service 类为 `{Domain}{Type}Service`，方法名 `snake_case + 动词前缀`
+- [ ] import 路径正确（`from base.api.services.xxx_service import ...Service`）
 - [ ] 类装饰器齐全：`@pytest.mark.api` + `@pytest.mark.<module>` + `@allure.epic("磐基API自动化测试")` + `@allure.feature(...)` + `@allure.story(...)`
 - [ ] 测试类顶部声明 `TENANT = "..."`，值存在于 `yaml.tenants`，并有 `autouse` 的 `_login` fixture
 - [ ] Service fixture `scope="class"`，用 `yield` + `service.close()`
@@ -606,7 +605,7 @@ pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -n auto --alluredir=r
 | 类型 | 格式 | 示例 |
 |------|------|------|
 | Service 文件 | `{domain}_{api_type}_service.py` | `elastic_compute_open_service.py` |
-| Service 类 | `PanJi{Domain}{Type}Service` | `PanJiElasticComputeOpenService` |
+| Service 类 | `{Domain}{Type}Service` | `ElasticComputeOpenService` |
 | Service 方法 | `{verb}_{resource}` | `get_pvc`, `create_pvc`, `list_nodes` |
 | 测试目录 | `tests/api/{domain}/[{api_type}/]` | `tests/api/elastic_compute/openapi/` |
 | 测试文件 | `test_{domain_prefix}_{module}.py` | `test_ec_pvc_pv.py` |
