@@ -84,6 +84,14 @@ class Settings:
     # 日志时间格式
     LOG_DATE_FORMAT: str = system.get("log_date_format", "%Y-%m-%d %H:%M:%S")
     
+    # 单个日志文件最大大小（字节），默认 10MB
+    # 环境变量：LOG_MAX_BYTES
+    LOG_MAX_BYTES: int = int(os.getenv("LOG_MAX_BYTES", str(10 * 1024 * 1024)))
+    
+    # 日志备份文件数量，默认保留 5 个
+    # 环境变量：LOG_BACKUP_COUNT
+    LOG_BACKUP_COUNT: int = int(os.getenv("LOG_BACKUP_COUNT", "5"))
+    
     # ==================== 并行执行配置 ====================
     # 并行 worker 数量：auto 表示自动检测 CPU 核心数，或指定具体数字
     PARALLEL_WORKERS: str = system.get("parallel_workers", "auto")

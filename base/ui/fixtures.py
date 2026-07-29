@@ -227,26 +227,6 @@ def auto_screenshot_on_failure(request: pytest.FixtureRequest, page: Page) -> Ge
         logger.warning(f"Failed to capture automatic screenshot for {test_name}: {e}")
 
 
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """
-    Pytest hook: 在测试报告生成时捕获测试结果
-    
-    此 hook 用于在测试执行的各个阶段（setup, call, teardown）捕获测试结果，
-    以便在 fixture 中判断测试是否失败。
-    
-    Args:
-        item: 测试项
-        call: 测试调用信息
-    """
-    # 执行所有其他 hooks
-    outcome = yield
-    rep = outcome.get_result()
-    
-    # 将测试结果附加到测试项，以便 fixture 可以访问
-    setattr(item, f"rep_{rep.when}", rep)
-
-
 def _capture_failure_screenshot(page: Page, test_name: str, failure_type: str) -> None:
     """
     捕获失败截图的辅助函数

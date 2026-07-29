@@ -1,7 +1,19 @@
+# =============================================================================
+# AUTestAutomation .gitignore
+# =============================================================================
+
+# =============================================================================
+# Python
+# =============================================================================
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
+*.pyd
 
 # C extensions
 *.so
@@ -31,49 +43,72 @@ MANIFEST
 *.manifest
 *.spec
 
-# Unit test / coverage reports
+# PEP 582
+__pypackages__/
+
+# =============================================================================
+# Testing & Coverage
+# =============================================================================
+
+# pytest
+.pytest_cache/
+.cache/
+pytestdebug.log
+
+# Coverage
 htmlcov/
-.tox/
-.nox/
 .coverage
 .coverage.*
-.cache
-nosetests.xml
 coverage.xml
 *.cover
-*.log
 .hypothesis/
-.pytest_cache/
 
-# Translations
-*.mo
-*.pot
+# tox / nox
+.tox/
+.nox/
 
-# Django stuff:
+# Test reports
+nosetests.xml
+junit*.xml
+test-results/
+
+# =============================================================================
+# Test Automation Framework Specific
+# =============================================================================
+
+# Logs (保留目录结构，忽略内容)
+logs/
+!logs/.gitkeep
 *.log
+
+# Screenshots (保留目录结构，忽略内容)
+screenshots/
+!screenshots/.gitkeep
+
+# Allure reports
+report/allure-results/
+report/allure-report/
+allure-results/
+allure-report/
+
+# Playwright
+.playwright/
+playwright-report/
+test-results/
+
+# =============================================================================
+# Environment & Configuration
+# =============================================================================
+
+# Environment files (包含敏感信息)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Local settings
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
+config/local_settings.py
 
 # pyenv
 .python-version
@@ -81,21 +116,10 @@ ipython_config.py
 # pipenv
 Pipfile.lock
 
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
+# Virtual environments
+.venv/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
@@ -108,48 +132,16 @@ uv.lock
 .spyderproject
 .spyproject
 
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# Test automation framework specific
-# Logs
-logs/
-*.log
-
-# Screenshots
-screenshots/
-*.png
-*.jpg
-*.jpeg
-
-# Allure reports
-report/allure-results/
-report/allure-report/
-
-# Playwright browsers (optional - uncomment if you want to ignore)
-# .ms-playwright/
-
-# Test data (if contains sensitive info)
-# data/
-
-# IDE specific files
 # VSCode
 .vscode/
+!.vscode/settings.json.example
 *.code-workspace
-.kiro
 
-# PyCharm
+# Cursor
+.cursor/
+.kiro/
+
+# PyCharm / IntelliJ
 .idea/
 *.iml
 *.iws
@@ -162,48 +154,98 @@ report/allure-report/
 # Vim
 *.swp
 *.swo
+*.swn
 *~
+.vim/
 
 # Emacs
-*~
 \#*\#
 .\#*
+*~
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# =============================================================================
+# Operating System
+# =============================================================================
 
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
+._*
+.Spotlight-V100
+.Trashes
 
 # Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+*.lnk
 
 # Linux
 *~
+.directory
 
-# Temporary files
+# =============================================================================
+# Temporary & Backup Files
+# =============================================================================
+
 *.tmp
 *.temp
 *.bak
 *.backup
+*.orig
+*.rej
 
-# Environment configuration (if contains sensitive data)
-# .env
-# config/local_settings.py
+# =============================================================================
+# Database
+# =============================================================================
 
-# Database files
 *.db
 *.sqlite
 *.sqlite3
+db.sqlite3-journal
 
-# Compiled files
-*.pyc
-*.pyo
-*.pyd
+# =============================================================================
+# Documentation
+# =============================================================================
 
-# Node modules (if using any JS tools)
+# Sphinx
+docs/_build/
+
+# mkdocs
+/site
+
+# =============================================================================
+# Other
+# =============================================================================
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# ruff
+.ruff_cache/
+
+# Node (if using any JS tools)
 node_modules/
 
 # Package files
@@ -213,3 +255,4 @@ node_modules/
 
 # test file
 test.py
+.workbuddy/

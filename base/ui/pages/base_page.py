@@ -7,6 +7,7 @@ UI 测试基础页面类
 
 import logging
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError
@@ -14,6 +15,44 @@ from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeout
 from core.config import Settings
 from core.log.logger import TestLogger
 from core.reporting.allure_helper import AllureHelper
+
+
+class WaitUntil(Enum):
+    """
+    wait_until: 等待条件，可选值：
+    - load = 'load': 等待 load 事件触发
+    - dom = 'domcontentloaded': 等待 DOMContentLoaded 事件触发（默认）
+    - net = 'networkidle': 等待网络空闲
+    - commit = 'commit': 等待网络响应接收完成
+    """
+    load = "load"
+    dom = "domcontentloaded"
+    net = "networkidle"
+    commit = "commit"
+
+class ElementState(Enum):
+    """
+    state: 元素状态，可选值：
+    - 'attached': 元素已附加到 DOM
+    - 'detached': 元素已从 DOM 分离
+    - 'visible': 元素可见（默认）
+    - 'hidden': 元素隐藏
+    """
+    attached = "attached"
+    detached = "detached"
+    visible = "visible"
+    hidden = "hidden"
+
+class LoadState(Enum):
+    """
+    state: 加载状态，可选值：
+    - load = 'load': 等待 load 事件
+    - dom = 'domcontentloaded': 等待 DOMContentLoaded 事件
+    - net = 'networkidle': 等待网络空闲
+    """
+    load = "load"
+    dom = "domcontentloaded"
+    net = "networkidle"
 
 
 class BasePage:
@@ -47,27 +86,23 @@ class BasePage:
         
         self.logger.debug(f"Initialized {self.__class__.__name__}")
     
-    def navigate(self, url: str, wait_until: str = "domcontentloaded") -> None:
+    def navigate(self, url: str, wait_until: WaitUntil = WaitUntil.dom) -> None:
         """
         导航到指定 URL
         
         Args:
             url: 目标 URL
-            wait_until: 等待条件，可选值：
-                - 'load': 等待 load 事件触发
-                - 'domcontentloaded': 等待 DOMContentLoaded 事件触发（默认）
-                - 'networkidle': 等待网络空闲
-                - 'commit': 等待网络响应接收完成
+            wait_until: WaitUntil 枚举，等待条件
         
         使用示例:
             page.navigate("https://example.com")
-            page.navigate("https://example.com/login", wait_until="load")
+            page.navigate("https://example.com/login", wait_until=WaitUntil.load)
         """
         try:
             self.logger.info(f"Navigating to URL: {url}")
             
             with AllureHelper.step(f"Navigate to {url}"):
-                self.page.goto(url, wait_until=wait_until, timeout=Settings.PAGE_LOAD_TIMEOUT)
+                self.page.goto(url, wait_until=wait_until.value, timeout=Settings.PAGE_LOAD_TIMEOUT)
             
             self.logger.info(f"Successfully navigated to: {url}")
             
@@ -84,7 +119,7 @@ class BasePage:
         self, 
         selector: str, 
         timeout: Optional[int] = None,
-        state: str = "visible"
+        state: ElementState = ElementState.visible
     ) -> Locator:
         """
         等待元素出现并返回定位器
@@ -94,11 +129,7 @@ class BasePage:
         Args:
             selector: 元素选择器（CSS、XPath 等）
             timeout: 超时时间（毫秒），如果为 None 则使用默认超时
-            state: 元素状态，可选值：
-                - 'attached': 元素已附加到 DOM
-                - 'detached': 元素已从 DOM 分离
-                - 'visible': 元素可见（默认）
-                - 'hidden': 元素隐藏
+            state: 元素状态，ElementState 枚举
         
         Returns:
             Locator: Playwright 定位器对象
@@ -111,16 +142,16 @@ class BasePage:
             timeout = Settings.BROWSER_TIMEOUT
         
         try:
-            self.logger.debug(f"Waiting for element: {selector} (state: {state}, timeout: {timeout}ms)")
+            self.logger.debug(f"Waiting for element: {selector} (state: {state.value}, timeout: {timeout}ms)")
             
             locator = self.page.locator(selector)
-            locator.wait_for(state=state, timeout=timeout)
+            locator.wait_for(state=state.value, timeout=timeout)
             
             self.logger.debug(f"Element found: {selector}")
             return locator
             
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout waiting for element: {selector} (state: {state})")
+            self.logger.error(f"Timeout waiting for element: {selector} (state: {state.value})")
             self._capture_failure_screenshot(f"element_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
@@ -597,25 +628,22 @@ class BasePage:
     
     def wait_for_load_state(
         self, 
-        state: str = "load",
+        state: LoadState = LoadState.load,
         timeout: Optional[int] = None
     ) -> None:
         """
         等待页面加载到指定状态
         
         Args:
-            state: 加载状态，可选值：
-                - 'load': 等待 load 事件
-                - 'domcontentloaded': 等待 DOMContentLoaded 事件
-                - 'networkidle': 等待网络空闲
+            state: 加载状态，LoadState 枚举
             timeout: 超时时间（毫秒）
             
         使用示例:
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state(LoadState.net)
         """
         try:
-            self.logger.debug(f"Waiting for load state: {state}")
-            self.page.wait_for_load_state(state, timeout=timeout or Settings.PAGE_LOAD_TIMEOUT)
+            self.logger.debug(f"Waiting for load state: {state.value}")
+            self.page.wait_for_load_state(state.value, timeout=timeout or Settings.PAGE_LOAD_TIMEOUT)
             self.logger.debug(f"Page reached load state: {state}")
         except Exception as e:
             self.logger.error(f"Timeout waiting for load state {state}: {e}")
