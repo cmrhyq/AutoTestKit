@@ -27,7 +27,7 @@ K8s 集群级资源 / 命名空间配额：
 - pvc-pv.jmx（标准 K8s 路径 /persistentvolumeclaims /persistentvolumes）（12）
 """
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 from base import BaseService
 from core import DataCache
@@ -787,6 +787,166 @@ class ElasticComputeOpenService(BaseService):
             headers=_get_default_headers(),
         ).json()
 
+    # ==================== cr-cluster.jmx（Cluster 级别 CustomResource） ====================
+
+    def get_cluster_custom_resource(
+        self, cell_code: str, group: str, version: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        查询指定 Cluster 级别 CR。
+
+        对应 JMX：弹性计算_openapi_cr-cluster_查询指定CR
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
+
+        Args:
+            cell_code: 单元编码
+            group: CR group（如 test.example.com）
+            version: CR version（如 v1）
+            kind: CR kind（如 Apple）
+            name: CR 名称
+        """
+        self.logger.info(
+            f"Get cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
+            f"/kind/{kind}/customResources/{name}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_cluster_custom_resource(
+        self, cell_code: str, group: str, version: str, kind: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 Cluster 级别 CR。
+
+        对应 JMX：弹性计算_openapi_cr-cluster_创建CR请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources
+
+        Args:
+            cell_code: 单元编码
+            group: CR group
+            version: CR version
+            kind: CR kind
+            payload: CR 资源定义
+        """
+        self.logger.info(
+            f"Create cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
+            f"/kind/{kind}/customResources"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_cluster_custom_resources(
+        self, cell_code: str, group: str, version: str, kind: str,
+        label_selector: str = None,
+    ) -> Dict[str, Any]:
+        """
+        查询 Cluster 级别 CR 列表。
+
+        对应 JMX：弹性计算_openapi_cr-cluster_查询CR列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources
+
+        Args:
+            cell_code: 单元编码
+            group: CR group
+            version: CR version
+            kind: CR kind
+            label_selector: labelSelector 过滤条件（可选）
+        """
+        self.logger.info(
+            f"List cluster CRs: cell={cell_code}, group={group}, version={version}, kind={kind}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
+            f"/kind/{kind}/customResources"
+        )
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def update_cluster_custom_resource(
+        self, cell_code: str, group: str, version: str, kind: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        全量更新指定 Cluster 级别 CR。
+
+        对应 JMX：弹性计算_openapi_cr-cluster_更新指定CR
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
+
+        Args:
+            cell_code: 单元编码
+            group: CR group
+            version: CR version
+            kind: CR kind
+            name: CR 名称
+            payload: 完整 CR 对象
+        """
+        self.logger.info(
+            f"Update cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
+            f"/kind/{kind}/customResources/{name}"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_cluster_custom_resource(
+        self, cell_code: str, group: str, version: str, kind: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        增量更新指定 Cluster 级别 CR。
+
+        对应 JMX：弹性计算_openapi_cr-cluster_增量更新指定CR
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
+
+        Args:
+            cell_code: 单元编码
+            group: CR group
+            version: CR version
+            kind: CR kind
+            name: CR 名称
+            payload: 增量更新字段
+        """
+        self.logger.info(
+            f"Patch cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
+            f"/kind/{kind}/customResources/{name}"
+        )
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_cluster_custom_resource(
+        self, cell_code: str, group: str, version: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 Cluster 级别 CR。
+
+        对应 JMX：弹性计算_openapi_cr-cluster_删除指定CR
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
+
+        Args:
+            cell_code: 单元编码
+            group: CR group
+            version: CR version
+            kind: CR kind
+            name: CR 名称
+        """
+        self.logger.info(
+            f"Delete cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
+            f"/kind/{kind}/customResources/{name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
     # ==================== pvc-pv.jmx（K8s 标准路径 /persistentvolumeclaims /persistentvolumes） ====================
     # 说明：与上方 PVC/PV 接口（简写路径 /pvc、/pv）为两套并存的 OpenAPI，
     # 此处方法名统一使用完整 K8s 资源名以示区分。
@@ -910,3 +1070,325 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"Delete persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
         return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== CustomResource-ns.jmx（Namespace 级别 CustomResource） ====================
+
+    def get_ns_custom_resource(
+        self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        查询指定 Namespace 级别 CR。
+
+        对应 JMX：弹性计算_openapi_CustomResource-ns_查询指定CR
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
+        """
+        self.logger.info(
+            f"Get ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{group}/{version}/kind/{kind}/customResources/{name}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_ns_custom_resource(
+        self, cell_code: str, sys_code: str, group: str, version: str, kind: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        创建 Namespace 级别 CR。
+
+        对应 JMX：弹性计算_openapi_CustomResource-ns_创建CR请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources
+        """
+        self.logger.info(
+            f"Create ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{group}/{version}/kind/{kind}/customResources"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_ns_custom_resources(
+        self, cell_code: str, sys_code: str, group: str, version: str, kind: str,
+        label_selector: str = None,
+    ) -> Dict[str, Any]:
+        """
+        查询 Namespace 级别 CR 列表。
+
+        对应 JMX：弹性计算_openapi_CustomResource-ns_查询CR列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources
+        """
+        self.logger.info(
+            f"List ns CRs: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{group}/{version}/kind/{kind}/customResources"
+        )
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def update_ns_custom_resource(
+        self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        全量更新指定 Namespace 级别 CR。
+
+        对应 JMX：弹性计算_openapi_CustomResource-ns_更新指定CR
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
+        """
+        self.logger.info(
+            f"Update ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{group}/{version}/kind/{kind}/customResources/{name}"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_ns_custom_resource(
+        self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        增量更新指定 Namespace 级别 CR。
+
+        对应 JMX：弹性计算_openapi_CustomResource-ns_增量更新指定CR
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
+        """
+        self.logger.info(
+            f"Patch ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{group}/{version}/kind/{kind}/customResources/{name}"
+        )
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_ns_custom_resource(
+        self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 Namespace 级别 CR。
+
+        对应 JMX：弹性计算_openapi_CustomResource-ns_删除指定CR
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
+        """
+        self.logger.info(
+            f"Delete ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{group}/{version}/kind/{kind}/customResources/{name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== helm-chart.jmx Helm Chart 接口 ====================
+
+    def get_helm_chart(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 Helm Chart。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
+        """
+        self.logger.info(f"Get helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_helm_chart(self, cell_code: str, sys_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        创建 Helm Chart。
+
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts
+        """
+        self.logger.info(f"Create helm chart: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_helm_charts_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
+        """
+        查询 Namespace 下 Helm Chart 列表。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts
+        """
+        self.logger.info(f"List helm charts by ns: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_helm_charts_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询全集群 Helm Chart 列表。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/helmCharts
+        """
+        self.logger.info(f"List helm charts by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helmCharts"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def update_helm_chart(self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        全量更新指定 Helm Chart。
+
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
+        """
+        self.logger.info(f"Update helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_helm_chart(self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        增量更新指定 Helm Chart。
+
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
+        """
+        self.logger.info(f"Patch helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_helm_chart(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        删除指定 Helm Chart。
+
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
+        """
+        self.logger.info(f"Delete helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== harbor.jmx / harbor-init.jmx Harbor 镜像仓库接口 ====================
+
+    def get_harbor_project(self, cell_code: str, project_name: str) -> Dict[str, Any]:
+        """
+        查询指定 Harbor 项目。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}
+        """
+        self.logger.info(f"Get harbor project: cell={cell_code}, project={project_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_harbor_project(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        创建 Harbor 项目。
+
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects
+        """
+        self.logger.info(f"Create harbor project: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_harbor_projects(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询 Harbor 项目列表。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects
+        """
+        self.logger.info(f"List harbor projects: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def update_harbor_project(self, cell_code: str, project_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        更新 Harbor 项目。
+
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}
+        """
+        self.logger.info(f"Update harbor project: cell={cell_code}, project={project_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_harbor_project(self, cell_code: str, project_name: str) -> Dict[str, Any]:
+        """
+        删除 Harbor 项目。
+
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}
+        """
+        self.logger.info(f"Delete harbor project: cell={cell_code}, project={project_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_harbor_repositories(self, cell_code: str, project_name: str) -> Dict[str, Any]:
+        """
+        查询 Harbor 仓库列表。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories
+        """
+        self.logger.info(f"List harbor repositories: cell={cell_code}, project={project_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/repositories"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_harbor_repository(self, cell_code: str, project_name: str, repo_name: str) -> Dict[str, Any]:
+        """
+        删除 Harbor 仓库。
+
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories/{repoName}
+        """
+        self.logger.info(f"Delete harbor repository: cell={cell_code}, project={project_name}, repo={repo_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/repositories/{repo_name}"
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_harbor_artifacts(self, cell_code: str, project_name: str, repo_name: str) -> Dict[str, Any]:
+        """
+        查询 Harbor 制品列表。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories/{repoName}/artifacts
+        """
+        self.logger.info(f"List harbor artifacts: cell={cell_code}, project={project_name}, repo={repo_name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
+            f"/repositories/{repo_name}/artifacts"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_harbor_artifact(
+        self, cell_code: str, project_name: str, repo_name: str, reference: str
+    ) -> Dict[str, Any]:
+        """
+        删除 Harbor 制品。
+
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories/{repoName}/artifacts/{reference}
+        """
+        self.logger.info(
+            f"Delete harbor artifact: cell={cell_code}, project={project_name}, repo={repo_name}, ref={reference}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
+            f"/repositories/{repo_name}/artifacts/{reference}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_harbor_project_summary(self, cell_code: str, project_name: str) -> Dict[str, Any]:
+        """
+        查询 Harbor 项目概要。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/summary
+        """
+        self.logger.info(f"Get harbor project summary: cell={cell_code}, project={project_name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/summary"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def init_harbor(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        初始化 Harbor（harbor-init）。
+
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/harbor/init
+        """
+        self.logger.info(f"Init harbor: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/init"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def get_harbor_status(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询 Harbor 状态。
+
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/status
+        """
+        self.logger.info(f"Get harbor status: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/status"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+

@@ -1,11 +1,10 @@
 """
-弹性计算 OpenAPI 资源采集接口测试脚本
+弹性计算 OpenAPI 资源采集/指标信息接口测试
 
-覆盖 5 个采集类只读接口：
-- 集群配额信息 / 租户配额信息 / 集群资源信息 / 中间件信息 / 应用组件系统配额信息
+转换自 JMeter 脚本: elastic-compute/openapi/elastic-computer-resource-collection.jmx
+线程组: Thread Group - elastic-computer-resource-collection
+测试内容：集群配额/租户配额/集群资源/中间件信息/系统配额 查询接口
 """
-from typing import Dict
-
 import allure
 import pytest
 
@@ -15,24 +14,33 @@ from base.api.services.elastic_compute_open_service import (
 from core.reporting.allure_helper import AllureHelper
 
 
+# 业务码常量
+BUSINESS_SUCCESS_CODE = 2000
+
+
 @pytest.mark.api
 @pytest.mark.openapi
 @allure.epic("磐基API自动化测试")
 @allure.feature("磐基弹性计算OpenAPI接口")
-@allure.story("Resource Collection OpenAPI 接口")
+@allure.story("资源采集/指标信息接口")
 class TestEcOpenapiResourceCollection:
     """
-    Elastic Compute Resource Collection OpenAPI 测试（Bearer 鉴权）
+    对应 JMeter 脚本: elastic-computer-resource-collection.jmx
+    线程组: Thread Group - elastic-computer-resource-collection
+
+    包含 5 个独立的 GET 查询接口，无依赖关系，可独立执行。
     """
 
-    TENANT = "tenant_admin"
+    TENANT = "monitor-group"
 
     @pytest.fixture(autouse=True)
     def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
         get_token(self.TENANT)
 
     @pytest.fixture(scope="class")
     def ec_service(self, api_env, api_logger):
+        """创建服务实例。"""
         service = ElasticComputeOpenService(
             base_url=api_env.get("apiBaseUrl"),
             logger=api_logger,
@@ -40,57 +48,94 @@ class TestEcOpenapiResourceCollection:
         yield service
         service.close()
 
+    # ---------------------------- Test cases ----------------------------
+
     @allure.title("查询集群配额信息")
-    @allure.description("查询集群维度的配额信息（clusterQuota 指标）")
-    @allure.severity(allure.severity_level.NORMAL)
+    @allure.description("查询集群配额信息，验证返回业务码为 2000 且包含数据")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.order(1)
     def test_list_cluster_quota(self, ec_service):
+        """查询集群配额信息。"""
         with AllureHelper.api_test(ec_service):
-            with AllureHelper.step("发送 GET 请求查询集群配额信息"):
-                response_json = ec_service.list_cluster_quota()
-            with AllureHelper.step("验证响应"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert "code" in response_json, "响应缺少 code 字段"
+            resp = ec_service.list_cluster_quota()
+
+            # 断言：业务码为成功
+            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询集群配额信息失败, code: {resp.get('code')}, 响应: {resp}"
+            )
+            # 断言：返回数据不为空
+            assert resp.get("data") is not None, (
+                f"查询集群配额信息返回 data 为空, 响应: {resp}"
+            )
 
     @allure.title("查询租户配额信息")
-    @allure.description("查询当前租户的配额信息（tenantQuota 指标）")
-    @allure.severity(allure.severity_level.NORMAL)
+    @allure.description("查询租户配额信息，验证返回业务码为 2000 且包含数据")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.order(2)
     def test_list_tenant_quota(self, ec_service):
+        """查询租户配额信息。"""
         with AllureHelper.api_test(ec_service):
-            with AllureHelper.step("发送 GET 请求查询租户配额信息"):
-                response_json = ec_service.list_tenant_quota()
-            with AllureHelper.step("验证响应"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert "code" in response_json, "响应缺少 code 字段"
+            resp = ec_service.list_tenant_quota()
+
+            # 断言：业务码为成功
+            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询租户配额信息失败, code: {resp.get('code')}, 响应: {resp}"
+            )
+            # 断言：返回数据不为空
+            assert resp.get("data") is not None, (
+                f"查询租户配额信息返回 data 为空, 响应: {resp}"
+            )
 
     @allure.title("查询集群资源信息")
-    @allure.description("查询集群维度的资源信息（clusterResource 指标）")
-    @allure.severity(allure.severity_level.NORMAL)
+    @allure.description("查询集群资源信息，验证返回业务码为 2000 且包含数据")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.order(3)
     def test_list_cluster_resource(self, ec_service):
+        """查询集群资源信息。"""
         with AllureHelper.api_test(ec_service):
-            with AllureHelper.step("发送 GET 请求查询集群资源信息"):
-                response_json = ec_service.list_cluster_resource()
-            with AllureHelper.step("验证响应"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert "code" in response_json, "响应缺少 code 字段"
+            resp = ec_service.list_cluster_resource()
+
+            # 断言：业务码为成功
+            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询集群资源信息失败, code: {resp.get('code')}, 响应: {resp}"
+            )
+            # 断言：返回数据不为空
+            assert resp.get("data") is not None, (
+                f"查询集群资源信息返回 data 为空, 响应: {resp}"
+            )
 
     @allure.title("查询中间件信息")
-    @allure.description("查询集群下的中间件运行信息（middlewareInfo 指标）")
-    @allure.severity(allure.severity_level.NORMAL)
+    @allure.description("查询中间件信息，验证返回业务码为 2000 且包含数据")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.order(4)
     def test_list_middleware_info(self, ec_service):
+        """查询中间件信息。"""
         with AllureHelper.api_test(ec_service):
-            with AllureHelper.step("发送 GET 请求查询中间件信息"):
-                response_json = ec_service.list_middleware_info()
-            with AllureHelper.step("验证响应"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert "code" in response_json, "响应缺少 code 字段"
+            resp = ec_service.list_middleware_info()
+
+            # 断言：业务码为成功
+            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询中间件信息失败, code: {resp.get('code')}, 响应: {resp}"
+            )
+            # 断言：返回数据不为空
+            assert resp.get("data") is not None, (
+                f"查询中间件信息返回 data 为空, 响应: {resp}"
+            )
 
     @allure.title("查询应用/组件系统配额信息")
-    @allure.description("查询应用/组件系统维度的配额信息（systemQuota 指标）")
-    @allure.severity(allure.severity_level.NORMAL)
+    @allure.description("查询应用/组件系统配额信息，验证返回业务码为 2000 且包含数据")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.order(5)
     def test_list_system_quota(self, ec_service):
+        """查询应用/组件系统配额信息。"""
         with AllureHelper.api_test(ec_service):
-            with AllureHelper.step("发送 GET 请求查询系统配额信息"):
-                response_json = ec_service.list_system_quota()
-            with AllureHelper.step("验证响应"):
-                assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert "code" in response_json, "响应缺少 code 字段"
+            resp = ec_service.list_system_quota()
+
+            # 断言：业务码为成功
+            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询应用/组件系统配额信息失败, code: {resp.get('code')}, 响应: {resp}"
+            )
+            # 断言：返回数据不为空
+            assert resp.get("data") is not None, (
+                f"查询应用/组件系统配额信息返回 data 为空, 响应: {resp}"
+            )

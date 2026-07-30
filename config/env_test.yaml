@@ -100,10 +100,6 @@ storageClassName: nfs-test
 nfsName: nfs-test
 
 
-# ---------------------- K8s 标准资源 ----------------------
-configmapName: test-cm-0001
-
-
 # ---------------------- 其他杂项 ----------------------
 physicalHostId: 1
 ports: 30011-30030
