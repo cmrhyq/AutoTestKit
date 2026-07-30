@@ -84,6 +84,7 @@ nginxRepoName: tools/nginx
 nginxImageName: tools/nginx:latest
 nginxImageRepo: 127.0.0.1:1121/tools/nginx
 nginxImageTag: latest
+helmChartFilePath: files/helm/nginx-1.0.0.tgz
 
 
 # ---------------------- workload 信息 ----------------------
@@ -98,7 +99,6 @@ pvName: test-pv-0001
 pvcName: test-pvc-0001
 storageClassName: nfs-test
 nfsName: nfs-test
-
 
 # ---------------------- 其他杂项 ----------------------
 physicalHostId: 1

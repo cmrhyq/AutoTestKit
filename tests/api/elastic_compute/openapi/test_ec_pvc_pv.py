@@ -56,7 +56,7 @@ class TestEcOpenapiPvcPv:
             "sys_code": api_env.get("sysCode"),
             "pvc_name": api_env.get("pvcName", "auto-test-probe-pvc-test-0001"),
             "storage_class_name": api_env.get("storageClassName"),
-            "pv_name": api_env.get("pvName"),
+            "pv_name": api_env.get("pvName", "auto-test-probe-pv-test-0001"),
         }
 
     @staticmethod

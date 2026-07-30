@@ -1392,3 +1392,905 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/status"
         return self.get(endpoint=url, headers=_get_default_headers()).json()
 
+    # ==================== HPA.jmx HorizontalPodAutoscaler 接口 ====================
+
+    def get_hpa(
+        self, cell_code: str, sys_code: str, api_version: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        查询指定 HPA。
+
+        对应 JMX：弹性计算_openapi_HPA_查询指定hpa
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
+        """
+        self.logger.info(
+            f"Get HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{api_version}/hpas/{name}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_hpa(
+        self, cell_code: str, sys_code: str, api_version: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 HPA。
+
+        对应 JMX：弹性计算_openapi_HPA_创建hpa请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas
+        """
+        self.logger.info(
+            f"Create HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{api_version}/hpas"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_hpas_by_ns(
+        self, cell_code: str, sys_code: str, api_version: str
+    ) -> Dict[str, Any]:
+        """
+        查询 Namespace 下 HPA 列表。
+
+        对应 JMX：弹性计算_openapi_HPA_查询hpa列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas
+        """
+        self.logger.info(
+            f"List HPAs by ns: cell={cell_code}, sys={sys_code}, apiVer={api_version}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{api_version}/hpas"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_hpas_by_cell(self, cell_code: str, api_version: str) -> Dict[str, Any]:
+        """
+        查询全集群 HPA 列表。
+
+        对应 JMX：弹性计算_openapi_HPA_查询全集群所有hpa列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/{apiVersion}/hpas
+        """
+        self.logger.info(f"List HPAs by cell: cell={cell_code}, apiVer={api_version}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/{api_version}/hpas"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def update_hpa(
+        self, cell_code: str, sys_code: str, api_version: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        全量更新指定 HPA。
+
+        对应 JMX：弹性计算_openapi_HPA_更新指定hpa
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
+        """
+        self.logger.info(
+            f"Update HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{api_version}/hpas/{name}"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_hpa(
+        self, cell_code: str, sys_code: str, api_version: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        增量更新指定 HPA。
+
+        对应 JMX：弹性计算_openapi_HPA_增量更新指定hpa
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
+        """
+        self.logger.info(
+            f"Patch HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{api_version}/hpas/{name}"
+        )
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_hpa(
+        self, cell_code: str, sys_code: str, api_version: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 HPA。
+
+        对应 JMX：弹性计算_openapi_HPA_删除指定hpa
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
+        """
+        self.logger.info(
+            f"Delete HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/{api_version}/hpas/{name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== harbor-init.jmx Harbor 版本刷新 ====================
+
+    def refresh_harbor_version(self, harbor_id: int) -> Dict[str, Any]:
+        """
+        更新 harbor 版本信息（harbor-init）。
+
+        对应 JMX：弹性计算_openapi_harbor-init_更新harbor版本信息
+        POST /openapi/elastic-compute/v2/harbor/refreshHarborVersion?clusterId={harborId}
+        """
+        self.logger.info(f"Refresh harbor version: harborId={harbor_id}")
+        url = "/openapi/elastic-compute/v2/harbor/refreshHarborVersion"
+        params = {"clusterId": harbor_id}
+        return self.post(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    # ==================== harbor.jmx Harbor 完整生命周期接口（新路径 /harbors/{harborId}/...） ====================
+
+    def list_harbors(self) -> Dict[str, Any]:
+        """
+        查询 harbor 列表。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor列表
+        GET /openapi/elastic-compute/v2/harbors
+        """
+        self.logger.info("List harbors")
+        return self.get(
+            endpoint="/openapi/elastic-compute/v2/harbors",
+            headers=_get_default_headers(),
+        ).json()
+
+    def list_all_cluster_harbor_addresses(self) -> Dict[str, Any]:
+        """
+        查询所有集群 harbor 地址。
+
+        对应 JMX：弹性计算_openapi_harbor_查询所有集群harbor地址
+        GET /openapi/elastic-compute/v2/harbor/list
+        """
+        self.logger.info("List all cluster harbor addresses")
+        return self.get(
+            endpoint="/openapi/elastic-compute/v2/harbor/list",
+            headers=_get_default_headers(),
+        ).json()
+
+    def get_harbor_project_by_id(
+        self, harbor_id: int, project_name: str
+    ) -> Dict[str, Any]:
+        """
+        查询指定 harbor 项目信息。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor项目信息
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}
+        """
+        self.logger.info(f"Get harbor project: harborId={harbor_id}, project={project_name}")
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_name}"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_harbor_project_by_id(
+        self, harbor_id: int, project_name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 harbor 项目。
+
+        对应 JMX：弹性计算_openapi_harbor_删除harbor项目
+        DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}
+        """
+        self.logger.info(
+            f"Delete harbor project: harborId={harbor_id}, project={project_name}"
+        )
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_name}"
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_harbor_project_by_id(
+        self, harbor_id: int, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 harbor 项目。
+
+        对应 JMX：弹性计算_openapi_harbor_创建harbor项目
+        POST /openapi/elastic-compute/v2/harbors/{harborId}/projects
+        """
+        self.logger.info(f"Create harbor project: harborId={harbor_id}")
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_harbor_projects_by_id(
+        self, harbor_id: int, page: int = 1, page_size: int = 10
+    ) -> Dict[str, Any]:
+        """
+        分页查询 harbor 项目列表。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor项目列表
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/projects
+        """
+        self.logger.info(
+            f"List harbor projects: harborId={harbor_id}, page={page}, size={page_size}"
+        )
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
+        params = {"page": page, "page_size": page_size}
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def create_harbor_project_member(
+        self, harbor_id: int, project_id: int, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 harbor 项目成员关系。
+
+        对应 JMX：弹性计算_openapi_harbor_创建harbor项目成员关系
+        POST /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectId}/members
+        """
+        self.logger.info(
+            f"Create harbor project member: harborId={harbor_id}, projectId={project_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_id}/members"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_harbor_project_member(
+        self, harbor_id: int, project_id: int, member_id: int
+    ) -> Dict[str, Any]:
+        """
+        删除 harbor 项目成员。
+
+        对应 JMX：弹性计算_openapi_harbor_删除harbor项目成员
+        DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectId}/members/{memberId}
+        """
+        self.logger.info(
+            f"Delete harbor project member: harborId={harbor_id}, "
+            f"projectId={project_id}, memberId={member_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_id}"
+            f"/members/{member_id}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_harbor_registry(self, harbor_id: int, target_id: int) -> Dict[str, Any]:
+        """
+        查询 harbor 新注册中心/新仓库。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor新注册中心/新仓库
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/registries/{targetId}
+        """
+        self.logger.info(f"Get harbor registry: harborId={harbor_id}, targetId={target_id}")
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/registries/{target_id}"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_harbor_replication_policy(
+        self, harbor_id: int, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        添加 harbor 复制策略。
+
+        对应 JMX：弹性计算_openapi_harbor_添加harbor复制策略
+        POST /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies
+        """
+        self.logger.info(f"Create harbor replication policy: harborId={harbor_id}")
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_harbor_replication_policies(
+        self, harbor_id: int, name: str = None, page: int = 1, page_size: int = 10
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 复制/备份策略列表。
+
+        对应 JMX：弹性计算_openapi_harbor_查询复制/备份策略列表
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies
+        """
+        self.logger.info(
+            f"List harbor replication policies: harborId={harbor_id}, name={name}"
+        )
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies"
+        params: Dict[str, Any] = {"page": page, "page_size": page_size}
+        if name is not None:
+            params["name"] = name
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def get_harbor_replication_policy(
+        self, harbor_id: int, policy_id: int
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 复制策略详情。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor复制策略
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
+        """
+        self.logger.info(
+            f"Get harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def update_harbor_replication_policy(
+        self, harbor_id: int, policy_id: int, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        更新 harbor 复制/备份策略。
+
+        对应 JMX：弹性计算_openapi_harbor_更新复制/备份策略
+        PUT /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
+        """
+        self.logger.info(
+            f"Update harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_harbor_replication_policy(
+        self, harbor_id: int, policy_id: int
+    ) -> Dict[str, Any]:
+        """
+        删除 harbor 策略详情。
+
+        对应 JMX：弹性计算_openapi_harbor_删除harbor策略详情
+        DELETE /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
+        """
+        self.logger.info(
+            f"Delete harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def start_harbor_replication_execution(
+        self, harbor_id: int, policy_id: int
+    ) -> Dict[str, Any]:
+        """
+        启动 harbor 复制策略执行。
+
+        对应 JMX：弹性计算_openapi_harbor_启动harbor复制策略
+        POST /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions
+        """
+        self.logger.info(
+            f"Start harbor replication execution: harborId={harbor_id}, policyId={policy_id}"
+        )
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/executions"
+        payload = {"policy_id": policy_id}
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_harbor_replication_executions(
+        self, harbor_id: int, policy_id: int, page: int = 1, page_size: int = 10
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 策略执行列表。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor策略执行列表
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions
+        """
+        self.logger.info(
+            f"List harbor replication executions: harborId={harbor_id}, policyId={policy_id}"
+        )
+        url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/executions"
+        params = {"page": page, "page_size": page_size, "policy_id": policy_id}
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def list_harbor_replication_tasks(
+        self, harbor_id: int, execution_id: int
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 复制执行任务列表。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor复制执行任务列表
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions/{executionId}/tasks
+        """
+        self.logger.info(
+            f"List harbor replication tasks: harborId={harbor_id}, executionId={execution_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/replication/executions/{execution_id}/tasks"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_harbor_replication_task_log(
+        self, harbor_id: int, execution_id: int, task_id: int
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 复制执行任务日志。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor复制执行任务日志
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions/{executionId}/tasks/{taskId}/log
+        """
+        self.logger.info(
+            f"Get harbor replication task log: harborId={harbor_id}, "
+            f"executionId={execution_id}, taskId={task_id}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/replication/executions/{execution_id}/tasks/{task_id}/log"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_harbor_repositories_by_id(
+        self, harbor_id: int, project_name: str, page: int = 1, page_size: int = 10
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 镜像仓库列表。
+
+        对应 JMX：弹性计算_openapi_harbor_查询harbor镜像列表
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories
+        """
+        self.logger.info(
+            f"List harbor repositories: harborId={harbor_id}, project={project_name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/projects/{project_name}/repositories"
+        )
+        params = {"page": page, "page_size": page_size}
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def list_harbor_artifacts_by_id(
+        self, harbor_id: int, project_name: str, rep_name: str,
+        page: int = 1, page_size: int = 10,
+    ) -> Dict[str, Any]:
+        """
+        查询 harbor 镜像库 artifacts。
+
+        对应 JMX：弹性计算_openapi_harbor_获取harbor镜像库artifacts
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}/artifacts
+        """
+        self.logger.info(
+            f"List harbor artifacts: harborId={harbor_id}, project={project_name}, repo={rep_name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/projects/{project_name}/repositories/{rep_name}/artifacts"
+        )
+        params = {"page": page, "page_size": page_size}
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def get_harbor_repository_by_id(
+        self, harbor_id: int, project_name: str, rep_name: str
+    ) -> Dict[str, Any]:
+        """
+        获取指定的 harbor 镜像仓库。
+
+        对应 JMX：弹性计算_openapi_harbor_获取指定的harbor镜像库
+        GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}
+        """
+        self.logger.info(
+            f"Get harbor repository: harborId={harbor_id}, project={project_name}, repo={rep_name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/projects/{project_name}/repositories/{rep_name}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_harbor_artifact_tag(
+        self, harbor_id: int, project_name: str, rep_name: str,
+        artifact: str, tag: str,
+    ) -> Dict[str, Any]:
+        """
+        从 harbor 镜像指定 artifacts 中删除标签。
+
+        对应 JMX：弹性计算_openapi_harbor_从harbor镜像指定artifacts中删除标签
+        DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}/artifacts/{artifact}/tags/{tag}
+        """
+        self.logger.info(
+            f"Delete harbor artifact tag: harborId={harbor_id}, project={project_name}, "
+            f"repo={rep_name}, artifact={artifact}, tag={tag}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/projects/{project_name}/repositories/{rep_name}"
+            f"/artifacts/{artifact}/tags/{tag}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_harbor_repository_by_id(
+        self, harbor_id: int, project_name: str, rep_name: str
+    ) -> Dict[str, Any]:
+        """
+        根据 harbor 镜像名删除。
+
+        对应 JMX：弹性计算_openapi_harbor_根据harbor镜像名删除
+        DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}
+        """
+        self.logger.info(
+            f"Delete harbor repository: harborId={harbor_id}, project={project_name}, repo={rep_name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
+            f"/projects/{project_name}/repositories/{rep_name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== helm-chart.jmx Helm Chart 上传/下载/生命周期接口 ====================
+
+    def upload_helm_chart(
+        self, cell_code: str, chart_file_path: str
+    ) -> Dict[str, Any]:
+        """
+        上传 Chart。
+
+        对应 JMX：弹性计算_openapi_helm-chart_上传Chart请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/helm/charts/upload (multipart)
+
+        Args:
+            cell_code: 单元编码
+            chart_file_path: 本地 chart 包文件路径
+        """
+        self.logger.info(f"Upload helm chart: cell={cell_code}, path={chart_file_path}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/upload"
+        with open(chart_file_path, "rb") as fh:
+            files = {"file": (chart_file_path, fh, "application/octet-stream")}
+            return self.post(
+                endpoint=url, files=files, headers=_get_default_headers()
+            ).json()
+
+    def list_helm_charts(
+        self, cell_code: str, keyword: str = None
+    ) -> Dict[str, Any]:
+        """
+        查询 Chart 列表。
+
+        对应 JMX：弹性计算_openapi_helm-chart_查询Chart列表
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/helm/charts?keyword=xxx
+        """
+        self.logger.info(f"List helm charts: cell={cell_code}, keyword={keyword}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts"
+        params = {}
+        if keyword is not None:
+            params["keyword"] = keyword
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def download_helm_chart(
+        self, cell_code: str, chart_name: str, chart_version: str
+    ):
+        """
+        下载 Chart。
+
+        对应 JMX：弹性计算_openapi_helm-chart_下载Chart
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/helm/charts/{chartName}/versions/{chartVersion}/download
+
+        返回原始 Response 对象，调用方自行处理 status_code / content。
+        """
+        self.logger.info(
+            f"Download helm chart: cell={cell_code}, name={chart_name}, version={chart_version}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/{chart_name}"
+            f"/versions/{chart_version}/download"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers())
+
+    def helm_install(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Helm Install。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm Install请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/install
+        """
+        self.logger.info(f"Helm install: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/install"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def helm_uninstall(
+        self, cell_code: str, sys_code: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        Helm Uninstall。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm Uninstall请求
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/uninstall
+        """
+        self.logger.info(f"Helm uninstall: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/helm/release/{name}/uninstall"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_helm_manifest(
+        self, cell_code: str, sys_code: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        查询指定 Helm 服务详情。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm Manifest请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/manifest
+        """
+        self.logger.info(f"Get helm manifest: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/helm/release/{name}/manifest"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_helm_releases(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
+        """
+        查询 Helm 服务列表。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm list请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release
+        """
+        self.logger.info(f"List helm releases: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/release"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_helm_release_apps(
+        self, cell_code: str, sys_code: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        查询 Helm 服务关联应用服务状态列表。
+
+        对应 JMX：弹性计算_openapi_helm-chart_查询Helm服务关联应用服务状态列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/apps
+        """
+        self.logger.info(
+            f"List helm release apps: cell={cell_code}, sys={sys_code}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/helm/release/{name}/apps"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def helm_upgrade(
+        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Helm Upgrade。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm Upgrade请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/upgrade
+        """
+        self.logger.info(f"Helm upgrade: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/helm/release/{name}/upgrade"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_helm_history(
+        self, cell_code: str, sys_code: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        查询 Helm 服务历史版本列表。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm History请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/history
+        """
+        self.logger.info(f"List helm history: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/helm/release/{name}/history"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def helm_rollback(
+        self, cell_code: str, sys_code: str, name: str, revision: int
+    ) -> Dict[str, Any]:
+        """
+        Helm Rollback。
+
+        对应 JMX：弹性计算_openapi_helm-chart_Helm Rollback请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/rollback?revision=X
+        """
+        self.logger.info(
+            f"Helm rollback: cell={cell_code}, sys={sys_code}, name={name}, revision={revision}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/helm/release/{name}/rollback"
+        )
+        params = {"revision": revision}
+        return self.post(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def delete_helm_chart_by_name(
+        self, cell_code: str, chart_name: str, version: str
+    ) -> Dict[str, Any]:
+        """
+        删除 Chart。
+
+        对应 JMX：弹性计算_openapi_helm-chart_删除Chart
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/helm/charts/{chartName}?version=X
+        """
+        self.logger.info(
+            f"Delete helm chart by name: cell={cell_code}, chart={chart_name}, version={version}"
+        )
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/{chart_name}"
+        params = {"version": version}
+        return self.delete(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    # ==================== image-api.jmx 镜像查询接口 ====================
+
+    def list_images(self) -> Dict[str, Any]:
+        """
+        获取镜像列表。
+
+        对应 JMX：弹性计算_openapi_image-api_获取镜像列表
+        GET /openapi/elastic-compute/v1/images
+        """
+        self.logger.info("List images")
+        return self.get(
+            endpoint="/openapi/elastic-compute/v1/images",
+            headers=_get_default_headers(),
+        ).json()
+
+    def list_image_apps(
+        self, cluster_id: int, namespace: str,
+        project_name: str, image_name: str, version: str,
+    ) -> Dict[str, Any]:
+        """
+        获取镜像已部署应用服务列表。
+
+        对应 JMX：弹性计算_openapi_image-api_获取镜像已部署应用服务列表
+        GET /openapi/elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/images/apps
+        """
+        self.logger.info(
+            f"List image apps: clusterId={cluster_id}, namespace={namespace}, "
+            f"project={project_name}, image={image_name}, version={version}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v1/clusters/{cluster_id}"
+            f"/namespaces/{namespace}/images/apps"
+        )
+        params = {
+            "projectName": project_name,
+            "imageName": image_name,
+            "version": version,
+        }
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    # ==================== imagePullSecret.jmx ImagePullSecret 接口 ====================
+
+    def create_image_pull_secret(
+        self, cell_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        创建 ImagePullSecret。
+
+        对应 JMX：弹性计算_openapi_imagePullSecret_创建ImagePullSecret请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/imagePullSecrets
+
+        备注：JMX 未指定请求体（postBodyRaw=false），依赖服务端根据 cell/sys 自动生成。
+        """
+        self.logger.info(
+            f"Create imagePullSecret: cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/imagePullSecrets"
+        )
+        return self.post(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_secret_by_name(
+        self, cell_code: str, sys_code: str, secret_name: str,
+    ) -> Dict[str, Any]:
+        """
+        删除指定 Secret（含 ImagePullSecret）。
+
+        对应 JMX：弹性计算_openapi_imagePullSecret_删除Secret
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/secrets/{secretName}
+        """
+        self.logger.info(
+            f"Delete secret: cell={cell_code}, sys={sys_code}, name={secret_name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/secrets/{secret_name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== LimitRange.jmx v2 无 name 版本（namespace 级别唯一） ====================
+
+    def create_limitrange_ns(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        创建 LimitRange（namespace 级唯一，路径无 name）。
+
+        对应 JMX：弹性计算_openapi_LimitRange_创建LimitRang
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+        """
+        self.logger.info(
+            f"Create limitRange (ns): cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/limitRanges"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def update_limitrange_ns(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        全量更新 LimitRange（namespace 级唯一，路径无 name）。
+
+        对应 JMX：弹性计算_openapi_LimitRange_更新LimitRange
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+        """
+        self.logger.info(
+            f"Update limitRange (ns): cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/limitRanges"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_limitrange_ns(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        增量更新 LimitRange（namespace 级唯一，路径无 name）。
+
+        对应 JMX：弹性计算_openapi_LimitRange_增量更新LimitRange
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+        """
+        self.logger.info(
+            f"Patch limitRange (ns): cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/limitRanges"
+        )
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_limitrange_ns(
+        self, cell_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        删除 LimitRange（namespace 级唯一，路径无 name）。
+
+        对应 JMX：弹性计算_openapi_LimitRange_删除LimitRange
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+        """
+        self.logger.info(
+            f"Delete limitRange (ns): cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/limitRanges"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_limitranges_by_cell_v2(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询全集群 LimitRange 列表（大写 R 版本）。
+
+        对应 JMX：弹性计算_openapi_LimitRange_查询LimitRangeList
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/limitRanges
+        """
+        self.logger.info(f"List limitRanges by cell (v2): cell={cell_code}")
+        return self.get(
+            endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/limitRanges",
+            headers=_get_default_headers(),
+        ).json()
+
+    def list_limitranges_by_ns_v2(
+        self, cell_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        查询命名空间下 LimitRange（大写 R 版本）。
+
+        对应 JMX：弹性计算_openapi_LimitRange_查询LimitRange
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+        """
+        self.logger.info(
+            f"List limitRanges by ns (v2): cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/limitRanges"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+

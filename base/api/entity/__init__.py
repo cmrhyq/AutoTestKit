@@ -7,6 +7,8 @@ API 实体模型模块（Entity / DTO 层）
 - entity.portal:        Portal 门户相关实体（Inner + Open）
 - entity.microservices: 微服务相关实体（Inner + Open）
 - entity.observable:    可观测服务相关实体
+- entity.operation:     运营运维相关实体
+- entity.plugin:        插件中心相关实体
 
 Service 层通过组合这些实体完成 API 请求参数构造，测试用例可直接
 从 `base.api.entity.<模块>` 导入所需实体。
@@ -40,6 +42,12 @@ from base.api.entity.observable import (
     LogContext,
     QueryModelConf,
 )
+from base.api.entity.operation import (
+    MetricQuery,
+)
+from base.api.entity.plugin import (
+    McpValidatePayload,
+)
 
 __all__ = [
     # portal
@@ -67,4 +75,8 @@ __all__ = [
     "Log",
     "LogContext",
     "QueryModelConf",
+    # operation
+    "MetricQuery",
+    # plugin
+    "McpValidatePayload",
 ]

@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any
 
 from base import BaseService
+from base.api.entity.plugin import McpValidatePayload
 from core import DataCache
 
 
@@ -50,30 +51,34 @@ class PluginOpenService(BaseService):
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
 
-    def verify_task_config(self):
+    def verify_task_config(self, payload: McpValidatePayload = None):
         """
         验证任务配置
+
+        Args:
+            payload: MCP 校验请求实体，默认使用 McpValidatePayload.default_task()
         """
         self.logger.info(f"Verifying Task Config")
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/task"
-        body = {
-            "type": "kubernetes",
-            "content": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: example-config\ndata:\n  config.yaml: |\n    key: value"
-        }
-        response = self.post(endpoint=url, body=body, headers=_get_default_headers())
+        entity = payload or McpValidatePayload.default_task()
+        response = self.post(
+            endpoint=url, body=entity.to_payload(), headers=_get_default_headers()
+        )
         return response.json()
 
-    def verify_task_feature(self):
+    def verify_task_feature(self, payload: McpValidatePayload = None):
         """
         验证任务feature
+
+        Args:
+            payload: MCP 校验请求实体，默认使用 McpValidatePayload.default_feature()
         """
         self.logger.info(f"Verifying Task Feature")
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/feature"
-        body = {
-            "type": "feature",
-            "content": "name: example-feature\ndescription: 示例特性\ntype: menu\nposition: /admin/plugins"
-        }
-        response = self.post(endpoint=url, body=body, headers=_get_default_headers())
+        entity = payload or McpValidatePayload.default_feature()
+        response = self.post(
+            endpoint=url, body=entity.to_payload(), headers=_get_default_headers()
+        )
         return response.json()
 
     def get_plugin_support_permission_transfer(self):

@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List, Union
 
 from base import BaseService
+from base.api.entity.operation import MetricQuery
 from core import DataCache
 
 
@@ -63,12 +64,17 @@ class OperationOpenService(BaseService):
         response = self.get(endpoint=url, params={"id": log_id}, headers=_get_default_headers())
         return response.json()
 
-    def batch_query_metrics(self, metrics: list, step_seconds: int = 1) -> Dict[str, Any]:
+    def batch_query_metrics(
+        self,
+        metrics: List[Union[MetricQuery, Dict[str, Any]]],
+        step_seconds: int = 1,
+    ) -> Dict[str, Any]:
         """
         通过promql对象批量查询指标
 
         Args:
-            metrics: 指标列表，每个元素包含 promql, range, startTime, endTime
+            metrics: 指标列表，元素为 MetricQuery 实体或等价的 dict
+                     （包含 promql, range, startTime, endTime）
             step_seconds: 步长秒数，默认1
             for example:
             {
@@ -85,8 +91,11 @@ class OperationOpenService(BaseService):
         """
         self.logger.info(f"Batch query metrics, count: {len(metrics)}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/component/batchQuery"
+        normalized_metrics: List[Dict[str, Any]] = [
+            m.to_payload() if isinstance(m, MetricQuery) else m for m in metrics
+        ]
         payload = {
-            "metrics": metrics,
+            "metrics": normalized_metrics,
             "stepSeconds": step_seconds
         }
         response = self.post(endpoint=url, json=payload, headers=_get_default_headers())

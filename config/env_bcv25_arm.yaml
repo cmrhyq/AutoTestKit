@@ -116,6 +116,8 @@ nginxRepoName: tools/nginx
 nginxImageName: tools/nginx:arm
 nginxImageRepo: 100.10.102.53:1121/tools/nginx
 nginxImageTag: arm
+# 本地 Chart 包文件路径（用于上传，需存在于运行环境）
+helmChartFilePath: files/helm/nginx-1.0.0.tgz
 
 #---------------------- workload 信息 ----------------------
 # hpa 关联 workload kind
@@ -130,6 +132,8 @@ soWorkloadName: auto-test-deploy-probe-ns-test-0002
 #---------------------- 存储相关 ----------------------
 # pv name - 查询
 pvName: auto-test-probe-pv-test-0001
+# pvc name
+pvcName: auto-test-probe-pvc-test-0001
 # storageClass name
 storageClassName: nfs-51
 # nfs名称
