@@ -5,15 +5,14 @@
 import allure
 import pytest
 
-from base.api.fixtures import api_cache
 from base.api.services.portal_inner_service import (
-    PortalInnerService,
-    InnerSystemEntity,
     ApplicationEntity,
+    InnerSystemEntity,
+    InnerUserEntity,
     MenuEntity,
+    PortalInnerService,
     RoleEntity,
     TenantEntity,
-    InnerUserEntity,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -40,6 +39,14 @@ class TestPortalInnerAPI:
         )
         yield service
         service.close()
+
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 Portal InnerAPI 测试所需的公共参数。"""
+        return {
+            "portal_user_id": api_env.get("portalUserId"),
+            "portal_username": api_env.get("portalUsername"),
+        }
 
     # ==================== 基础数据查询接口 ====================
 
@@ -145,7 +152,7 @@ class TestPortalInnerAPI:
     @allure.title("获取license信息")
     @allure.description("按 moduleCode 获取 license 信息")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_license_info(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_get_license_info(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
             with AllureHelper.step("发送 GET 请求获取license信息"):
                 response_json = portal_inner_service.get_license_info(
@@ -248,11 +255,11 @@ class TestPortalInnerAPI:
     @allure.title("站内消息发送")
     @allure.description("发送站内消息")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_send_message(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_send_message(self, portal_inner_service, public_params, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
             with AllureHelper.step("发送 POST 请求发送站内消息"):
                 response_json = portal_inner_service.send_message(
-                    users=[api_env.get("portalUsername")],
+                    users=[public_params["portal_username"]],
                     content="切换失败，请关注手工处理"
                 )
 
@@ -307,7 +314,7 @@ class TestPortalInnerAPI:
     @allure.title("创建系统")
     @allure.description("创建新系统")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_create_system(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_create_system(self, portal_inner_service, public_params, api_cache, api_logger):
         first1 = api_cache.get("first1")
         module_id = api_cache.get("moduleId")
         if not first1 or not module_id:
@@ -319,8 +326,8 @@ class TestPortalInnerAPI:
             system_code="portal_inner_api_test_sys",
             field_one=first1,
             field_two=module_id,
-            create_id=api_env.get("portalUserId"),
-            username=api_env.get("portalUsername"),
+            create_id=public_params["portal_user_id"],
+            username=public_params["portal_username"],
         )
 
         with AllureHelper.api_test(portal_inner_service):
@@ -334,7 +341,7 @@ class TestPortalInnerAPI:
     @allure.title("获取系统全量数据")
     @allure.description("查询系统全量数据并提取 systemId 供后续用例使用")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_system_full_data(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_get_system_full_data(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
             with AllureHelper.step("发送 GET 请求获取系统全量数据"):
                 response_json = portal_inner_service.get_system_full_data()
@@ -358,7 +365,7 @@ class TestPortalInnerAPI:
     @allure.title("创建应用")
     @allure.description("在指定系统下创建应用")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_create_application(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_create_application(self, portal_inner_service, public_params, api_cache, api_logger):
         system_id = api_cache.get("systemId")
         if not system_id:
             pytest.skip("未获取到 systemId，跳过创建应用")
@@ -369,8 +376,8 @@ class TestPortalInnerAPI:
             app_code="portal_inner_api_test_app",
             app_type="web_type",
             system_id=system_id,
-            create_id=api_env.get("portalUserId"),
-            username=api_env.get("portalUsername"),
+            create_id=public_params["portal_user_id"],
+            username=public_params["portal_username"],
             workload_type="Deployment",
         )
 
@@ -385,7 +392,7 @@ class TestPortalInnerAPI:
     @allure.title("获取应用全量数据")
     @allure.description("查询应用全量数据并提取应用信息供后续用例使用")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_application_full_data(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_get_application_full_data(self, portal_inner_service, api_cache, api_logger):
         with AllureHelper.api_test(portal_inner_service):
             with AllureHelper.step("发送 GET 请求获取应用全量数据"):
                 response_json = portal_inner_service.get_application_full_data()
@@ -563,7 +570,7 @@ class TestPortalInnerAPI:
     @allure.title("角色管理（创建/修改/删除）")
     @allure.description("完整测试角色CRUD流程：查询 -> 清理 -> 创建 -> 修改 -> 删除")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_role_management(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_role_management(self, portal_inner_service, api_cache, api_logger):
         role_code_0 = "autotest250711"
         api_logger.info(f"开始测试: 角色管理, roleCode={role_code_0}")
 
@@ -625,7 +632,7 @@ class TestPortalInnerAPI:
     @allure.title("用户-租户-角色绑定全流程")
     @allure.description("完整测试用户租户角色管理流程：查询 -> 清理 -> 创建角色/租户/用户 -> API 授权/解除 -> 用户租户绑定 -> 角色绑定")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_user_tenant_role_bindflow(self, portal_inner_service, api_env, api_cache, api_logger):
+    def test_user_tenant_role_bindflow(self, portal_inner_service, api_cache, api_logger):
         username2 = "test0930"
         rolecode2 = "autorole250711"
         tenantcode2 = "autotenant250711"

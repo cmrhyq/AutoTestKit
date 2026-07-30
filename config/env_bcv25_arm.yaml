@@ -210,8 +210,6 @@ istioVsNameInner: testapi-inner-vs-721
 
 #---------------------- 微服务接口参数 ----------------------
 # 微服务CMF参数
-# openapi接口
-ubmPath: /openapi/ms-ubm/microservice-ubm/openapi/tenant
 # 控制面名称
 controlPlaneName: CMF
 # 微服务编码
@@ -225,16 +223,10 @@ funcserCode: cust_IUserInfoCSV_name
 envCode: PROD1
 # 服务名称
 funcSerName: name
-# openapi接口
-cmfPath: /openapi/ms-ubm/microservice-ubm
 # 控制面编码
 controlPlaneCode: CMF
 # 注册中心名称
 registryName: zk-1
-# openapi接口
-ingressPath: /openapi/ms-ingress/microservice-ingress-console/openapi/tenant
-# openapi接口
-meshPath: /openapi/ms-mesh/microservice-mesh-console/openapi/tenant
 # mesh 网关名称
 meshGatewayName: gateway-demo
 # 网关配置名称

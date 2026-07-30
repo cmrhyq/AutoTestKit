@@ -15,7 +15,6 @@ from base.api.services.elastic_compute_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 BUSINESS_SUCCESS_CODE = 2000
 RESOURCE_NOT_FOUND_CODE = 4004
 PVC_CREATE_WAIT_SECONDS = 3
@@ -49,6 +48,17 @@ class TestEcOpenapiPvcPv:
         yield service
         service.close()
 
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 PVC/PV 测试所需的公共参数。"""
+        return {
+            "cell_code": api_env.get("cellCode"),
+            "sys_code": api_env.get("sysCode"),
+            "pvc_name": api_env.get("pvcName", "auto-test-probe-pvc-test-0001"),
+            "storage_class_name": api_env.get("storageClassName"),
+            "pv_name": api_env.get("pvName"),
+        }
+
     @staticmethod
     def _build_pvc_payload(name: str, storage_class_name: str) -> Dict[str, Any]:
         """构造 PVC 创建请求体，源自 JMX POST body。"""
@@ -72,11 +82,11 @@ class TestEcOpenapiPvcPv:
     @allure.title("PVC 完整生命周期测试")
     @allure.description("覆盖 PVC 的查询、创建、列表、删除完整生命周期")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_pvc_lifecycle(self, ec_service, api_env, api_cache):
-        cell_code = api_env.get("cellCode")
-        sys_code = api_env.get("sysCode")
-        pvc_name = api_env.get("pvcName", "auto-test-probe-pvc-test-0001")
-        storage_class_name = api_env.get("storageClassName")
+    def test_pvc_lifecycle(self, ec_service, public_params, api_cache):
+        cell_code = public_params["cell_code"]
+        sys_code = public_params["sys_code"]
+        pvc_name = public_params["pvc_name"]
+        storage_class_name = public_params["storage_class_name"]
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询指定 PVC 确认当前状态"):
@@ -135,9 +145,9 @@ class TestEcOpenapiPvcPv:
     @allure.title("查询指定 PV")
     @allure.description("按名称查询指定 PV 的详情")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_pv(self, ec_service, api_env):
-        cell_code = api_env.get("cellCode")
-        pv_name = api_env.get("pvName")
+    def test_get_pv(self, ec_service, public_params):
+        cell_code = public_params["cell_code"]
+        pv_name = public_params["pv_name"]
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(f"查询 PV: cell={cell_code}, name={pv_name}"):
@@ -154,9 +164,9 @@ class TestEcOpenapiPvcPv:
     @allure.title("查询指定 StorageClass")
     @allure.description("按名称查询指定 StorageClass 的详情")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_storage_class(self, ec_service, api_env):
-        cell_code = api_env.get("cellCode")
-        storage_class_name = api_env.get("storageClassName")
+    def test_get_storage_class(self, ec_service, public_params):
+        cell_code = public_params["cell_code"]
+        storage_class_name = public_params["storage_class_name"]
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step(

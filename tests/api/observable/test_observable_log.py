@@ -8,15 +8,14 @@
 - 根据上下文检索requestId获取上下文日志列表
 """
 
-from typing import Dict, Any
 
 import allure
 import pytest
 
 from base.api.services.observable_open_service import (
-    ObservableOpenService,
     Log,
     LogContext,
+    ObservableOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -48,21 +47,43 @@ class TestObservableLog:
         yield service
         service.close()
 
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取可观测日志测试所需的公共参数。"""
+        return {
+            "obs_namespace": api_env.get("obsNamespace", "paas-monitor"),
+            "obs_cluster_name": api_env.get("obsClusterName", "kzm-101"),
+            "obs_pod_name": api_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
+            "obs_container_name": api_env.get("obsContainerName", "monitor-amdb-confs"),
+            "obs_start_time": int(api_env.get("obsStartTime", 176145907000)),
+            "obs_end_time": int(api_env.get("obsEndTime", 176145908000)),
+            "obs_component_type": api_env.get("obsComponentType", "app"),
+            "obs_size": int(api_env.get("obsSize", 1)),
+            "obs_id": api_env.get("obsId", "2cNV25kBX1NeH2CondPI"),
+            "obs_timestamp": int(api_env.get("obsTimestamp", 1760321444470)),
+            "obs_offset": int(api_env.get("obsOffset", 100016405)),
+            "obs_log_file_path": api_env.get(
+                "obsLogFilePath",
+                "/apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log"
+            ),
+            "obs_host_ip": api_env.get("obsHostIp", "100.10.32.101"),
+        }
+
     @allure.title("根据四元组检索日志")
     @allure.description("按 namespace/cluster/pod/container 四元组检索日志并缓存 requestId")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_query_log_by_quadruple(self, observable_service, api_env, api_cache):
+    def test_query_log_by_quadruple(self, observable_service, public_params, api_cache):
         with AllureHelper.api_test(observable_service):
             log = Log(
-                namespace=api_env.get("obsNamespace", "paas-monitor"),
-                cluster_name=api_env.get("obsClusterName", "kzm-101"),
-                pod_name=api_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
-                container_name=api_env.get("obsContainerName", "monitor-amdb-confs"),
-                start_time=int(api_env.get("obsStartTime", 176145907000)),
-                end_time=int(api_env.get("obsEndTime", 176145908000)),
-                component_type=api_env.get("obsComponentType", "app"),
+                namespace=public_params["obs_namespace"],
+                cluster_name=public_params["obs_cluster_name"],
+                pod_name=public_params["obs_pod_name"],
+                container_name=public_params["obs_container_name"],
+                start_time=public_params["obs_start_time"],
+                end_time=public_params["obs_end_time"],
+                component_type=public_params["obs_component_type"],
                 sync=False,
-                size=int(api_env.get("obsSize", 1)),
+                size=public_params["obs_size"],
             )
 
             with AllureHelper.step("发送 GET 请求根据四元组检索日志"):
@@ -98,23 +119,20 @@ class TestObservableLog:
     @allure.title("查询日志上下文")
     @allure.description("按日志 ID 查询上下文信息并缓存 contextRequestId")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_query_log_context(self, observable_service, api_env, api_cache):
+    def test_query_log_context(self, observable_service, public_params, api_cache):
         with AllureHelper.api_test(observable_service):
             context = LogContext(
-                log_id=api_env.get("obsId", "2cNV25kBX1NeH2CondPI"),
-                timestamp=int(api_env.get("obsTimestamp", 1760321444470)),
-                offset=int(api_env.get("obsOffset", 100016405)),
-                log_file_path=api_env.get(
-                    "obsLogFilePath",
-                    "/apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log"
-                ),
-                host_ip=api_env.get("obsHostIp", "100.10.32.101"),
-                namespace=api_env.get("obsNamespace", "paas-monitor"),
-                cluster_name=api_env.get("obsClusterName", "kzm-101"),
-                pod_name=api_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
-                container_name=api_env.get("obsContainerName", "monitor-amdb-confs"),
+                log_id=public_params["obs_id"],
+                timestamp=public_params["obs_timestamp"],
+                offset=public_params["obs_offset"],
+                log_file_path=public_params["obs_log_file_path"],
+                host_ip=public_params["obs_host_ip"],
+                namespace=public_params["obs_namespace"],
+                cluster_name=public_params["obs_cluster_name"],
+                pod_name=public_params["obs_pod_name"],
+                container_name=public_params["obs_container_name"],
                 sync=False,
-                size=int(api_env.get("obsSize", 1)),
+                size=public_params["obs_size"],
             )
 
             with AllureHelper.step("发送 GET 请求查询日志上下文"):

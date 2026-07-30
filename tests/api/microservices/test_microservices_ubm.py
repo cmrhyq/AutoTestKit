@@ -48,6 +48,18 @@ class TestMicroservicesUbm:
         yield service
         service.close()
 
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 UBM 测试所需的公共参数。"""
+        return {
+            "control_plane_code": api_env.get("controlPlaneCode"),
+            "belong_code": api_env.get("belongCode"),
+            "plane_code": api_env.get("planeCode"),
+            "plane_name": api_env.get("planeName"),
+            "cell_code": api_env.get("cellCode"),
+            "cell_name": api_env.get("cellName"),
+        }
+
     # ==================== UBM 查询接口 ====================
 
     @allure.title("查询平面单元列表")
@@ -79,11 +91,11 @@ class TestMicroservicesUbm:
     @allure.title("批量新增策略")
     @allure.description("批量新增 UBM 路由策略")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_batch_add_strategy(self, ubm_service, api_env):
+    def test_batch_add_strategy(self, ubm_service, public_params):
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略数据并发送 POST 请求"):
-                control_plane_code = api_env.get("controlPlaneCode")
-                belong_code = api_env.get("belongCode")
+                control_plane_code = public_params["control_plane_code"]
+                belong_code = public_params["belong_code"]
                 strategies = [
                     {
                         "strategyCode": "CUSTOM-demoA",
@@ -121,23 +133,23 @@ class TestMicroservicesUbm:
     @allure.title("批量更新策略状态")
     @allure.description("批量更新 UBM 策略状态并返回 batchCode")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_batch_update_strategy_status(self, ubm_service, api_env, api_cache):
+    def test_batch_update_strategy_status(self, ubm_service, public_params, api_cache):
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略状态数据并发送 PUT 请求"):
                 data = {
-                    "controlPlaneCode": api_env.get("controlPlaneCode"),
+                    "controlPlaneCode": public_params["control_plane_code"],
                     "scope": "Application",
                     "kind": "ROUTE",
                     "strategyInfos": [
-                        {"strategyCode": "CUSTOM-demoA", "belongCode": api_env.get("belongCode"), "status": "UP"},
-                        {"strategyCode": "CUSTOM-demoB", "belongCode": api_env.get("belongCode"), "status": "UP"},
+                        {"strategyCode": "CUSTOM-demoA", "belongCode": public_params["belong_code"], "status": "UP"},
+                        {"strategyCode": "CUSTOM-demoB", "belongCode": public_params["belong_code"], "status": "UP"},
                     ],
                     "clusterInfos": [
                         {
-                            "planeCode": api_env.get("planeCode"),
-                            "planeName": api_env.get("planeName"),
-                            "cellCode": api_env.get("cellCode"),
-                            "cellName": api_env.get("cellName"),
+                            "planeCode": public_params["plane_code"],
+                            "planeName": public_params["plane_name"],
+                            "cellCode": public_params["cell_code"],
+                            "cellName": public_params["cell_name"],
                         }
                     ],
                 }

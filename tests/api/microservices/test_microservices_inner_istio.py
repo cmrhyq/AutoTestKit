@@ -9,16 +9,15 @@
 
 Inner API 使用 apikey 鉴权（不走 Bearer），从 ms_apikey 配置读取。
 """
-from typing import Dict
 
 import allure
 import pytest
 
 from base.api.services.microservices_inner_service import (
-    MicroservicesInnerService,
     Kem,
-    MeshVS,
     MeshNode,
+    MeshVS,
+    MicroservicesInnerService,
 )
 from core.reporting.allure_helper import AllureHelper
 
@@ -51,34 +50,48 @@ class TestMicroservicesInnerIstio:
         yield service
         service.close()
 
-    def _kem(self, api_env) -> Kem:
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 Inner Istio 测试所需的公共参数。"""
+        return {
+            "mesh_gateway_name": api_env.get("meshGatewayName"),
+            "mesh_vs_name": api_env.get("meshVsName"),
+            "sys_code": api_env.get("sysCode"),
+            "cell_code": api_env.get("cellCode"),
+            "plane_code": api_env.get("planeCode"),
+            "cluster_id": api_env.get("clusterId"),
+            "tenant_code": api_env.get("tenantCode"),
+            "basic_auth_username": api_env.get("basicAuthUsername"),
+        }
+
+    def _kem(self, public_params) -> Kem:
         return Kem(
-            sysCode=api_env.get("sysCode"),
-            cellCode=api_env.get("cellCode"),
-            planeCode=api_env.get("planeCode"),
-            tenantCode=api_env.get("tenantCode"),
-            username=api_env.get("basicAuthUsername"),
-            gatewayInsName=api_env.get("meshGatewayName"),
-            gatewayName=api_env.get("meshGatewayName"),
+            sysCode=public_params["sys_code"],
+            cellCode=public_params["cell_code"],
+            planeCode=public_params["plane_code"],
+            tenantCode=public_params["tenant_code"],
+            username=public_params["basic_auth_username"],
+            gatewayInsName=public_params["mesh_gateway_name"],
+            gatewayName=public_params["mesh_gateway_name"],
             gatewayNodePort="30080",
-            vsName=api_env.get("meshVsName"),
+            vsName=public_params["mesh_vs_name"],
         )
 
-    def _vs(self, api_env) -> MeshVS:
+    def _vs(self, public_params) -> MeshVS:
         return MeshVS(
-            vsName=api_env.get("meshVsName"),
-            gatewayName=api_env.get("meshGatewayName"),
-            sysCode=api_env.get("sysCode"),
-            cellCode=api_env.get("cellCode"),
-            planeCode=api_env.get("planeCode"),
-            clusterId=api_env.get("clusterId"),
+            vsName=public_params["mesh_vs_name"],
+            gatewayName=public_params["mesh_gateway_name"],
+            sysCode=public_params["sys_code"],
+            cellCode=public_params["cell_code"],
+            planeCode=public_params["plane_code"],
+            clusterId=public_params["cluster_id"],
         )
 
-    def _node(self, api_env) -> MeshNode:
+    def _node(self, public_params) -> MeshNode:
         return MeshNode(
-            cellCode=api_env.get("cellCode"),
-            planeCode=api_env.get("planeCode"),
-            clusterId=api_env.get("clusterId"),
+            cellCode=public_params["cell_code"],
+            planeCode=public_params["plane_code"],
+            clusterId=public_params["cluster_id"],
         )
 
     # ==================== KEM 统一操作 ====================
@@ -86,20 +99,20 @@ class TestMicroservicesInnerIstio:
     @allure.title("统一校验接口")
     @allure.description("对 KEM 参数进行统一校验")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_kem_check(self, inner_service, api_env):
+    def test_kem_check(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求统一校验"):
-                response_json = inner_service.kem_check(self._kem(api_env))
+                response_json = inner_service.kem_check(self._kem(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
     @allure.title("统一创建接口")
     @allure.description("基于 KEM 参数一键创建网关、规则、虚拟服务等")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_kem_create(self, inner_service, api_env):
+    def test_kem_create(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求统一创建"):
-                response_json = inner_service.kem_create(self._kem(api_env))
+                response_json = inner_service.kem_create(self._kem(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -108,10 +121,10 @@ class TestMicroservicesInnerIstio:
     @allure.title("查询虚拟服务列表")
     @allure.description("查询指定网关下的虚拟服务列表（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_list_virtual_service(self, inner_service, api_env):
+    def test_list_virtual_service(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求查询虚拟服务列表"):
-                response_json = inner_service.list_virtual_service(self._vs(api_env))
+                response_json = inner_service.list_virtual_service(self._vs(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -128,30 +141,30 @@ class TestMicroservicesInnerIstio:
     @allure.title("查询节点列表")
     @allure.description("查询指定集群下的网关节点列表")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_list_node(self, inner_service, api_env):
+    def test_list_node(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求查询节点列表"):
-                response_json = inner_service.list_node(self._node(api_env))
+                response_json = inner_service.list_node(self._node(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
     @allure.title("批量上传证书")
     @allure.description("为网关批量上传 TLS 证书")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_batch_create_secret(self, inner_service, api_env):
+    def test_batch_create_secret(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求批量上传证书"):
-                response_json = inner_service.batch_create_secret(self._kem(api_env))
+                response_json = inner_service.batch_create_secret(self._kem(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
     @allure.title("精确查询虚拟服务信息")
     @allure.description("按名称精确查询虚拟服务详情（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_virtual_service(self, inner_service, api_env):
+    def test_get_virtual_service(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求精确查询虚拟服务"):
-                response_json = inner_service.get_virtual_service(self._vs(api_env))
+                response_json = inner_service.get_virtual_service(self._vs(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -160,20 +173,20 @@ class TestMicroservicesInnerIstio:
     @allure.title("删除虚拟服务")
     @allure.description("删除指定虚拟服务（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_delete_virtual_service(self, inner_service, api_env):
+    def test_delete_virtual_service(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求删除虚拟服务"):
-                response_json = inner_service.delete_virtual_service(self._vs(api_env))
+                response_json = inner_service.delete_virtual_service(self._vs(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
     @allure.title("新增虚拟服务")
     @allure.description("新增虚拟服务（Inner API）")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_add_virtual_service(self, inner_service, api_env):
+    def test_add_virtual_service(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求新增虚拟服务"):
-                response_json = inner_service.add_virtual_service(self._vs(api_env))
+                response_json = inner_service.add_virtual_service(self._vs(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -182,9 +195,9 @@ class TestMicroservicesInnerIstio:
     @allure.title("统一删除接口")
     @allure.description("基于 KEM 参数一键清理网关、规则、虚拟服务等")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_kem_delete(self, inner_service, api_env):
+    def test_kem_delete(self, inner_service, public_params):
         with AllureHelper.api_test(inner_service):
             with AllureHelper.step("发送 POST 请求统一删除"):
-                response_json = inner_service.kem_delete(self._kem(api_env))
+                response_json = inner_service.kem_delete(self._kem(public_params))
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
