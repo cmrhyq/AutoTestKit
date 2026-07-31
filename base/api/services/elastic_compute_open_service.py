@@ -760,15 +760,57 @@ class ElasticComputeOpenService(BaseService):
     # ==================== RBAC_V2.jmx ====================
 
     def list_rbac_roles(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
-        """查询 Role 列表。GET /.../roles"""
+        """
+        查询 Role 列表。
+
+        对应 JMX：弹性计算_openapi_RBAC_V2_查询role列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/rbac/roles
+        """
         self.logger.info(f"List rbac roles: cell={cell_code}, sys={sys_code}")
-        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/roles"
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/roles"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_rbac_role(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 Role。
+
+        对应 JMX：弹性计算_openapi_RBAC_V2_查询指定role
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/rbac/roles/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Role 名称
+        """
+        self.logger.info(f"Get rbac role: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/roles/{name}"
         return self.get(endpoint=url, headers=_get_default_headers()).json()
 
     def list_rbac_role_bindings(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
-        """查询 RoleBinding 列表。GET /.../rolebindings"""
+        """
+        查询 RoleBinding 列表。
+
+        对应 JMX：弹性计算_openapi_RBAC_V2_查询rolebinding列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/rbac/rolebindings
+        """
         self.logger.info(f"List rbac rolebindings: cell={cell_code}, sys={sys_code}")
-        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rolebindings"
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/rolebindings"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_rbac_role_binding(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 RoleBinding。
+
+        对应 JMX：弹性计算_openapi_RBAC_V2_查询指定rolebinding
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/rbac/rolebindings/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: RoleBinding 名称
+        """
+        self.logger.info(f"Get rbac rolebinding: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/rolebindings/{name}"
         return self.get(endpoint=url, headers=_get_default_headers()).json()
 
     def list_rbac_cluster_roles(self, cell_code: str) -> Dict[str, Any]:
@@ -2552,5 +2594,219 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info("List all ports")
         url = "/openapi/elastic-compute/v2/ports"
         return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== quota-manager-admin 配额管理（管理员）接口 ====================
+
+    def get_cluster_quota_overview(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询集群资源配额概览。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_查询集群资源配额概览
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/quota
+        """
+        self.logger.info(f"Get cluster quota overview: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/quota"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def batch_query_tenant_quotas(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        批量查询多租户资源配额总览列表。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_批量查询多租户资源配额总览列表
+        POST /openapi/elastic-compute/v2/tenants/quota/batch
+
+        Args:
+            payload: 包含 tenantCodeList 的请求体
+        """
+        self.logger.info("Batch query tenant quotas")
+        url = "/openapi/elastic-compute/v2/tenants/quota/batch"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def allocate_tenant_quota(
+        self, cell_code: str, tenant_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        租户资源配额分配。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_租户资源配额分配
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/allocate
+
+        Args:
+            cell_code: 单元编码
+            tenant_code: 租户编码
+            payload: 分配请求体
+        """
+        self.logger.info(f"Allocate tenant quota: cell={cell_code}, tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/allocate"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def scale_tenant_quota(
+        self, cell_code: str, tenant_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        租户资源配额调整（扩缩容）。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_租户资源配额调整（扩缩容）
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/scale
+
+        Args:
+            cell_code: 单元编码
+            tenant_code: 租户编码
+            payload: 调整请求体
+        """
+        self.logger.info(f"Scale tenant quota: cell={cell_code}, tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def get_system_quota_overview(self, tenant_code: str, sys_code: str) -> Dict[str, Any]:
+        """
+        系统资源配额各集群概览。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_系统资源配额各集群概览
+        GET /openapi/elastic-compute/v2/tenants/{tenantCode}/systems/{sysCode}/quota
+        """
+        self.logger.info(f"Get system quota overview: tenant={tenant_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/systems/{sys_code}/quota"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_system_quota_detail(
+        self, cell_code: str, tenant_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        系统资源配额详情。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_系统资源配额详情
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/detail
+        """
+        self.logger.info(
+            f"Get system quota detail: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
+            f"/systems/{sys_code}/quota/detail"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_system_quota_scalable(
+        self, cell_code: str, tenant_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        系统可调整资源配额查询。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_系统可调整资源配额查询
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/scale
+        """
+        self.logger.info(
+            f"Get system quota scalable: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
+            f"/systems/{sys_code}/quota/scale"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_tenant_quota_detail(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
+        """
+        查询租户资源配额详情。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_查询租户资源配额详情
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/detail
+        """
+        self.logger.info(f"Get tenant quota detail: cell={cell_code}, tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/detail"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_tenant_quotas_by_cell(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
+        """
+        查询租户资源配额列表（按单元区分）。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_查询租户资源配额列表（按单元区分）
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quotas
+        """
+        self.logger.info(f"List tenant quotas by cell: cell={cell_code}, tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quotas"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_tenant_quotas(self, tenant_code: str) -> Dict[str, Any]:
+        """
+        查询租户资源配额列表。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_查询租户资源配额列表
+        GET /openapi/elastic-compute/v2/tenants/{tenantCode}/quotas
+        """
+        self.logger.info(f"List tenant quotas: tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/quotas"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_tenant_quota_overview(self, tenant_code: str) -> Dict[str, Any]:
+        """
+        租户资源配额总览。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_租户资源配额总览
+        GET /openapi/elastic-compute/v2/tenants/{tenantCode}/quota
+        """
+        self.logger.info(f"Get tenant quota overview: tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/quota"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_tenant_cell_quota_overview(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
+        """
+        单租户资源配额单集群下总览信息。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_单租户资源配额单集群下总览信息
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota
+        """
+        self.logger.info(f"Get tenant cell quota overview: cell={cell_code}, tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_tenant_quota_scalable(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
+        """
+        租户可调整资源配额查询。
+
+        对应 JMX：弹性计算_openapi_quota-manager-admin_租户可调整资源配额查询
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/scale
+        """
+        self.logger.info(f"Get tenant quota scalable: cell={cell_code}, tenant={tenant_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== quota-manager-tenant 配额管理（租户管理员）接口 ====================
+
+    def allocate_system_quota(
+        self, cell_code: str, tenant_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        租户管理员审批通过系统资源申请时调用。
+
+        对应 JMX：弹性计算_openapi_quota-manager-tenant_租户管理员审批通过系统资源申请时调用
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/allocate
+        """
+        self.logger.info(
+            f"Allocate system quota: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
+            f"/systems/{sys_code}/quota/allocate"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def scale_system_quota(
+        self, cell_code: str, tenant_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        针对系统资源配额进行扩缩容。
+
+        对应 JMX：弹性计算_openapi_quota-manager-tenant_针对系统资源配额进行扩缩容
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/scale
+        """
+        self.logger.info(
+            f"Scale system quota: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
+            f"/systems/{sys_code}/quota/scale"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
 
 
