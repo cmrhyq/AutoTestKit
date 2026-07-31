@@ -76,6 +76,7 @@
 - 所有新增 key 必须**同步写入**每一份 `config/env_*.yaml`（当前至少 `env_test.yaml` / `env_bcv25_arm.yaml`），否则切换环境时会读到 `None`，导致鉴权 / 请求失败。
 - 命名统一 **camelCase**（如 `apiBaseUrl`、`nativeXApiKey`、`pvcName`），禁止 snake_case / kebab-case。
 - 租户账号信息集中在 yaml 的 `tenants` 字典下：`tenants.<tenant_code>.username / password`。
+- 忽略 threads, rampup, duration, testCases, intervalTime 这些参数，不要放入`config/env_*.yaml`
 
 ---
 
@@ -563,6 +564,7 @@ def test_verify_configmap_deleted(self, ec_service, public_params):
 **拆分关键规范：**
 
 - **公共参数 fixture**：定义 `scope="class"` 的参数 fixture（如 `public_params`），将多个函数共用的 `api_env.get(...)` 集中提取一次，各测试函数通过 fixture 注入获取参数，避免重复代码且参数变更只需改一处。
+- **env默认值**：`api_env.get(...)`在get的时候需要填入默认值，默认值参考JMX文件
 - **每个接口一个函数**：一个 `test_` 函数只调用一个 Service 方法（查询+条件清理可合并在第一个函数中）。
 - **`@pytest.mark.order(N)`**：保证执行顺序，N 从 1 开始递增。
 - **`@pytest.mark.dependency(name="xxx", depends=["yyy"])`**：声明依赖关系，前置用例失败时后续用例自动 SKIP（不会误报）。

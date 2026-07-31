@@ -2293,4 +2293,264 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.get(endpoint=url, headers=_get_default_headers()).json()
 
+    # ==================== oidc-harborinit OIDC 接口 ====================
+
+    def get_oidc_info(self) -> Dict[str, Any]:
+        """
+        获取 OIDC 信息。
+
+        对应 JMX：弹性计算_openapi_oidc-harborinit_获取oidc信息
+        GET /openapi/elastic-compute/v2/oidc/info
+        """
+        self.logger.info("Get OIDC info")
+        url = "/openapi/elastic-compute/v2/oidc/info"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== pod Pod 接口 ====================
+
+    def get_pod(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        查询指定 Pod。
+
+        对应 JMX：弹性计算_openapi_pod_查询指定Pod
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Pod 名称
+        """
+        self.logger.info(f"Get Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_pod(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        创建 Pod。
+
+        对应 JMX：弹性计算_openapi_pod_创建Pod请求
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            payload: Pod 对象 JSON
+        """
+        self.logger.info(f"Create Pod: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_pod(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
+        """
+        删除指定 Pod。
+
+        对应 JMX：弹性计算_openapi_pod_删除指定Pod
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Pod 名称
+        """
+        self.logger.info(f"Delete Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_pods_by_ns(
+        self, cell_code: str, sys_code: str, label_selector: str = None,
+    ) -> Dict[str, Any]:
+        """
+        查询 Namespace 下 Pod 列表。
+
+        对应 JMX：弹性计算_openapi_pod_查询Pod列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            label_selector: 标签选择器（可选）
+        """
+        self.logger.info(f"List Pods by ns: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods"
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def list_pods_by_cell(
+        self, cell_code: str, label_selector: str = None,
+    ) -> Dict[str, Any]:
+        """
+        查询全集群 Pod 列表。
+
+        对应 JMX：弹性计算_openapi_pod_查询全集群Pod列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/pods
+
+        Args:
+            cell_code: 单元编码
+            label_selector: 标签选择器（可选）
+        """
+        self.logger.info(f"List Pods by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pods"
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+
+    def list_pod_events(
+        self, cell_code: str, sys_code: str, name: str,
+    ) -> Dict[str, Any]:
+        """
+        查询 Pod 事件列表。
+
+        对应 JMX：弹性计算_openapi_pod_查询Pod事件列表请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}/events
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Pod 名称
+        """
+        self.logger.info(f"List Pod events: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/pods/{name}/events"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_pod_logs(
+        self, cell_code: str, sys_code: str, name: str, container: str,
+    ) -> Dict[str, Any]:
+        """
+        查询 Pod 容器日志。
+
+        对应 JMX：弹性计算_openapi_pod_查询Pod日志请求
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}/containers/{container}/logs
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Pod 名称
+            container: 容器名称
+        """
+        self.logger.info(
+            f"Get Pod logs: cell={cell_code}, sys={sys_code}, name={name}, container={container}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/pods/{name}/containers/{container}/logs"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def update_pod(
+        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        PUT 全量更新指定 Pod。
+
+        对应 JMX：弹性计算_openapi_pod_更新指定Pod
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Pod 名称
+            payload: 更新后的 Pod 完整对象
+        """
+        self.logger.info(f"Update Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_pod(
+        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        PATCH 增量更新指定 Pod。
+
+        对应 JMX：弹性计算_openapi_pod_增量更新指定Pod
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}
+
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            name: Pod 名称
+            payload: 增量更新 Patch 对象
+        """
+        self.logger.info(f"Patch Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    # ==================== port-nodeport Port/NodePort 接口 ====================
+
+    def list_nodeports(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询租户指定集群实际使用 NodePort 端口列表。
+
+        对应 JMX：弹性计算_openapi_port-nodeport_查询租户指定集群实际使用nodeport端口列表
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/nodeports
+
+        Args:
+            cell_code: 单元编码
+        """
+        self.logger.info(f"List nodeports: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_nodeport(self, cell_code: str, nodeport: str) -> Dict[str, Any]:
+        """
+        查询指定 NodePort 是否可以使用。
+
+        对应 JMX：弹性计算_openapi_port-nodeport_查询指定nodeport是否可以使用
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/nodeports/{nodeport}
+
+        Args:
+            cell_code: 单元编码
+            nodeport: NodePort 端口号
+        """
+        self.logger.info(f"Get nodeport: cell={cell_code}, nodeport={nodeport}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports/{nodeport}"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def allocate_ports(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        租户 NodePort 端口范围分配 (Admin)。
+
+        对应 JMX：弹性计算_openapi_port-nodeport_租户nodeport端口范围分配(Admin)
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/ports
+
+        Args:
+            cell_code: 单元编码
+            payload: 分配请求体（kind, tenantCode, ports）
+        """
+        self.logger.info(f"Allocate ports: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def list_ports_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询租户指定集群 NodePort 端口范围。
+
+        对应 JMX：弹性计算_openapi_port-nodeport_查询租户指定集群nodeport端口范围
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/ports
+
+        Args:
+            cell_code: 单元编码
+        """
+        self.logger.info(f"List ports by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_all_ports(self) -> Dict[str, Any]:
+        """
+        查询租户全部 NodePort 端口范围。
+
+        对应 JMX：弹性计算_openapi_port-nodeport_查询租户全部nodeport端口范围
+        GET /openapi/elastic-compute/v2/ports
+        """
+        self.logger.info("List all ports")
+        url = "/openapi/elastic-compute/v2/ports"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
 
