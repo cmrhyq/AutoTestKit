@@ -1,0 +1,134 @@
+"""
+弹性计算 OpenAPI ReplicaSet 接口测试
+
+转换自 JMeter 脚本: elastic-compute/openapi/ReplicaSetV2.jmx
+线程组: Thread Group - ReplicaSetV2Api
+测试内容：ReplicaSet 查询接口（全集群列表 → 命名空间列表 → 指定 ReplicaSet）
+"""
+import allure
+import pytest
+
+from base.api.services.elastic_compute_open_service import (
+    ElasticComputeOpenService,
+)
+from core.reporting.allure_helper import AllureHelper
+
+# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
+BUSINESS_SUCCESS_CODE = 2000
+RESOURCE_NOT_FOUND_CODE = 4004
+
+
+@pytest.mark.api
+@pytest.mark.openapi
+@allure.epic("磐基API自动化测试")
+@allure.feature("磐基弹性计算OpenAPI接口")
+@allure.story("ReplicaSet 查询接口")
+class TestEcOpenapiReplicaSet:
+    """
+    对应 JMeter 脚本: ReplicaSetV2.jmx
+    线程组: Thread Group - ReplicaSetV2Api
+
+    拆分为独立接口测试函数，通过 pytest-dependency 保证执行顺序和依赖关系。
+    执行顺序：全集群列表 → 命名空间列表（提取 name） → 查询指定 ReplicaSet
+    """
+
+    TENANT = "monitor-group"
+
+    @pytest.fixture(autouse=True)
+    def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
+        get_token(self.TENANT)
+
+    @pytest.fixture(scope="class")
+    def ec_service(self, api_env, api_logger):
+        """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
+        service = ElasticComputeOpenService(
+            base_url=api_env.get("apiBaseUrl"),
+            logger=api_logger,
+        )
+        yield service
+        service.close()
+
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 ReplicaSet 测试所需的公共参数。"""
+        return {
+            "cell_code": api_env.get("cellCode", "TEST"),
+            "sys_code": api_env.get("sysCode", "istio-ingress"),
+        }
+
+    # ---------------------------- Test cases ----------------------------
+
+    @allure.title("查询全集群 ReplicaSet 列表")
+    @allure.description("查询全集群 ReplicaSet 列表，验证接口返回成功")
+    @allure.severity(allure.severity_level.NORMAL)
+    @pytest.mark.dependency(name="replicaset_list_cell")
+    @pytest.mark.order(1)
+    def test_list_replica_sets_by_cell(self, ec_service, public_params):
+        """查询全集群 ReplicaSet 列表，断言返回成功。"""
+        cell_code = public_params["cell_code"]
+
+        with AllureHelper.api_test(ec_service):
+            list_resp = ec_service.list_replica_sets_by_cell(cell_code=cell_code)
+
+            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询全集群 ReplicaSet 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
+            )
+
+    @allure.title("查询命名空间下 ReplicaSet 列表")
+    @allure.description("查询命名空间下 ReplicaSet 列表，提取第一个 ReplicaSet 名称用于后续查询")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.dependency(
+        name="replicaset_list_ns", depends=["replicaset_list_cell"],
+    )
+    @pytest.mark.order(2)
+    def test_list_replica_sets_by_ns(self, ec_service, public_params, api_cache):
+        """查询命名空间下 ReplicaSet 列表，提取第一个名称。"""
+        cell_code = public_params["cell_code"]
+        sys_code = public_params["sys_code"]
+
+        with AllureHelper.api_test(ec_service):
+            list_resp = ec_service.list_replica_sets_by_ns(
+                cell_code=cell_code, sys_code=sys_code,
+            )
+
+            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询命名空间 ReplicaSet 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
+            )
+
+            # 提取第一个 ReplicaSet 的 name ($.data.items[0].metadata.name)
+            items = (
+                list_resp.get("data", {}).get("items")
+                or list_resp.get("items")
+                or []
+            )
+            assert len(items) > 0, (
+                f"命名空间下 ReplicaSet 列表为空, 响应: {list_resp}"
+            )
+            rs_name = items[0].get("metadata", {}).get("name", "")
+            assert rs_name, (
+                f"无法提取 ReplicaSet 名称, items[0]: {items[0]}"
+            )
+            api_cache.set("ec_replicaset_name", rs_name)
+
+    @allure.title("查询指定 ReplicaSet")
+    @allure.description("根据从列表中提取的名称查询指定 ReplicaSet，验证返回成功")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.dependency(
+        name="replicaset_get", depends=["replicaset_list_ns"],
+    )
+    @pytest.mark.order(3)
+    def test_get_replica_set(self, ec_service, public_params, api_cache):
+        """查询指定 ReplicaSet，断言返回成功。"""
+        cell_code = public_params["cell_code"]
+        sys_code = public_params["sys_code"]
+        rs_name = api_cache.get("ec_replicaset_name")
+
+        with AllureHelper.api_test(ec_service):
+            get_resp = ec_service.get_replica_set(
+                cell_code=cell_code, sys_code=sys_code, name=rs_name,
+            )
+
+            assert get_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询指定 ReplicaSet 失败, code: {get_resp.get('code')}, 响应: {get_resp}"
+            )

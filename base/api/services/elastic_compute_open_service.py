@@ -2809,4 +2809,216 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
 
+    # ==================== ScaledObject.jmx ====================
+
+    def get_scaled_object(
+        self, cell_code: str, sys_code: str, name: str,
+    ) -> Dict[str, Any]:
+        """
+        查询指定 ScaledObject。
+
+        对应 JMX：弹性计算_openapi_ScaledObject_查询指定ScaledObject
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
+        """
+        self.logger.info(f"Get ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/scaledObject/{name}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_scaled_object(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        创建 ScaledObject。
+
+        对应 JMX：弹性计算_openapi_ScaledObject_创建ScaledObject
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject
+        """
+        self.logger.info(f"Create ScaledObject: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/scaledObject"
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def update_scaled_object(
+        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        更新 ScaledObject。
+
+        对应 JMX：弹性计算_openapi_ScaledObject_更新ScaledObject
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
+        """
+        self.logger.info(f"Update ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/scaledObject/{name}"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_scaled_object(
+        self, cell_code: str, sys_code: str, name: str,
+    ) -> Dict[str, Any]:
+        """
+        删除 ScaledObject。
+
+        对应 JMX：弹性计算_openapi_ScaledObject_删除ScaledObject
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
+        """
+        self.logger.info(f"Delete ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/scaledObject/{name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== recovery-resource.jmx ====================
+
+    def list_recovery_resources(
+        self, sys_code: str, cell_code: str,
+    ) -> Dict[str, Any]:
+        """
+        查询容灾组件资源列表。
+
+        对应 JMX：弹性计算_openapi_recovery-resource_查询资源
+        GET /openapi/elastic-compute/v2/systems/{sysCode}/resources?cells={cellCode}
+        """
+        self.logger.info(f"List recovery resources: sys={sys_code}, cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/systems/{sys_code}/resources"
+        return self.get(
+            endpoint=url, params={"cells": cell_code}, headers=_get_default_headers(),
+        ).json()
+
+    def create_recovery_resources(
+        self, cell_code: str, sys_code: str, payload: Any,
+    ) -> Dict[str, Any]:
+        """
+        创建容灾组件资源（批量，body 为数组）。
+
+        对应 JMX：弹性计算_openapi_recovery-resource_创建资源
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources
+        """
+        self.logger.info(f"Create recovery resources: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resources"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_recovery_resources(
+        self, cell_code: str, sys_code: str, payload: Any,
+    ) -> Dict[str, Any]:
+        """
+        删除容灾组件资源（批量，body 为数组）。
+
+        对应 JMX：弹性计算_openapi_recovery-resource_删除资源
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources/delete
+        """
+        self.logger.info(f"Delete recovery resources: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/resources/delete"
+        )
+        return self.delete(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def apply_recovery_resources(
+        self, cell_code: str, sys_code: str, payload: Any,
+    ) -> Dict[str, Any]:
+        """
+        Apply 容灾组件资源。
+
+        对应 JMX：弹性计算_openapi_recovery-resource_Apply资源
+        POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources/apply
+        """
+        self.logger.info(f"Apply recovery resources: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/resources/apply"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    # ==================== ReplicaSetV2.jmx ====================
+
+    def list_replica_sets_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """
+        查询全集群 ReplicaSet 列表。
+
+        对应 JMX：弹性计算_openapi_ReplicaSetV2_查询全集群ReplicaSet列表
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/replicaSets
+        """
+        self.logger.info(f"List replicaSets by cell: cell={cell_code}")
+        return self.get(
+            endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/replicaSets",
+            headers=_get_default_headers(),
+        ).json()
+
+    def list_replica_sets_by_ns(
+        self, cell_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        查询命名空间下 ReplicaSet 列表。
+
+        对应 JMX：弹性计算_openapi_ReplicaSetV2_查询命名空间下ReplicaSet列表
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/replicaSets
+        """
+        self.logger.info(f"List replicaSets by ns: cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/replicaSets"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_replica_set(
+        self, cell_code: str, sys_code: str, name: str,
+    ) -> Dict[str, Any]:
+        """
+        查询指定 ReplicaSet。
+
+        对应 JMX：弹性计算_openapi_ReplicaSetV2_查询指定ReplicaSet
+        GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/replicaSets/{name}
+        """
+        self.logger.info(f"Get replicaSet: cell={cell_code}, sys={sys_code}, name={name}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/replicaSets/{name}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== resourcequota.jmx (NS-level, no name) ====================
+
+    def update_resource_quotas_ns(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        PUT 全量更新命名空间级 ResourceQuota（无 name 参数）。
+
+        对应 JMX：弹性计算_openapi_resourcequota_PUT更新ResourceQuota
+        PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
+        """
+        self.logger.info(f"Update resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_resource_quotas_ns(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        PATCH 增量更新命名空间级 ResourceQuota（无 name 参数）。
+
+        对应 JMX：弹性计算_openapi_resourcequota_PATCH更新ResourceQuota
+        PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
+        """
+        self.logger.info(f"Patch resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
+        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def delete_resource_quotas_ns(
+        self, cell_code: str, sys_code: str,
+    ) -> Dict[str, Any]:
+        """
+        删除命名空间级 ResourceQuota（无 name 参数）。
+
+        对应 JMX：弹性计算_openapi_resourcequota_删除ResourceQuota
+        DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
+        """
+        self.logger.info(f"Delete resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
 

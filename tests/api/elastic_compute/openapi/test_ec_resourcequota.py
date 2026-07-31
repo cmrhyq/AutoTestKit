@@ -1,0 +1,174 @@
+"""
+弹性计算 OpenAPI ResourceQuota 接口测试
+
+转换自 JMeter 脚本: elastic-compute/openapi/resourcequota.jmx
+线程组: Thread Group - ResourceQuota完整生命周期
+测试内容：ResourceQuota 标准集群分支（查询命名空间列表 → 查询全集群列表 → PUT 更新 → PATCH 更新）
+"""
+import allure
+import pytest
+
+from base.api.services.elastic_compute_open_service import (
+    ElasticComputeOpenService,
+)
+from core.reporting.allure_helper import AllureHelper
+
+# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
+BUSINESS_SUCCESS_CODE = 2000
+RESOURCE_NOT_FOUND_CODE = 4004
+
+
+@pytest.mark.api
+@pytest.mark.openapi
+@allure.epic("磐基API自动化测试")
+@allure.feature("磐基弹性计算OpenAPI接口")
+@allure.story("ResourceQuota 生命周期接口")
+class TestEcOpenapiResourceQuota:
+    """
+    对应 JMeter 脚本: resourcequota.jmx
+    线程组: Thread Group - ResourceQuota完整生命周期
+
+    仅实现标准集群分支 (testHostCluster=0)。
+    执行顺序：查询命名空间列表 → 查询全集群列表 → PUT 更新 → PATCH 更新
+    """
+
+    TENANT = "monitor-group"
+
+    @pytest.fixture(autouse=True)
+    def _login(self, get_token):
+        """每个用例前自动切换到本测试类声明的租户 token。"""
+        get_token(self.TENANT)
+
+    @pytest.fixture(scope="class")
+    def ec_service(self, api_env, api_logger):
+        """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
+        service = ElasticComputeOpenService(
+            base_url=api_env.get("apiBaseUrl"),
+            logger=api_logger,
+        )
+        yield service
+        service.close()
+
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 ResourceQuota 测试所需的公共参数。"""
+        return {
+            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            "sys_code": api_env.get("sysCode", "test"),
+        }
+
+    # ---------------- Body helpers ----------------
+
+    @staticmethod
+    def _build_put_payload() -> dict:
+        """
+        构造 PUT 全量更新 ResourceQuota 请求体。
+
+        源自 JMX resourcequota.jmx 中 PUT 更新 sampler 的 postBodyRaw。
+        """
+        return {
+            "spec": {
+                "hard": {
+                    "limits.cpu": "100",
+                    "limits.memory": "200Gi",
+                },
+            },
+        }
+
+    @staticmethod
+    def _build_patch_payload() -> dict:
+        """
+        构造 PATCH 增量更新 ResourceQuota 请求体。
+
+        源自 JMX resourcequota.jmx 中 PATCH 更新 sampler 的 postBodyRaw。
+        """
+        return {
+            "spec": {
+                "hard": {
+                    "limits.cpu": "50",
+                },
+            },
+        }
+
+    # ---------------------------- Test cases ----------------------------
+
+    @allure.title("查询命名空间 ResourceQuota 列表")
+    @allure.description("查询指定命名空间的 ResourceQuota 列表，验证接口返回成功")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.dependency(name="resourcequota_list_ns")
+    @pytest.mark.order(1)
+    def test_list_resource_quotas_by_ns(self, ec_service, public_params):
+        """查询命名空间下 ResourceQuota 列表，断言返回成功。"""
+        cell_code = public_params["cell_code"]
+        sys_code = public_params["sys_code"]
+
+        with AllureHelper.api_test(ec_service):
+            list_resp = ec_service.list_resource_quotas_by_ns(
+                cell_code=cell_code, sys_code=sys_code,
+            )
+
+            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询命名空间 ResourceQuota 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
+            )
+
+    @allure.title("查询全集群 ResourceQuota 列表")
+    @allure.description("查询全集群 ResourceQuota 列表，验证接口返回成功")
+    @allure.severity(allure.severity_level.NORMAL)
+    @pytest.mark.dependency(
+        name="resourcequota_list_cell", depends=["resourcequota_list_ns"],
+    )
+    @pytest.mark.order(2)
+    def test_list_resource_quotas_by_cell(self, ec_service, public_params):
+        """查询全集群 ResourceQuota 列表，断言返回成功。"""
+        cell_code = public_params["cell_code"]
+
+        with AllureHelper.api_test(ec_service):
+            list_resp = ec_service.list_resource_quotas_by_cell(cell_code=cell_code)
+
+            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"查询全集群 ResourceQuota 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
+            )
+
+    @allure.title("PUT 全量更新 ResourceQuota")
+    @allure.description("使用 PUT 方法全量更新命名空间级 ResourceQuota，验证更新成功")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.dependency(
+        name="resourcequota_put", depends=["resourcequota_list_cell"],
+    )
+    @pytest.mark.order(3)
+    def test_put_update_resource_quota(self, ec_service, public_params):
+        """PUT 全量更新 ResourceQuota，断言更新成功。"""
+        cell_code = public_params["cell_code"]
+        sys_code = public_params["sys_code"]
+
+        with AllureHelper.api_test(ec_service):
+            put_payload = self._build_put_payload()
+            put_resp = ec_service.update_resource_quotas_ns(
+                cell_code=cell_code, sys_code=sys_code, payload=put_payload,
+            )
+
+            assert put_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"PUT 更新 ResourceQuota 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
+            )
+
+    @allure.title("PATCH 增量更新 ResourceQuota")
+    @allure.description("使用 PATCH 方法增量更新命名空间级 ResourceQuota，验证更新成功")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.dependency(
+        name="resourcequota_patch", depends=["resourcequota_put"],
+    )
+    @pytest.mark.order(4)
+    def test_patch_update_resource_quota(self, ec_service, public_params):
+        """PATCH 增量更新 ResourceQuota，断言更新成功。"""
+        cell_code = public_params["cell_code"]
+        sys_code = public_params["sys_code"]
+
+        with AllureHelper.api_test(ec_service):
+            patch_payload = self._build_patch_payload()
+            patch_resp = ec_service.patch_resource_quotas_ns(
+                cell_code=cell_code, sys_code=sys_code, payload=patch_payload,
+            )
+
+            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                f"PATCH 更新 ResourceQuota 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
+            )
