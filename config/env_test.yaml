@@ -1,6 +1,5 @@
 # ==================================================================
 # AutoTestKit 环境配置 - test（占位环境）
-# 与 env_bcv25_arm.yaml 保持 key 一致（标准 camelCase 命名）。
 # ==================================================================
 
 
@@ -14,6 +13,8 @@ basicAuthPassword: test-pass
 bearerToken: null
 apiKey: null
 apiKeyHeader: null
+# Native 接口 X-API-KEY
+nativeXApiKey: 814bc561e79c079fc2356c8631bfd3ce
 
 tenants:
   tenant_admin:
@@ -22,6 +23,11 @@ tenants:
   monitor-group:
     username: test-monitor
     password: test-pass
+
+user: test-user
+userPwd: test-pass
+tenantCode: monitor-group
+adminTenantCode: tenant_admin
 
 
 # ---------------------- 标准集群信息 ----------------------
@@ -43,13 +49,6 @@ hostClusterId: 1
 hostCellCode: test
 hostSysCode: test-sys
 hostNodeIp: 127.0.0.1
-
-
-# ---------------------- 用户信息 ----------------------
-user: test-user
-userPwd: test-pass
-tenantCode: monitor-group
-adminTenantCode: tenant_admin
 
 
 # ---------------------- 标签值 ----------------------
@@ -106,13 +105,6 @@ ports: 30011-30030
 testHostCluster: 0
 grantUser: monitor-admin
 grantAppCode: test-probe-deploy1
-
-
-# ---------------------- Native K8s API 特权接口 ----------------------
-# ServiceAccount 测试用名称
-nativeSaName: test-sa
-# Native 接口 X-API-KEY
-nativeXApiKey: 814bc561e79c079fc2356c8631bfd3ce
 
 
 # ---------------------- 门户Open接口参数 ----------------------

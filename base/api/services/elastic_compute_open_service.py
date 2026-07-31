@@ -3021,4 +3021,458 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
         return self.delete(endpoint=url, headers=_get_default_headers()).json()
 
+    # ==================== workload-query.jmx ====================
+
+    def list_workloads_by_ns_kind(
+        self, cell_code: str, sys_code: str, kind: str
+    ) -> Dict[str, Any]:
+        """按命名空间+Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
+        self.logger.info(
+            f"List workloads by ns+kind: cell={cell_code}, sys={sys_code}, kind={kind}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workloads_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
+        """按命名空间查询工作负载列表。GET /.../workloads"""
+        self.logger.info(f"List workloads by ns: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/workloads"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workloads_by_cell_kind(
+        self, cell_code: str, kind: str
+    ) -> Dict[str, Any]:
+        """按集群+Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
+        self.logger.info(f"List workloads by cell+kind: cell={cell_code}, kind={kind}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/kinds/{kind}/workloads"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workloads_by_sys_kind(
+        self, sys_code: str, kind: str
+    ) -> Dict[str, Any]:
+        """按系统+Kind 查询工作负载列表。GET /.../systems/{sysCode}/kinds/{kind}/workloads"""
+        self.logger.info(f"List workloads by sys+kind: sys={sys_code}, kind={kind}")
+        url = (
+            f"/openapi/elastic-compute/v2/systems/{sys_code}/kinds/{kind}/workloads"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workloads_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """按集群查询工作负载列表。GET /.../cells/{cellCode}/workloads"""
+        self.logger.info(f"List workloads by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workloads_by_sys(self, sys_code: str) -> Dict[str, Any]:
+        """按系统查询工作负载列表。GET /.../systems/{sysCode}/workloads"""
+        self.logger.info(f"List workloads by sys: sys={sys_code}")
+        url = f"/openapi/elastic-compute/v2/systems/{sys_code}/workloads"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workloads_by_kind(self, kind: str) -> Dict[str, Any]:
+        """按 Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
+        self.logger.info(f"List workloads by kind: kind={kind}")
+        url = f"/openapi/elastic-compute/v2/kinds/{kind}/workloads"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_all_workloads(self) -> Dict[str, Any]:
+        """查询所有工作负载列表。GET /.../workloads"""
+        self.logger.info("List all workloads")
+        url = "/openapi/elastic-compute/v2/workloads"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_workload_topology_with_app(
+        self, cell_code: str, sys_code: str, app_code: str, name: str
+    ) -> Dict[str, Any]:
+        """查询工作负载拓扑信息（含 appCode）。GET /.../appcode/{appCode}/workloads/{name}/topologyinfo"""
+        self.logger.info(
+            f"Get workload topology with app: cell={cell_code}, sys={sys_code}, "
+            f"app={app_code}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/appcode/{app_code}/workloads/{name}/topologyinfo"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_workload_topology(
+        self, cell_code: str, sys_code: str, name: str
+    ) -> Dict[str, Any]:
+        """查询工作负载拓扑信息。GET /.../workloads/{name}/topologyinfo"""
+        self.logger.info(
+            f"Get workload topology: cell={cell_code}, sys={sys_code}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/{name}/topologyinfo"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_ns_topology_with_app(
+        self, cell_code: str, sys_code: str, app_code: str
+    ) -> Dict[str, Any]:
+        """查询命名空间拓扑信息（含 appCode）。GET /.../appcode/{appCode}/topologyinfo"""
+        self.logger.info(
+            f"Get ns topology with app: cell={cell_code}, sys={sys_code}, app={app_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/appcode/{app_code}/topologyinfo"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def get_ns_topology(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
+        """查询命名空间拓扑信息。GET /.../topologyinfo"""
+        self.logger.info(f"Get ns topology: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/topologyinfo"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_deployments_by_ns(
+        self, cell_code: str, sys_code: str
+    ) -> Dict[str, Any]:
+        """查询命名空间下 Deployment 列表。GET /.../deployments"""
+        self.logger.info(f"List deployments by ns: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/deployments"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_deployments_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """查询集群下 Deployment 列表。GET /.../deployments"""
+        self.logger.info(f"List deployments by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/deployments"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_statefulsets_by_ns(
+        self, cell_code: str, sys_code: str
+    ) -> Dict[str, Any]:
+        """查询命名空间下 StatefulSet 列表。GET /.../statefulsets"""
+        self.logger.info(f"List statefulsets by ns: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/statefulsets"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_statefulsets_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """查询集群下 StatefulSet 列表。GET /.../statefulsets"""
+        self.logger.info(f"List statefulsets by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/statefulsets"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_daemonsets_by_ns(
+        self, cell_code: str, sys_code: str
+    ) -> Dict[str, Any]:
+        """查询命名空间下 DaemonSet 列表。GET /.../daemonsets"""
+        self.logger.info(f"List daemonsets by ns: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/daemonsets"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_daemonsets_by_cell(self, cell_code: str) -> Dict[str, Any]:
+        """查询集群下 DaemonSet 列表。GET /.../daemonsets"""
+        self.logger.info(f"List daemonsets by cell: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/daemonsets"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def list_workload_events(self, cell_code: str) -> Dict[str, Any]:
+        """查询集群工作负载事件。GET /.../workloads/events"""
+        self.logger.info(f"List workload events: cell={cell_code}")
+        url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads/events"
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    # ==================== workload.jmx (CRUD + Lifecycle) ====================
+
+    def get_workload_status(
+        self, cell_code: str, sys_code: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """查询工作负载状态。GET /.../kinds/{kind}/workloads/{name}/status"""
+        self.logger.info(
+            f"Get workload status: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}/status"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def create_workload(
+        self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """创建工作负载。POST /.../apps/{appCode}/workloads?paas-app-service-version=v1"""
+        self.logger.info(
+            f"Create workload: cell={cell_code}, sys={sys_code}, app={app_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/apps/{app_code}/workloads?paas-app-service-version=v1"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def update_workload(
+        self, cell_code: str, sys_code: str, kind: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """全量更新工作负载。PUT /.../kinds/{kind}/workloads/{name}"""
+        self.logger.info(
+            f"Update workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}"
+        )
+        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def patch_workload(
+        self, cell_code: str, sys_code: str, kind: str, name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """增量更新工作负载。PATCH /.../kinds/{kind}/workloads/{name}"""
+        self.logger.info(
+            f"Patch workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}"
+        )
+        return self.patch(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def delete_workload(
+        self, cell_code: str, sys_code: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """删除工作负载。DELETE /.../kinds/{kind}/workloads/{name}"""
+        self.logger.info(
+            f"Delete workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def delete_workload_by_labels(
+        self, cell_code: str, sys_code: str, kind: str, labels: str
+    ) -> Dict[str, Any]:
+        """按标签删除工作负载。DELETE /.../kinds/{kind}/workloads?labels={labels}"""
+        self.logger.info(
+            f"Delete workload by labels: cell={cell_code}, sys={sys_code}, "
+            f"kind={kind}, labels={labels}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads?labels={labels}"
+        )
+        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+
+    def batch_query_workload_status(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量查询工作负载状态。POST /.../workloads/status/batch"""
+        self.logger.info(
+            f"Batch query workload status: cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/status/batch"
+        )
+        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+
+    def batch_patch_workloads(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量增量更新工作负载。PATCH /.../workloads/batch"""
+        self.logger.info(f"Batch patch workloads: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/batch"
+        )
+        return self.patch(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def workload_rolling(
+        self, cell_code: str, sys_code: str, kind: str, name: str,
+        action: str, payload: Dict[str, Any] = None,
+    ) -> Dict[str, Any]:
+        """工作负载滚动操作。POST /.../workloads/{name}/rolling?action={action}"""
+        self.logger.info(
+            f"Workload rolling: cell={cell_code}, sys={sys_code}, "
+            f"kind={kind}, name={name}, action={action}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}/rolling?action={action}"
+        )
+        return self.post(
+            endpoint=url, json=payload or {}, headers=_get_default_headers()
+        ).json()
+
+    def batch_workload_rolling(
+        self, cell_code: str, sys_code: str, action: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量工作负载滚动操作。POST /.../workloads/rolling/batch?action={action}"""
+        self.logger.info(
+            f"Batch workload rolling: cell={cell_code}, sys={sys_code}, action={action}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/rolling/batch?action={action}"
+        )
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def stop_workload(
+        self, cell_code: str, sys_code: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """停止工作负载。POST /.../workloads/{name}/stop"""
+        self.logger.info(
+            f"Stop workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}/stop"
+        )
+        return self.post(
+            endpoint=url, json={}, headers=_get_default_headers()
+        ).json()
+
+    def start_workload(
+        self, cell_code: str, sys_code: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """启动工作负载。POST /.../workloads/{name}/start"""
+        self.logger.info(
+            f"Start workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}/start"
+        )
+        return self.post(
+            endpoint=url, json={}, headers=_get_default_headers()
+        ).json()
+
+    def restart_workload(
+        self, cell_code: str, sys_code: str, kind: str, name: str
+    ) -> Dict[str, Any]:
+        """重启工作负载。POST /.../workloads/{name}/restart"""
+        self.logger.info(
+            f"Restart workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}/restart"
+        )
+        return self.post(
+            endpoint=url, json={}, headers=_get_default_headers()
+        ).json()
+
+    def batch_stop_workloads(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量停止工作负载。POST /.../workloads/stop/batch"""
+        self.logger.info(f"Batch stop workloads: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/stop/batch"
+        )
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def batch_start_workloads(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量启动工作负载。POST /.../workloads/start/batch"""
+        self.logger.info(f"Batch start workloads: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/start/batch"
+        )
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def batch_restart_workloads(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量重启工作负载。POST /.../workloads/restart/batch"""
+        self.logger.info(f"Batch restart workloads: cell={cell_code}, sys={sys_code}")
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/restart/batch"
+        )
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def workload_exec(
+        self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """工作负载 Pod 执行命令。POST /.../apps/{appCode}/exec"""
+        self.logger.info(
+            f"Workload exec: cell={cell_code}, sys={sys_code}, app={app_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/apps/{app_code}/exec"
+        )
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def workload_copy_file(
+        self, cell_code: str, sys_code: str, kind: str, name: str,
+        pod_name: str, container_name: str, file_path: str,
+    ) -> Dict[str, Any]:
+        """工作负载 Pod 拷贝文件。GET /.../pods/{podName}/copy?containerName=...&filePathInPod=..."""
+        self.logger.info(
+            f"Workload copy file: cell={cell_code}, sys={sys_code}, "
+            f"kind={kind}, name={name}, pod={pod_name}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/kinds/{kind}/workloads/{name}/pods/{pod_name}/copy"
+            f"?containerName={container_name}&filePathInPod={file_path}"
+        )
+        return self.get(endpoint=url, headers=_get_default_headers()).json()
+
+    def batch_delete_workload_pods(
+        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """批量删除工作负载 Pod。POST /.../workloads/pods/delete/batch"""
+        self.logger.info(
+            f"Batch delete workload pods: cell={cell_code}, sys={sys_code}"
+        )
+        url = (
+            f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
+            f"/workloads/pods/delete/batch"
+        )
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
+    def batch_delete_app_pods(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """批量删除应用 Pod。POST /.../applications/pods/delete/batch"""
+        self.logger.info("Batch delete app pods")
+        url = "/openapi/elastic-compute/v2/applications/pods/delete/batch"
+        return self.post(
+            endpoint=url, json=payload, headers=_get_default_headers()
+        ).json()
+
 

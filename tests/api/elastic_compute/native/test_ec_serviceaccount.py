@@ -79,7 +79,7 @@ class TestEcNativeServiceAccount:
     def test_service_account_lifecycle(self, native_service, api_env, api_cache, api_logger):
         cluster_id = str(api_env.get("clusterId"))
         namespace = api_env.get("namespace")
-        sa_name = api_env.get("nativeSaName", "test-sa")
+        sa_name = "test-sa"
 
         api_logger.info(
             f"开始测试: ServiceAccount 生命周期, cluster={cluster_id}, "
