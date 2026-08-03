@@ -43,7 +43,6 @@ class BaseService:
     使用示例：
         service = BaseService("https://api.example.com")
         response = service.get("/users/1")
-        user_id = service.extract_and_cache(response, "user_id", "id")
     """
     
     def __init__(
@@ -119,6 +118,11 @@ class BaseService:
             if api_key:
                 self.session.headers.update({header_name: api_key})
                 self.logger.info(f"API Key authentication configured with header: {header_name}")
+
+        else:
+            raise ValueError(
+                f"auth_type {auth_type} is not allow. "
+            )
     
     def _build_url(self, endpoint: str) -> str:
         """
@@ -358,107 +362,6 @@ class BaseService:
         """
         url = self._build_url(endpoint)
         return self._make_request_with_retry('PATCH', url, **kwargs)
-
-    def extract_and_cache(
-        self,
-        response: requests.Response,
-        cache_key: str,
-        json_path: str = None
-    ) -> Any:
-        """
-        从响应中提取数据并存储到缓存
-        
-        Args:
-            response: 响应对象
-            cache_key: 缓存键名
-            json_path: JSON 路径，使用点号分隔（如 'data.user.id'）
-                      如果为 None，则缓存整个响应体
-            
-        Returns:
-            Any: 提取的数据
-            
-        Raises:
-            ValueError: 如果响应不是 JSON 格式或路径无效
-        """
-        try:
-            response_data = response.json()
-        except Exception as e:
-            self.logger.error(f"Failed to parse response as JSON: {str(e)}")
-            raise ValueError(f"Response is not valid JSON: {str(e)}")
-        
-        # 如果没有指定路径，缓存整个响应
-        if json_path is None:
-            self.cache.set(cache_key, response_data)
-            self.logger.info(f"Cached entire response with key: {cache_key}")
-            return response_data
-        
-        # 按照路径提取数据
-        extracted_value = self._extract_by_path(response_data, json_path)
-        
-        if extracted_value is not None:
-            self.cache.set(cache_key, extracted_value)
-            self.logger.info(
-                f"Extracted and cached value from path '{json_path}' with key: {cache_key}"
-            )
-        else:
-            self.logger.warning(
-                f"Path '{json_path}' not found in response, cached None"
-            )
-            self.cache.set(cache_key, None)
-        
-        return extracted_value
-    
-    def _extract_by_path(self, data: Any, path: str) -> Any:
-        """
-        按照路径从数据中提取值
-        
-        Args:
-            data: 数据对象（通常是字典或列表）
-            path: 路径字符串，使用点号分隔（如 'data.user.id'）
-            
-        Returns:
-            Any: 提取的值，如果路径无效则返回 None
-        """
-        if not path:
-            return data
-        
-        keys = path.split('.')
-        current = data
-        
-        for key in keys:
-            try:
-                # 处理列表索引
-                if isinstance(current, list):
-                    index = int(key)
-                    current = current[index]
-                # 处理字典键
-                elif isinstance(current, dict):
-                    current = current[key]
-                else:
-                    self.logger.warning(
-                        f"Cannot extract key '{key}' from type {type(current)}"
-                    )
-                    return None
-            except (KeyError, IndexError, ValueError, TypeError) as e:
-                self.logger.warning(f"Failed to extract path '{path}': {str(e)}")
-                return None
-        
-        return current
-    
-    def get_cached_value(self, cache_key: str, default: Any = None) -> Any:
-        """
-        从缓存中获取值
-        
-        Args:
-            cache_key: 缓存键名
-            default: 如果键不存在时返回的默认值
-            
-        Returns:
-            Any: 缓存的值，如果不存在则返回 default
-        """
-        value = self.cache.get(cache_key, default)
-        self.logger.debug(f"Retrieved cached value for key: {cache_key}")
-        return value
     
     def validate_status_code(
         self,
