@@ -47,10 +47,22 @@ class ElasticComputeNativeService(BaseService):
     - HTTP 状态码判断成功/失败（200=成功, 201=创建成功, 404=不存在）
     """
 
-    DEFAULT_BASE_URL = "http://openapi.portal.nbpod3-31-181-20030.4a.cmit.cloud:20030"
+    def __init__(self, base_url: str, logger: logging.Logger = None):
+        """
+        Args:
+            base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
+            logger: 日志记录器
 
-    def __init__(self, base_url: str = None, logger: logging.Logger = None):
-        super().__init__(base_url=base_url or self.DEFAULT_BASE_URL, logger=logger)
+        Raises:
+            ValueError: 如果 base_url 为空
+        """
+        if not base_url:
+            raise ValueError(
+                "base_url is required. "
+                "Configure it in config/env_*.yaml (apiBaseUrl) "
+                "and pass via fixture: api_env.get('apiBaseUrl')"
+            )
+        super().__init__(base_url=base_url, logger=logger)
 
     # ==================== ServiceAccount（serviceaccount.jmx）====================
 
