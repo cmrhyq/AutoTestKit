@@ -27,35 +27,27 @@ K8s 集群级资源 / 命名空间配额：
 - pvc-pv.jmx（标准 K8s 路径 /persistentvolumeclaims /persistentvolumes）（12）
 """
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from base import BaseService
-from core import DataCache
-
-
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头（走 Portal 登录得到的 Bearer Token）。"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": cache.get("token"),
-    }
 
 
 class ElasticComputeOpenService(BaseService):
     """
     弹性计算 OpenAPI 服务
 
-    - 走 Portal 的 Bearer Token（由 tests/api/conftest.py 的 get_token fixture 注入 cache["token"]）
+    - 走 Portal 的 Bearer Token（由测试层 service_factory 通过 TokenManager 注入）
     - base_url 由 api_env["apiBaseUrl"] 提供（必传，不再硬编码默认值）
     """
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         初始化 PanJi 弹性计算 OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
             logger: 日志记录器
+            token: Bearer Token（必传，由 service_factory 从 TokenManager 注入）
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -69,6 +61,8 @@ class ElasticComputeOpenService(BaseService):
         super().__init__(
             base_url=base_url,
             logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
         )
         self.logger.info(
             f"Initializing PanJi ElasticCompute OpenAPI Service with base_url: {self.base_url}"
@@ -85,7 +79,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute clusters info v1")
         url = "/openapi/elastic-compute/v1/clusters/info"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_cluster_info_v2(self) -> Dict[str, Any]:
@@ -97,7 +91,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute clusters info v2")
         url = "/openapi/elastic-compute/v2/clusters/info"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     # ==================== namespace 分区管理接口 ====================
@@ -114,7 +108,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List namespaces of cell: {cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def get_namespace_detail(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
@@ -130,7 +124,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get namespace detail: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     # ==================== elastic-computer-resource-collection 资源采集接口 ====================
@@ -144,7 +138,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute cluster quota metrics")
         url = "/openapi/elastic-compute/v2/metrics/clusterQuota"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_tenant_quota(self) -> Dict[str, Any]:
@@ -156,7 +150,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute tenant quota metrics")
         url = "/openapi/elastic-compute/v2/metrics/tenantQuota"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_cluster_resource(self) -> Dict[str, Any]:
@@ -168,7 +162,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute cluster resource metrics")
         url = "/openapi/elastic-compute/v2/metrics/clusterResource"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_middleware_info(self) -> Dict[str, Any]:
@@ -180,7 +174,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute middleware info metrics")
         url = "/openapi/elastic-compute/v2/metrics/middlewareInfo"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_system_quota(self) -> Dict[str, Any]:
@@ -192,7 +186,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List elastic-compute system quota metrics")
         url = "/openapi/elastic-compute/v2/metrics/systemQuota"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     # ==================== Node 节点接口 ====================
@@ -210,7 +204,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get node detail: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_nodes(self, cell_code: str) -> Dict[str, Any]:
@@ -225,7 +219,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List nodes of cell: {cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def patch_node(
@@ -247,7 +241,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Patch node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
-        response = self.patch(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.patch(endpoint=url, json=payload)
         return response.json()
 
     def update_node(
@@ -269,7 +263,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Update node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
-        response = self.put(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.put(endpoint=url, json=payload)
         return response.json()
 
     # ==================== PVC (PersistentVolumeClaim) 接口 ====================
@@ -288,7 +282,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def create_pvc(
@@ -310,7 +304,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create PVC: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def delete_pvc(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
@@ -327,7 +321,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Delete PVC: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
-        response = self.delete(endpoint=url, headers=_get_default_headers())
+        response = self.delete(endpoint=url)
         return response.json()
 
     def list_pvc(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
@@ -343,7 +337,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List PVC: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def list_all_cluster_pvc(self, cell_code: str) -> Dict[str, Any]:
@@ -358,7 +352,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List all cluster PVC: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pvc"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     # ==================== PV (PersistentVolume) 接口 ====================
@@ -376,7 +370,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get PV: cell={cell_code}, name={pv_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pv/{pv_name}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     # ==================== StorageClass 接口 ====================
@@ -394,7 +388,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get StorageClass: cell={cell_code}, name={storage_class_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/storageClass/{storage_class_name}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     # ==================== ConfigMap.jmx ====================
@@ -403,13 +397,13 @@ class ElasticComputeOpenService(BaseService):
         """查询指定 configmap。GET /openapi/elastic-compute/v2/cells/{c}/systems/{s}/configmaps/{name}"""
         self.logger.info(f"Get configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_configmap(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除指定 configmap。DELETE /.../configmaps/{name}"""
         self.logger.info(f"Delete configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def create_configmap(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -417,19 +411,19 @@ class ElasticComputeOpenService(BaseService):
         """创建 configmap 请求。POST /.../configmaps"""
         self.logger.info(f"Create configmap: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_configmaps_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询 cm 列表请求。GET /.../configmaps"""
         self.logger.info(f"List configmaps by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_configmaps_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群所有 cm 列表请求。GET /openapi/elastic-compute/v2/cells/{c}/configmaps"""
         self.logger.info(f"List configmaps by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/configmaps"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_configmap(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -437,7 +431,7 @@ class ElasticComputeOpenService(BaseService):
         """更新指定 configmap。PUT /.../configmaps/{name}"""
         self.logger.info(f"Update configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_configmap(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -445,7 +439,7 @@ class ElasticComputeOpenService(BaseService):
         """增量更新指定 configmap。PATCH /.../configmaps/{name}"""
         self.logger.info(f"Patch configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     # ==================== SecretV2.jmx ====================
 
@@ -453,13 +447,13 @@ class ElasticComputeOpenService(BaseService):
         """查询 Secret。GET /.../secrets/{name}"""
         self.logger.info(f"Get secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_secret(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除 Secret。DELETE /.../secrets/{name}"""
         self.logger.info(f"Delete secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def create_secret(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -467,19 +461,19 @@ class ElasticComputeOpenService(BaseService):
         """创建 Secret。POST /.../secrets"""
         self.logger.info(f"Create secret: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_secrets_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询指定命名空间下的 Secret 列表。GET /.../secrets"""
         self.logger.info(f"List secrets by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_secrets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 Secret 列表。GET /openapi/elastic-compute/v2/cells/{c}/secrets"""
         self.logger.info(f"List secrets by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/secrets"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_secret(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -487,7 +481,7 @@ class ElasticComputeOpenService(BaseService):
         """更新 Secret。PUT /.../secrets/{name}"""
         self.logger.info(f"Update secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_secret(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -495,7 +489,7 @@ class ElasticComputeOpenService(BaseService):
         """增量更新 Secret。PATCH /.../secrets/{name}"""
         self.logger.info(f"Patch secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     # ==================== ServiceV2.jmx ====================
 
@@ -503,13 +497,13 @@ class ElasticComputeOpenService(BaseService):
         """查询 Service。GET /.../services/{name}"""
         self.logger.info(f"Get service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_service(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除 Service。DELETE /.../services/{name}"""
         self.logger.info(f"Delete service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def create_service(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -517,19 +511,19 @@ class ElasticComputeOpenService(BaseService):
         """创建 Service。POST /.../services"""
         self.logger.info(f"Create service: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_services_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询指定命名空间下的 Service 列表。GET /.../services"""
         self.logger.info(f"List services by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_services_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 Service 列表。GET /openapi/elastic-compute/v2/cells/{c}/services"""
         self.logger.info(f"List services by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/services"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_service(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -537,7 +531,7 @@ class ElasticComputeOpenService(BaseService):
         """更新 Service。PUT /.../services/{name}"""
         self.logger.info(f"Update service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_service(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -545,7 +539,7 @@ class ElasticComputeOpenService(BaseService):
         """增量更新 Service。PATCH /.../services/{name}"""
         self.logger.info(f"Patch service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     # ==================== ServiceAccountV2.jmx ====================
 
@@ -553,13 +547,13 @@ class ElasticComputeOpenService(BaseService):
         """查询全集群 ServiceAccount 列。GET /.../serviceaccounts"""
         self.logger.info(f"List service accounts by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/serviceaccounts"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_service_accounts_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询 ServiceAccount 列。GET /.../serviceaccounts"""
         self.logger.info(f"List service accounts by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/serviceaccounts"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_service_account(
         self, cell_code: str, sys_code: str, name: str
@@ -570,7 +564,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/serviceaccounts/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== EndpointsV2.jmx ====================
 
@@ -578,7 +572,7 @@ class ElasticComputeOpenService(BaseService):
         """查询 Endpoints 列表。GET /.../endpoints"""
         self.logger.info(f"List endpoints: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/endpoints"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_endpoints(
         self, cell_code: str, sys_code: str, name: str
@@ -586,7 +580,7 @@ class ElasticComputeOpenService(BaseService):
         """查询 Endpoints。GET /.../endpoints/{name}"""
         self.logger.info(f"Get endpoints: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/endpoints/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== LimitRange.jmx ====================
 
@@ -595,14 +589,13 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List limitranges by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/limitranges",
-            headers=_get_default_headers(),
         ).json()
 
     def list_limitranges_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询命名空间下 LimitRange。GET /.../limitranges"""
         self.logger.info(f"List limitranges by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/limitranges"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_limitrange(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """查询 LimitRange。GET /.../limitranges/{name}"""
@@ -611,7 +604,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_limitrange(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -619,7 +612,7 @@ class ElasticComputeOpenService(BaseService):
         """创建 LimitRange。POST /.../limitranges"""
         self.logger.info(f"Create limitrange: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/limitranges"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_limitrange(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -630,7 +623,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_limitrange(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -641,7 +634,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_limitrange(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除 LimitRange。DELETE /.../limitranges/{name}"""
@@ -650,7 +643,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== resourcequota.jmx ====================
 
@@ -659,14 +652,13 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List resourcequotas by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/resourcequotas",
-            headers=_get_default_headers(),
         ).json()
 
     def list_resource_quotas_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询命名空间 ResourceQuota。GET /.../resourcequotas"""
         self.logger.info(f"List resourcequotas by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourcequotas"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_resource_quota(
         self, cell_code: str, sys_code: str, name: str
@@ -677,7 +669,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_resource_quota(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -685,7 +677,7 @@ class ElasticComputeOpenService(BaseService):
         """创建 ResourceQuota。POST /.../resourcequotas"""
         self.logger.info(f"Create resourcequota: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourcequotas"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_resource_quota(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -696,7 +688,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_resource_quota(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -707,7 +699,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_resource_quota(
         self, cell_code: str, sys_code: str, name: str
@@ -718,7 +710,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== PriorityClassesV2.jmx ====================
 
@@ -727,20 +719,19 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List priority classes: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses",
-            headers=_get_default_headers(),
         ).json()
 
     def get_priority_class(self, cell_code: str, name: str) -> Dict[str, Any]:
         """查询 PriorityClass。GET /.../priorityclasses/{name}"""
         self.logger.info(f"Get priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_priority_class(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """创建 PriorityClass。POST /.../priorityclasses"""
         self.logger.info(f"Create priority class: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_priority_class(
         self, cell_code: str, name: str, payload: Dict[str, Any]
@@ -748,7 +739,7 @@ class ElasticComputeOpenService(BaseService):
         """更新 PriorityClass。PUT /.../priorityclasses/{name}"""
         self.logger.info(f"Update priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_priority_class(
         self, cell_code: str, name: str, payload: Dict[str, Any]
@@ -756,13 +747,13 @@ class ElasticComputeOpenService(BaseService):
         """增量更新 PriorityClass。PATCH /.../priorityclasses/{name}"""
         self.logger.info(f"Patch priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_priority_class(self, cell_code: str, name: str) -> Dict[str, Any]:
         """删除 PriorityClass。DELETE /.../priorityclasses/{name}"""
         self.logger.info(f"Delete priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== RBAC_V2.jmx ====================
 
@@ -775,7 +766,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List rbac roles: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/roles"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_rbac_role(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -791,7 +782,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get rbac role: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/roles/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_rbac_role_bindings(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """
@@ -802,7 +793,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List rbac rolebindings: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/rolebindings"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_rbac_role_binding(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -818,14 +809,13 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get rbac rolebinding: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/rolebindings/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_rbac_cluster_roles(self, cell_code: str) -> Dict[str, Any]:
         """查询 ClusterRole 列表。GET /.../clusterroles"""
         self.logger.info(f"List rbac clusterroles: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/clusterroles",
-            headers=_get_default_headers(),
         ).json()
 
     def list_rbac_cluster_role_bindings(self, cell_code: str) -> Dict[str, Any]:
@@ -833,7 +823,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List rbac clusterrolebindings: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/clusterrolebindings",
-            headers=_get_default_headers(),
         ).json()
 
     # ==================== cr-cluster.jmx（Cluster 级别 CustomResource） ====================
@@ -861,7 +850,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, payload: Dict[str, Any]
@@ -886,7 +875,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_cluster_custom_resources(
         self, cell_code: str, group: str, version: str, kind: str,
@@ -915,7 +904,7 @@ class ElasticComputeOpenService(BaseService):
         params = {}
         if label_selector:
             params["labelSelector"] = label_selector
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def update_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, name: str,
@@ -942,7 +931,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, name: str,
@@ -969,7 +958,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources/{name}"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, name: str
@@ -994,7 +983,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== pvc-pv.jmx（K8s 标准路径 /persistentvolumeclaims /persistentvolumes） ====================
     # 说明：与上方 PVC/PV 接口（简写路径 /pvc、/pv）为两套并存的 OpenAPI，
@@ -1005,7 +994,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List persistentvolumeclaims by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumeclaims",
-            headers=_get_default_headers(),
         ).json()
 
     def list_persistentvolumeclaims_by_ns(
@@ -1019,7 +1007,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_persistentvolumeclaim(
         self, cell_code: str, sys_code: str, name: str
@@ -1032,7 +1020,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_persistentvolumeclaim(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -1043,7 +1031,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_persistentvolumeclaim(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -1056,7 +1044,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_persistentvolumeclaim(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -1069,7 +1057,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims/{name}"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_persistentvolumeclaim(
         self, cell_code: str, sys_code: str, name: str
@@ -1082,21 +1070,20 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def list_persistentvolumes(self, cell_code: str) -> Dict[str, Any]:
         """查询 PV 列表。GET /.../persistentvolumes"""
         self.logger.info(f"List persistentvolumes: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes",
-            headers=_get_default_headers(),
         ).json()
 
     def get_persistentvolume(self, cell_code: str, name: str) -> Dict[str, Any]:
         """查询 PV。GET /.../persistentvolumes/{name}"""
         self.logger.info(f"Get persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_persistentvolume(
         self, cell_code: str, payload: Dict[str, Any]
@@ -1104,7 +1091,7 @@ class ElasticComputeOpenService(BaseService):
         """创建 PV。POST /.../persistentvolumes"""
         self.logger.info(f"Create persistentvolume: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_persistentvolume(
         self, cell_code: str, name: str, payload: Dict[str, Any]
@@ -1112,13 +1099,13 @@ class ElasticComputeOpenService(BaseService):
         """更新 PV。PUT /.../persistentvolumes/{name}"""
         self.logger.info(f"Update persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def delete_persistentvolume(self, cell_code: str, name: str) -> Dict[str, Any]:
         """删除 PV。DELETE /.../persistentvolumes/{name}"""
         self.logger.info(f"Delete persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== CustomResource-ns.jmx（Namespace 级别 CustomResource） ====================
 
@@ -1138,7 +1125,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str,
@@ -1157,7 +1144,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_ns_custom_resources(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str,
@@ -1179,7 +1166,7 @@ class ElasticComputeOpenService(BaseService):
         params = {}
         if label_selector:
             params["labelSelector"] = label_selector
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def update_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str,
@@ -1198,7 +1185,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str,
@@ -1217,7 +1204,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources/{name}"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str
@@ -1235,7 +1222,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== helm-chart.jmx Helm Chart 接口 ====================
 
@@ -1247,7 +1234,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_helm_chart(self, cell_code: str, sys_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -1257,7 +1244,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create helm chart: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_helm_charts_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """
@@ -1267,7 +1254,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List helm charts by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_helm_charts_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -1277,7 +1264,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List helm charts by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helmCharts"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_helm_chart(self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -1287,7 +1274,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Update helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_helm_chart(self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -1297,7 +1284,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Patch helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_helm_chart(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -1307,7 +1294,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Delete helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== harbor.jmx / harbor-init.jmx Harbor 镜像仓库接口 ====================
 
@@ -1319,7 +1306,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get harbor project: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_harbor_project(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -1329,7 +1316,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create harbor project: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_harbor_projects(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -1339,7 +1326,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List harbor projects: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_harbor_project(self, cell_code: str, project_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -1349,7 +1336,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Update harbor project: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def delete_harbor_project(self, cell_code: str, project_name: str) -> Dict[str, Any]:
         """
@@ -1359,7 +1346,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Delete harbor project: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def list_harbor_repositories(self, cell_code: str, project_name: str) -> Dict[str, Any]:
         """
@@ -1369,7 +1356,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List harbor repositories: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/repositories"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_harbor_repository(self, cell_code: str, project_name: str, repo_name: str) -> Dict[str, Any]:
         """
@@ -1379,7 +1366,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Delete harbor repository: cell={cell_code}, project={project_name}, repo={repo_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/repositories/{repo_name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def list_harbor_artifacts(self, cell_code: str, project_name: str, repo_name: str) -> Dict[str, Any]:
         """
@@ -1392,7 +1379,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
             f"/repositories/{repo_name}/artifacts"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_harbor_artifact(
         self, cell_code: str, project_name: str, repo_name: str, reference: str
@@ -1409,7 +1396,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
             f"/repositories/{repo_name}/artifacts/{reference}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def get_harbor_project_summary(self, cell_code: str, project_name: str) -> Dict[str, Any]:
         """
@@ -1419,7 +1406,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get harbor project summary: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/summary"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def init_harbor(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -1429,7 +1416,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Init harbor: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/init"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def get_harbor_status(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -1439,7 +1426,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get harbor status: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/status"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== HPA.jmx HorizontalPodAutoscaler 接口 ====================
 
@@ -1459,7 +1446,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_hpa(
         self, cell_code: str, sys_code: str, api_version: str, payload: Dict[str, Any]
@@ -1477,7 +1464,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_hpas_by_ns(
         self, cell_code: str, sys_code: str, api_version: str
@@ -1495,7 +1482,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_hpas_by_cell(self, cell_code: str, api_version: str) -> Dict[str, Any]:
         """
@@ -1506,7 +1493,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List HPAs by cell: cell={cell_code}, apiVer={api_version}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/{api_version}/hpas"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_hpa(
         self, cell_code: str, sys_code: str, api_version: str, name: str,
@@ -1525,7 +1512,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_hpa(
         self, cell_code: str, sys_code: str, api_version: str, name: str,
@@ -1544,7 +1531,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas/{name}"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_hpa(
         self, cell_code: str, sys_code: str, api_version: str, name: str
@@ -1562,7 +1549,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== harbor-init.jmx Harbor 版本刷新 ====================
 
@@ -1576,7 +1563,7 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"Refresh harbor version: harborId={harbor_id}")
         url = "/openapi/elastic-compute/v2/harbor/refreshHarborVersion"
         params = {"clusterId": harbor_id}
-        return self.post(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, params=params).json()
 
     # ==================== harbor.jmx Harbor 完整生命周期接口（新路径 /harbors/{harborId}/...） ====================
 
@@ -1590,7 +1577,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info("List harbors")
         return self.get(
             endpoint="/openapi/elastic-compute/v2/harbors",
-            headers=_get_default_headers(),
         ).json()
 
     def list_all_cluster_harbor_addresses(self) -> Dict[str, Any]:
@@ -1603,7 +1589,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info("List all cluster harbor addresses")
         return self.get(
             endpoint="/openapi/elastic-compute/v2/harbor/list",
-            headers=_get_default_headers(),
         ).json()
 
     def get_harbor_project_by_id(
@@ -1617,7 +1602,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get harbor project: harborId={harbor_id}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_harbor_project_by_id(
         self, harbor_id: int, project_name: str
@@ -1632,7 +1617,7 @@ class ElasticComputeOpenService(BaseService):
             f"Delete harbor project: harborId={harbor_id}, project={project_name}"
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def create_harbor_project_by_id(
         self, harbor_id: int, payload: Dict[str, Any]
@@ -1645,7 +1630,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create harbor project: harborId={harbor_id}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_harbor_projects_by_id(
         self, harbor_id: int, page: int = 1, page_size: int = 10
@@ -1661,7 +1646,7 @@ class ElasticComputeOpenService(BaseService):
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
         params = {"page": page, "page_size": page_size}
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def create_harbor_project_member(
         self, harbor_id: int, project_id: int, payload: Dict[str, Any]
@@ -1678,7 +1663,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_id}/members"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def delete_harbor_project_member(
         self, harbor_id: int, project_id: int, member_id: int
@@ -1697,7 +1682,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_id}"
             f"/members/{member_id}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def get_harbor_registry(self, harbor_id: int, target_id: int) -> Dict[str, Any]:
         """
@@ -1708,7 +1693,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get harbor registry: harborId={harbor_id}, targetId={target_id}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/registries/{target_id}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_harbor_replication_policy(
         self, harbor_id: int, payload: Dict[str, Any]
@@ -1721,7 +1706,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create harbor replication policy: harborId={harbor_id}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_harbor_replication_policies(
         self, harbor_id: int, name: str = None, page: int = 1, page_size: int = 10
@@ -1739,7 +1724,7 @@ class ElasticComputeOpenService(BaseService):
         params: Dict[str, Any] = {"page": page, "page_size": page_size}
         if name is not None:
             params["name"] = name
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def get_harbor_replication_policy(
         self, harbor_id: int, policy_id: int
@@ -1756,7 +1741,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_harbor_replication_policy(
         self, harbor_id: int, policy_id: int, payload: Dict[str, Any]
@@ -1773,7 +1758,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def delete_harbor_replication_policy(
         self, harbor_id: int, policy_id: int
@@ -1790,7 +1775,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def start_harbor_replication_execution(
         self, harbor_id: int, policy_id: int
@@ -1806,7 +1791,7 @@ class ElasticComputeOpenService(BaseService):
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/executions"
         payload = {"policy_id": policy_id}
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_harbor_replication_executions(
         self, harbor_id: int, policy_id: int, page: int = 1, page_size: int = 10
@@ -1822,7 +1807,7 @@ class ElasticComputeOpenService(BaseService):
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/executions"
         params = {"page": page, "page_size": page_size, "policy_id": policy_id}
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def list_harbor_replication_tasks(
         self, harbor_id: int, execution_id: int
@@ -1840,7 +1825,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
             f"/replication/executions/{execution_id}/tasks"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_harbor_replication_task_log(
         self, harbor_id: int, execution_id: int, task_id: int
@@ -1859,7 +1844,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
             f"/replication/executions/{execution_id}/tasks/{task_id}/log"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_harbor_repositories_by_id(
         self, harbor_id: int, project_name: str, page: int = 1, page_size: int = 10
@@ -1878,7 +1863,7 @@ class ElasticComputeOpenService(BaseService):
             f"/projects/{project_name}/repositories"
         )
         params = {"page": page, "page_size": page_size}
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def list_harbor_artifacts_by_id(
         self, harbor_id: int, project_name: str, rep_name: str,
@@ -1898,7 +1883,7 @@ class ElasticComputeOpenService(BaseService):
             f"/projects/{project_name}/repositories/{rep_name}/artifacts"
         )
         params = {"page": page, "page_size": page_size}
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def get_harbor_repository_by_id(
         self, harbor_id: int, project_name: str, rep_name: str
@@ -1916,7 +1901,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
             f"/projects/{project_name}/repositories/{rep_name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def delete_harbor_artifact_tag(
         self, harbor_id: int, project_name: str, rep_name: str,
@@ -1937,7 +1922,7 @@ class ElasticComputeOpenService(BaseService):
             f"/projects/{project_name}/repositories/{rep_name}"
             f"/artifacts/{artifact}/tags/{tag}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def delete_harbor_repository_by_id(
         self, harbor_id: int, project_name: str, rep_name: str
@@ -1955,7 +1940,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}"
             f"/projects/{project_name}/repositories/{rep_name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== helm-chart.jmx Helm Chart 上传/下载/生命周期接口 ====================
 
@@ -1977,7 +1962,7 @@ class ElasticComputeOpenService(BaseService):
         with open(chart_file_path, "rb") as fh:
             files = {"file": (chart_file_path, fh, "application/octet-stream")}
             return self.post(
-                endpoint=url, files=files, headers=_get_default_headers()
+                endpoint=url, files=files
             ).json()
 
     def list_helm_charts(
@@ -1994,7 +1979,7 @@ class ElasticComputeOpenService(BaseService):
         params = {}
         if keyword is not None:
             params["keyword"] = keyword
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def download_helm_chart(
         self, cell_code: str, chart_name: str, chart_version: str
@@ -2014,7 +1999,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/{chart_name}"
             f"/versions/{chart_version}/download"
         )
-        return self.get(endpoint=url, headers=_get_default_headers())
+        return self.get(endpoint=url)
 
     def helm_install(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -2027,7 +2012,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Helm install: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/install"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def helm_uninstall(
         self, cell_code: str, sys_code: str, name: str
@@ -2043,7 +2028,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/uninstall"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def get_helm_manifest(
         self, cell_code: str, sys_code: str, name: str
@@ -2059,7 +2044,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/manifest"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_helm_releases(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """
@@ -2070,7 +2055,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List helm releases: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/release"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_helm_release_apps(
         self, cell_code: str, sys_code: str, name: str
@@ -2088,7 +2073,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/apps"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def helm_upgrade(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
@@ -2104,7 +2089,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/upgrade"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_helm_history(
         self, cell_code: str, sys_code: str, name: str
@@ -2120,7 +2105,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/history"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def helm_rollback(
         self, cell_code: str, sys_code: str, name: str, revision: int
@@ -2139,7 +2124,7 @@ class ElasticComputeOpenService(BaseService):
             f"/helm/release/{name}/rollback"
         )
         params = {"revision": revision}
-        return self.post(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, params=params).json()
 
     def delete_helm_chart_by_name(
         self, cell_code: str, chart_name: str, version: str
@@ -2155,7 +2140,7 @@ class ElasticComputeOpenService(BaseService):
         )
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/{chart_name}"
         params = {"version": version}
-        return self.delete(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url, params=params).json()
 
     # ==================== image-api.jmx 镜像查询接口 ====================
 
@@ -2169,7 +2154,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info("List images")
         return self.get(
             endpoint="/openapi/elastic-compute/v1/images",
-            headers=_get_default_headers(),
         ).json()
 
     def list_image_apps(
@@ -2195,7 +2179,7 @@ class ElasticComputeOpenService(BaseService):
             "imageName": image_name,
             "version": version,
         }
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     # ==================== imagePullSecret.jmx ImagePullSecret 接口 ====================
 
@@ -2217,7 +2201,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/imagePullSecrets"
         )
-        return self.post(endpoint=url, headers=_get_default_headers()).json()
+        return self.post(endpoint=url).json()
 
     def delete_secret_by_name(
         self, cell_code: str, sys_code: str, secret_name: str,
@@ -2235,7 +2219,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/secrets/{secret_name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== LimitRange.jmx v2 无 name 版本（namespace 级别唯一） ====================
 
@@ -2255,7 +2239,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_limitrange_ns(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any],
@@ -2273,7 +2257,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_limitrange_ns(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any],
@@ -2291,7 +2275,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_limitrange_ns(
         self, cell_code: str, sys_code: str,
@@ -2309,7 +2293,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def list_limitranges_by_cell_v2(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -2321,7 +2305,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List limitRanges by cell (v2): cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/limitRanges",
-            headers=_get_default_headers(),
         ).json()
 
     def list_limitranges_by_ns_v2(
@@ -2340,7 +2323,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== oidc-harborinit OIDC 接口 ====================
 
@@ -2353,7 +2336,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("Get OIDC info")
         url = "/openapi/elastic-compute/v2/oidc/info"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== pod Pod 接口 ====================
 
@@ -2371,7 +2354,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_pod(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any],
@@ -2389,7 +2372,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create Pod: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def delete_pod(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -2405,7 +2388,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Delete Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def list_pods_by_ns(
         self, cell_code: str, sys_code: str, label_selector: str = None,
@@ -2426,7 +2409,7 @@ class ElasticComputeOpenService(BaseService):
         params = {}
         if label_selector:
             params["labelSelector"] = label_selector
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def list_pods_by_cell(
         self, cell_code: str, label_selector: str = None,
@@ -2446,7 +2429,7 @@ class ElasticComputeOpenService(BaseService):
         params = {}
         if label_selector:
             params["labelSelector"] = label_selector
-        return self.get(endpoint=url, params=params, headers=_get_default_headers()).json()
+        return self.get(endpoint=url, params=params).json()
 
     def list_pod_events(
         self, cell_code: str, sys_code: str, name: str,
@@ -2467,7 +2450,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/pods/{name}/events"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_pod_logs(
         self, cell_code: str, sys_code: str, name: str, container: str,
@@ -2491,7 +2474,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/pods/{name}/containers/{container}/logs"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def update_pod(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
@@ -2510,7 +2493,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Update Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_pod(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
@@ -2529,7 +2512,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Patch Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     # ==================== port-nodeport Port/NodePort 接口 ====================
 
@@ -2545,7 +2528,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List nodeports: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_nodeport(self, cell_code: str, nodeport: str) -> Dict[str, Any]:
         """
@@ -2560,7 +2543,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get nodeport: cell={cell_code}, nodeport={nodeport}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports/{nodeport}"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def allocate_ports(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -2575,7 +2558,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Allocate ports: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def list_ports_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -2589,7 +2572,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List ports by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_all_ports(self) -> Dict[str, Any]:
         """
@@ -2600,7 +2583,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("List all ports")
         url = "/openapi/elastic-compute/v2/ports"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== quota-manager-admin 配额管理（管理员）接口 ====================
 
@@ -2613,7 +2596,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get cluster quota overview: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/quota"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def batch_query_tenant_quotas(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -2627,7 +2610,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info("Batch query tenant quotas")
         url = "/openapi/elastic-compute/v2/tenants/quota/batch"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def allocate_tenant_quota(
         self, cell_code: str, tenant_code: str, payload: Dict[str, Any],
@@ -2645,7 +2628,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Allocate tenant quota: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/allocate"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def scale_tenant_quota(
         self, cell_code: str, tenant_code: str, payload: Dict[str, Any],
@@ -2663,7 +2646,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Scale tenant quota: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def get_system_quota_overview(self, tenant_code: str, sys_code: str) -> Dict[str, Any]:
         """
@@ -2674,7 +2657,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get system quota overview: tenant={tenant_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/systems/{sys_code}/quota"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_system_quota_detail(
         self, cell_code: str, tenant_code: str, sys_code: str,
@@ -2692,7 +2675,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
             f"/systems/{sys_code}/quota/detail"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_system_quota_scalable(
         self, cell_code: str, tenant_code: str, sys_code: str,
@@ -2710,7 +2693,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
             f"/systems/{sys_code}/quota/scale"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_tenant_quota_detail(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
         """
@@ -2721,7 +2704,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get tenant quota detail: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/detail"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_tenant_quotas_by_cell(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
         """
@@ -2732,7 +2715,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List tenant quotas by cell: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quotas"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_tenant_quotas(self, tenant_code: str) -> Dict[str, Any]:
         """
@@ -2743,7 +2726,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List tenant quotas: tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/quotas"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_tenant_quota_overview(self, tenant_code: str) -> Dict[str, Any]:
         """
@@ -2754,7 +2737,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get tenant quota overview: tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/quota"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_tenant_cell_quota_overview(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
         """
@@ -2765,7 +2748,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get tenant cell quota overview: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_tenant_quota_scalable(self, cell_code: str, tenant_code: str) -> Dict[str, Any]:
         """
@@ -2776,7 +2759,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Get tenant quota scalable: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== quota-manager-tenant 配额管理（租户管理员）接口 ====================
 
@@ -2796,7 +2779,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
             f"/systems/{sys_code}/quota/allocate"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def scale_system_quota(
         self, cell_code: str, tenant_code: str, sys_code: str, payload: Dict[str, Any],
@@ -2814,7 +2797,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
             f"/systems/{sys_code}/quota/scale"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     # ==================== ScaledObject.jmx ====================
 
@@ -2832,7 +2815,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_scaled_object(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any],
@@ -2845,7 +2828,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Create ScaledObject: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/scaledObject"
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_scaled_object(
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
@@ -2861,7 +2844,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def delete_scaled_object(
         self, cell_code: str, sys_code: str, name: str,
@@ -2877,7 +2860,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== recovery-resource.jmx ====================
 
@@ -2893,7 +2876,7 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List recovery resources: sys={sys_code}, cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/systems/{sys_code}/resources"
         return self.get(
-            endpoint=url, params={"cells": cell_code}, headers=_get_default_headers(),
+            endpoint=url, params={"cells": cell_code},
         ).json()
 
     def create_recovery_resources(
@@ -2909,7 +2892,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resources"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def delete_recovery_resources(
         self, cell_code: str, sys_code: str, payload: Any,
@@ -2925,7 +2908,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resources/delete"
         )
-        return self.delete(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url, json=payload).json()
 
     def apply_recovery_resources(
         self, cell_code: str, sys_code: str, payload: Any,
@@ -2941,7 +2924,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resources/apply"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     # ==================== ReplicaSetV2.jmx ====================
 
@@ -2955,7 +2938,6 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info(f"List replicaSets by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/replicaSets",
-            headers=_get_default_headers(),
         ).json()
 
     def list_replica_sets_by_ns(
@@ -2969,7 +2951,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"List replicaSets by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/replicaSets"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_replica_set(
         self, cell_code: str, sys_code: str, name: str,
@@ -2985,7 +2967,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/replicaSets/{name}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== resourcequota.jmx (NS-level, no name) ====================
 
@@ -3000,7 +2982,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Update resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_resource_quotas_ns(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any],
@@ -3013,7 +2995,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Patch resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
-        return self.patch(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.patch(endpoint=url, json=payload).json()
 
     def delete_resource_quotas_ns(
         self, cell_code: str, sys_code: str,
@@ -3026,7 +3008,7 @@ class ElasticComputeOpenService(BaseService):
         """
         self.logger.info(f"Delete resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     # ==================== workload-query.jmx ====================
 
@@ -3041,7 +3023,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workloads_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """按命名空间查询工作负载列表。GET /.../workloads"""
@@ -3049,7 +3031,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/workloads"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workloads_by_cell_kind(
         self, cell_code: str, kind: str
@@ -3059,7 +3041,7 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/kinds/{kind}/workloads"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workloads_by_sys_kind(
         self, sys_code: str, kind: str
@@ -3069,31 +3051,31 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/systems/{sys_code}/kinds/{kind}/workloads"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workloads_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """按集群查询工作负载列表。GET /.../cells/{cellCode}/workloads"""
         self.logger.info(f"List workloads by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workloads_by_sys(self, sys_code: str) -> Dict[str, Any]:
         """按系统查询工作负载列表。GET /.../systems/{sysCode}/workloads"""
         self.logger.info(f"List workloads by sys: sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/systems/{sys_code}/workloads"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workloads_by_kind(self, kind: str) -> Dict[str, Any]:
         """按 Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
         self.logger.info(f"List workloads by kind: kind={kind}")
         url = f"/openapi/elastic-compute/v2/kinds/{kind}/workloads"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_all_workloads(self) -> Dict[str, Any]:
         """查询所有工作负载列表。GET /.../workloads"""
         self.logger.info("List all workloads")
         url = "/openapi/elastic-compute/v2/workloads"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_workload_topology_with_app(
         self, cell_code: str, sys_code: str, app_code: str, name: str
@@ -3107,7 +3089,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/appcode/{app_code}/workloads/{name}/topologyinfo"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_workload_topology(
         self, cell_code: str, sys_code: str, name: str
@@ -3120,7 +3102,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/{name}/topologyinfo"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_ns_topology_with_app(
         self, cell_code: str, sys_code: str, app_code: str
@@ -3133,7 +3115,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/appcode/{app_code}/topologyinfo"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def get_ns_topology(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询命名空间拓扑信息。GET /.../topologyinfo"""
@@ -3142,7 +3124,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/topologyinfo"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_deployments_by_ns(
         self, cell_code: str, sys_code: str
@@ -3153,13 +3135,13 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/deployments"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_deployments_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询集群下 Deployment 列表。GET /.../deployments"""
         self.logger.info(f"List deployments by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/deployments"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_statefulsets_by_ns(
         self, cell_code: str, sys_code: str
@@ -3170,13 +3152,13 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/statefulsets"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_statefulsets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询集群下 StatefulSet 列表。GET /.../statefulsets"""
         self.logger.info(f"List statefulsets by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/statefulsets"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_daemonsets_by_ns(
         self, cell_code: str, sys_code: str
@@ -3187,19 +3169,19 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/daemonsets"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_daemonsets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询集群下 DaemonSet 列表。GET /.../daemonsets"""
         self.logger.info(f"List daemonsets by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/daemonsets"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def list_workload_events(self, cell_code: str) -> Dict[str, Any]:
         """查询集群工作负载事件。GET /.../workloads/events"""
         self.logger.info(f"List workload events: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads/events"
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     # ==================== workload.jmx (CRUD + Lifecycle) ====================
 
@@ -3214,7 +3196,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads/{name}/status"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def create_workload(
         self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
@@ -3227,7 +3209,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/apps/{app_code}/workloads?paas-app-service-version=v1"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def update_workload(
         self, cell_code: str, sys_code: str, kind: str, name: str,
@@ -3241,7 +3223,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads/{name}"
         )
-        return self.put(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.put(endpoint=url, json=payload).json()
 
     def patch_workload(
         self, cell_code: str, sys_code: str, kind: str, name: str,
@@ -3256,7 +3238,7 @@ class ElasticComputeOpenService(BaseService):
             f"/kinds/{kind}/workloads/{name}"
         )
         return self.patch(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def delete_workload(
@@ -3270,7 +3252,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads/{name}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def delete_workload_by_labels(
         self, cell_code: str, sys_code: str, kind: str, labels: str
@@ -3284,7 +3266,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads?labels={labels}"
         )
-        return self.delete(endpoint=url, headers=_get_default_headers()).json()
+        return self.delete(endpoint=url).json()
 
     def batch_query_workload_status(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -3297,7 +3279,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/status/batch"
         )
-        return self.post(endpoint=url, json=payload, headers=_get_default_headers()).json()
+        return self.post(endpoint=url, json=payload).json()
 
     def batch_patch_workloads(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -3309,7 +3291,7 @@ class ElasticComputeOpenService(BaseService):
             f"/workloads/batch"
         )
         return self.patch(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def workload_rolling(
@@ -3326,7 +3308,7 @@ class ElasticComputeOpenService(BaseService):
             f"/kinds/{kind}/workloads/{name}/rolling?action={action}"
         )
         return self.post(
-            endpoint=url, json=payload or {}, headers=_get_default_headers()
+            endpoint=url, json=payload or {}
         ).json()
 
     def batch_workload_rolling(
@@ -3341,7 +3323,7 @@ class ElasticComputeOpenService(BaseService):
             f"/workloads/rolling/batch?action={action}"
         )
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def stop_workload(
@@ -3356,7 +3338,7 @@ class ElasticComputeOpenService(BaseService):
             f"/kinds/{kind}/workloads/{name}/stop"
         )
         return self.post(
-            endpoint=url, json={}, headers=_get_default_headers()
+            endpoint=url, json={}
         ).json()
 
     def start_workload(
@@ -3371,7 +3353,7 @@ class ElasticComputeOpenService(BaseService):
             f"/kinds/{kind}/workloads/{name}/start"
         )
         return self.post(
-            endpoint=url, json={}, headers=_get_default_headers()
+            endpoint=url, json={}
         ).json()
 
     def restart_workload(
@@ -3386,7 +3368,7 @@ class ElasticComputeOpenService(BaseService):
             f"/kinds/{kind}/workloads/{name}/restart"
         )
         return self.post(
-            endpoint=url, json={}, headers=_get_default_headers()
+            endpoint=url, json={}
         ).json()
 
     def batch_stop_workloads(
@@ -3399,7 +3381,7 @@ class ElasticComputeOpenService(BaseService):
             f"/workloads/stop/batch"
         )
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def batch_start_workloads(
@@ -3412,7 +3394,7 @@ class ElasticComputeOpenService(BaseService):
             f"/workloads/start/batch"
         )
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def batch_restart_workloads(
@@ -3425,7 +3407,7 @@ class ElasticComputeOpenService(BaseService):
             f"/workloads/restart/batch"
         )
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def workload_exec(
@@ -3440,7 +3422,7 @@ class ElasticComputeOpenService(BaseService):
             f"/apps/{app_code}/exec"
         )
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def workload_copy_file(
@@ -3457,7 +3439,7 @@ class ElasticComputeOpenService(BaseService):
             f"/kinds/{kind}/workloads/{name}/pods/{pod_name}/copy"
             f"?containerName={container_name}&filePathInPod={file_path}"
         )
-        return self.get(endpoint=url, headers=_get_default_headers()).json()
+        return self.get(endpoint=url).json()
 
     def batch_delete_workload_pods(
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
@@ -3471,7 +3453,7 @@ class ElasticComputeOpenService(BaseService):
             f"/workloads/pods/delete/batch"
         )
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
     def batch_delete_app_pods(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -3479,7 +3461,7 @@ class ElasticComputeOpenService(BaseService):
         self.logger.info("Batch delete app pods")
         url = "/openapi/elastic-compute/v2/applications/pods/delete/batch"
         return self.post(
-            endpoint=url, json=payload, headers=_get_default_headers()
+            endpoint=url, json=payload
         ).json()
 
 

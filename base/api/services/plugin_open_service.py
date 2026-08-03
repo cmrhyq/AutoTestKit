@@ -1,22 +1,13 @@
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from base import BaseService
 from base.api.entity.plugin import McpValidatePayload
-from core import DataCache
-
-
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": cache.get("token"),
-    }
 
 
 class PluginOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         初始化 Panji Plugin OpenAPI 服务
 
@@ -35,7 +26,9 @@ class PluginOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
         )
         self.logger.info(f"Initializing PanJi Plugin OpenAPI Service with base_url: {self.base_url}")
 
@@ -47,7 +40,7 @@ class PluginOpenService(BaseService):
         """
         self.logger.info(f"Getting Plugin Install Information")
         url = f"/openapi/plugin-mgmt/api/v1/plugin/{plugin_name}/installationInfo"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def get_current_env_list(self) -> Dict[str, Any]:
@@ -56,7 +49,7 @@ class PluginOpenService(BaseService):
         """
         self.logger.info(f"Getting Current Environment Plugins List")
         url = f"/openapi/plugin-mgmt/api/v1/plugin/version/data-report"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def verify_task_config(self, payload: McpValidatePayload = None):
@@ -70,7 +63,7 @@ class PluginOpenService(BaseService):
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/task"
         entity = payload or McpValidatePayload.default_task()
         response = self.post(
-            endpoint=url, body=entity.to_payload(), headers=_get_default_headers()
+            endpoint=url, body=entity.to_payload()
         )
         return response.json()
 
@@ -85,7 +78,7 @@ class PluginOpenService(BaseService):
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/feature"
         entity = payload or McpValidatePayload.default_feature()
         response = self.post(
-            endpoint=url, body=entity.to_payload(), headers=_get_default_headers()
+            endpoint=url, body=entity.to_payload()
         )
         return response.json()
 
@@ -95,5 +88,5 @@ class PluginOpenService(BaseService):
         """
         self.logger.info(f"Get All Plugins That Support Permission Transfer")
         url = f"/openapi/plugin-mgmt/api/v1/auth-transfer/all"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()

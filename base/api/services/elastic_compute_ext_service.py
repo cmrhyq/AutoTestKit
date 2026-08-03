@@ -12,6 +12,7 @@ import logging
 from typing import Dict, Any
 
 from base import BaseService
+from config import get_env_config
 from core.config import env_manager
 
 
@@ -25,7 +26,6 @@ def _get_ext_headers() -> Dict[str, str]:
     """
     env = env_manager.get_config()
     return {
-        "apikey": env.get("ec_apikey"),
         "username": env.get("basicAuthUsername"),
         "tenantCode": env.get("tenantCode"),
     }
@@ -61,6 +61,8 @@ class ElasticComputeExtService(BaseService):
         super().__init__(
             base_url=base_url,
             logger=logger,
+            auth_type="api_key",
+            auth_credentials={"api_key": get_env_config().get("ec_apikey")},
         )
         self.logger.info(
             f"Initializing PanJi ElasticCompute Extensions Service with base_url: {self.base_url}"

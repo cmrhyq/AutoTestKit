@@ -1,8 +1,7 @@
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from base import BaseService
-from core import DataCache
 
 from base.api.entity.observable import (
     Log,
@@ -11,23 +10,16 @@ from base.api.entity.observable import (
 )
 
 
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": f"Bearer {cache.get('token')}",
-    }
-
-
 class ObservableOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         初始化 Panji Observable OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
             logger: 日志记录器
+            token: Bearer Token（必传，由 service_factory 从 TokenManager 注入）
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -40,7 +32,9 @@ class ObservableOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
         )
         self.logger.info(f"Initializing PanJi Observable OpenAPI Service with base_url: {self.base_url}")
 
@@ -66,7 +60,7 @@ class ObservableOpenService(BaseService):
             "endTime": log.end_time,
             "size": log.size
         }
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def pull_log_by_request_id(self, request_id: str) -> Dict[str, Any]:
@@ -79,7 +73,7 @@ class ObservableOpenService(BaseService):
         self.logger.info(f"Pull log by request_id: {request_id}")
         url = "/openapi/monitor-o11y/webgate-log-console/3rd/log/pull"
         params = {"requestId": request_id}
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def query_log_context(self, context: LogContext) -> Dict[str, Any]:
@@ -104,7 +98,7 @@ class ObservableOpenService(BaseService):
             "sync": str(context.sync).lower(),
             "size": context.size
         }
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def pull_log_context_by_request_id(self, request_id: str) -> Dict[str, Any]:
@@ -117,7 +111,7 @@ class ObservableOpenService(BaseService):
         self.logger.info(f"Pull log context by request_id: {request_id}")
         url = "/openapi/monitor-o11y/webgate-log-console/3rd/log/context/pull"
         params = {"requestId": request_id}
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     # ==================== observable-query 模型相关接口 ====================
@@ -140,7 +134,7 @@ class ObservableOpenService(BaseService):
             "with_graph": str(config.with_graph).lower(),
             "with_confs_count": str(config.with_confs_count).lower()
         }
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def get_model_by_id_or_name(self, model_id_or_name: str) -> Dict[str, Any]:
@@ -152,7 +146,7 @@ class ObservableOpenService(BaseService):
         """
         self.logger.info(f"Get model by id or name: {model_id_or_name}")
         url = f"/openapi/monitor-o11y/amdb-console/publish/v3/confs/models/{model_id_or_name}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def search_conf_items(self, query: Dict[str, Any]) -> Dict[str, Any]:
@@ -164,5 +158,5 @@ class ObservableOpenService(BaseService):
         """
         self.logger.info("Search conf items")
         url = "/openapi/monitor-o11y/amdb-console/publish/v3/confs/search/conf-items"
-        response = self.post(endpoint=url, json=query, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=query)
         return response.json()

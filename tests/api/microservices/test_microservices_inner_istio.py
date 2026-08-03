@@ -21,7 +21,6 @@ from base.api.services.microservices_inner_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.microservice
 @allure.epic("磐基API自动化测试")
@@ -35,11 +34,6 @@ class TestMicroservicesInnerIstio:
     """
 
     TENANT = "monitor-group"
-
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """Inner API 虽走 apikey，但仍触发 get_token 以保持一致的 setup 语义。"""
-        get_token(self.TENANT)
 
     @pytest.fixture(scope="class")
     def inner_service(self, api_env, api_logger):

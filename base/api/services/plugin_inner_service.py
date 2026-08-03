@@ -8,7 +8,6 @@ def _get_default_headers() -> Dict[str, str]:
     """获取默认请求头"""
     return {
         "x-app-id": "portal",
-        "apikey": "67d5da7b76b1030ea6888f7644e05195",
     }
 
 
@@ -33,7 +32,9 @@ class PluginInnerService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="api_key",
+            auth_credentials={"api_key": "67d5da7b76b1030ea6888f7644e05195"},
         )
         self.logger.info(f"Initializing PanJi Plugin InnerAPI Service with base_url: {self.base_url}")
 

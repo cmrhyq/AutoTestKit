@@ -23,18 +23,6 @@ from base.api.services.microservices_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
-@pytest.fixture(scope="module")
-def ingress_service(api_env, api_logger):
-    """模块级 Ingress OpenAPI 服务实例"""
-    service = MicroservicesOpenService(
-        base_url=api_env.get("apiBaseUrl"),
-        logger=api_logger,
-    )
-    yield service
-    service.close()
-
-
 @pytest.fixture(scope="module")
 def public_params(api_env):
     """提取 Ingress 测试所需的公共参数。"""
@@ -45,7 +33,6 @@ def public_params(api_env):
         "plane_code": api_env.get("planeCode"),
     }
 
-
 def _build_ingress(public_params) -> Ingress:
     return Ingress(
         name=public_params["mesh_gateway_name"],
@@ -54,7 +41,6 @@ def _build_ingress(public_params) -> Ingress:
         unitCode=public_params["unit_code"],
         planeCode=public_params["plane_code"],
     )
-
 
 def _build_ingress_config(public_params, soft_load_code: str = None) -> IngressConfig:
     return IngressConfig(
@@ -66,7 +52,6 @@ def _build_ingress_config(public_params, soft_load_code: str = None) -> IngressC
         serviceName=public_params["mesh_gateway_name"],
         softLoadCode=soft_load_code or public_params["mesh_gateway_name"],
     )
-
 
 # =============================================================================
 # msingressgw.jmx — nginx 参数模板 CRUD + ingress 网关实例
@@ -80,9 +65,10 @@ class TestMsIngressGateway:
 
     TENANT = "monitor-group"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        get_token(self.TENANT)
+    @pytest.fixture(scope="class")
+    def ingress_service(self, service_factory):
+        with service_factory(MicroservicesOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("新增 nginx 参数模板")
     @allure.description("新增自定义 nginx 参数模板")
@@ -223,7 +209,6 @@ class TestMsIngressGateway:
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
-
 # =============================================================================
 # ingressnginx.jmx — ingress 网关配置 CRUD
 # =============================================================================
@@ -236,9 +221,10 @@ class TestMsIngressNginx:
 
     TENANT = "monitor-group"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        get_token(self.TENANT)
+    @pytest.fixture(scope="class")
+    def ingress_service(self, service_factory):
+        with service_factory(MicroservicesOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("新增 ingress 网关实例")
     @allure.description("新增 ingress 网关实例（Nginx 配置流程前置）")
@@ -321,7 +307,6 @@ class TestMsIngressNginx:
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
-
 # =============================================================================
 # msingressksr.jmx — ingress 网关实例启停/扩缩容
 # =============================================================================
@@ -335,9 +320,10 @@ class TestIngressScaling:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        get_token(self.TENANT)
+    @pytest.fixture(scope="class")
+    def ingress_service(self, service_factory):
+        with service_factory(MicroservicesOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("新增 ingress 网关实例")
     @allure.description("新增 ingress 网关实例并缓存 instance_id 供扩缩容使用")

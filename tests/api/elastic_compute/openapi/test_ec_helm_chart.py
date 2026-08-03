@@ -18,13 +18,11 @@ from base.api.services.elastic_compute_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 # 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
 BUSINESS_SUCCESS_CODE = 2000
 RESOURCE_NOT_FOUND_CODE = 4004
 
 HTTP_STATUS_OK = 200
-
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -49,21 +47,10 @@ class TestEcOpenapiHelmChart:
 
     TENANT = "monitor-group"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def ec_service(self, api_env, api_logger):
-        """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
-        service = ElasticComputeOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
-
+    def ec_service(self, service_factory):
+        with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
+            yield svc
     @pytest.fixture(scope="class")
     def public_params(self, api_env):
         """提取 Helm Chart 测试所需的公共参数。"""
@@ -375,6 +362,4 @@ class TestEcOpenapiHelmChart:
             assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
                 f"删除 Chart 返回异常 code: {code}, 响应: {resp}"
             )
-
-
 

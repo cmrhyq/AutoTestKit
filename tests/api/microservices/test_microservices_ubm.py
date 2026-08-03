@@ -18,7 +18,6 @@ from base.api.services.microservices_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.microservice
 @allure.epic("磐基API自动化测试")
@@ -33,20 +32,10 @@ class TestMicroservicesUbm:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def ubm_service(self, api_env, api_logger):
-        """创建 Microservices OpenAPI 服务实例"""
-        service = MicroservicesOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
+    def ubm_service(self, service_factory):
+        with service_factory(MicroservicesOpenService, self.TENANT) as svc:
+            yield svc
 
     @pytest.fixture(scope="class")
     def public_params(self, api_env):

@@ -15,7 +15,6 @@ from base.api.services.elastic_compute_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.openapi
 @allure.epic("磐基API自动化测试")
@@ -28,18 +27,10 @@ class TestEcOpenapiCluster:
 
     TENANT = "monitor-group"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def ec_service(self, api_env, api_logger):
-        service = ElasticComputeOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
+    def ec_service(self, service_factory):
+        with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("v1 查询集群列表")
     @allure.description("使用 v1 接口查询 paas 系统下的集群列表")

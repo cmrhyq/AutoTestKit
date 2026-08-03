@@ -12,7 +12,6 @@ import pytest
 from base.api.services.operation_open_service import OperationOpenService
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.operation
 @allure.epic("磐基API自动化测试")
@@ -22,19 +21,10 @@ class TestOperationsTask:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def operation_service(self, api_env, api_logger):
-        """创建 Operation OpenAPI 服务实例"""
-        service = OperationOpenService(
-            base_url=api_env.get("apiBaseUrl"), logger=api_logger
-        )
-        yield service
-        service.close()
+    def operation_service(self, service_factory):
+        with service_factory(OperationOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("通过任务名称执行巡检任务")
     @allure.description("执行指定巡检任务")

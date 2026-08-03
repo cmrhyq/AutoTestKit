@@ -13,10 +13,8 @@ from base.api.services.elastic_compute_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 # 业务码常量
 BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -33,21 +31,10 @@ class TestEcOpenapiResourceCollection:
 
     TENANT = "monitor-group"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def ec_service(self, api_env, api_logger):
-        """创建服务实例。"""
-        service = ElasticComputeOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
-
+    def ec_service(self, service_factory):
+        with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
+            yield svc
     # ---------------------------- Test cases ----------------------------
 
     @allure.title("查询集群配额信息")

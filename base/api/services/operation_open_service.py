@@ -1,22 +1,13 @@
 import logging
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Optional, Union
 
 from base import BaseService
 from base.api.entity.operation import MetricQuery
-from core import DataCache
-
-
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": cache.get("token"),
-    }
 
 
 class OperationOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         初始化 Panji Operation OpenAPI 服务
 
@@ -35,7 +26,9 @@ class OperationOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
         )
         self.logger.info(f"Initializing PanJi Operation OpenAPI Service with base_url: {self.base_url}")
 
@@ -45,7 +38,7 @@ class OperationOpenService(BaseService):
         """
         self.logger.info("Query the number of specified alarms in the last 3 hours")
         url = "/openapi/monitor-inspection/cluster-inspection/api/alertLabelsFiring/selectRecentAlerts"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def query_interface_synthetic_log(self, log_id: int) -> Dict[str, Any]:
@@ -57,7 +50,7 @@ class OperationOpenService(BaseService):
         """
         self.logger.info(f"Query interface synthetic log detail, id: {log_id}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/synthetic/interface/log"
-        response = self.get(endpoint=url, params={"id": log_id}, headers=_get_default_headers())
+        response = self.get(endpoint=url, params={"id": log_id})
         return response.json()
 
     def query_service_synthetic_log(self, log_id: int) -> Dict[str, Any]:
@@ -69,7 +62,7 @@ class OperationOpenService(BaseService):
         """
         self.logger.info(f"Query service synthetic log detail, id: {log_id}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/synthetic/service/log"
-        response = self.get(endpoint=url, params={"id": log_id}, headers=_get_default_headers())
+        response = self.get(endpoint=url, params={"id": log_id})
         return response.json()
 
     def batch_query_metrics(
@@ -106,7 +99,7 @@ class OperationOpenService(BaseService):
             "metrics": normalized_metrics,
             "stepSeconds": step_seconds
         }
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def execute_inspection_task(self, task_name: str) -> Dict[str, Any]:
@@ -119,5 +112,5 @@ class OperationOpenService(BaseService):
         self.logger.info(f"Execute inspection task: {task_name}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/inspectionTask/executeTask"
         payload = {"taskName": task_name}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()

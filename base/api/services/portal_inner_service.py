@@ -17,7 +17,6 @@ from base.api.entity.portal import (
 def _get_default_headers() -> Dict[str, str]:
     """获取默认请求头"""
     return {
-        "apikey": get_env_config().get("apikey"),
         "tenantCode": get_env_config().get("tenant_code"),
         "x-app-id": "portal",
     }
@@ -48,7 +47,9 @@ class PortalInnerService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="api_key",
+            auth_credentials={"api_key": get_env_config().get("apikey")},
         )
         self.logger.info(f"Initializing PanJi Portal InnerAPI Service with base_url: {self.base_url}")
 

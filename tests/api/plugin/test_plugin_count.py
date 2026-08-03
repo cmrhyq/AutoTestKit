@@ -12,7 +12,6 @@ import pytest
 from base.api.services.plugin_inner_service import PluginInnerService
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.plugin
 @allure.epic("磐基API自动化测试")
@@ -21,11 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 class TestPluginCount:
 
     TENANT = "tenant_admin"
-
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
 
     @pytest.fixture(scope="class")
     def plugin_inner_service(self, api_env, api_logger):

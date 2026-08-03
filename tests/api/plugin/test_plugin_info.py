@@ -17,7 +17,6 @@ import pytest
 from base.api.services.plugin_open_service import PluginOpenService
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.plugin
 @allure.epic("磐基API自动化测试")
@@ -27,19 +26,10 @@ class TestPluginInfo:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def plugin_open_service(self, api_env, api_logger):
-        """创建 Plugin OpenAPI 服务实例"""
-        service = PluginOpenService(
-            base_url=api_env.get("apiBaseUrl"), logger=api_logger
-        )
-        yield service
-        service.close()
+    def plugin_open_service(self, service_factory):
+        with service_factory(PluginOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("查询指定插件的安装信息")
     @allure.description("查询指定插件的安装信息")

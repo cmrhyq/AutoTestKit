@@ -8,28 +8,25 @@ Native 类接口直接代理 K8s API Server，路径模式为：
   /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/{resource}
 
 鉴权方式：Bearer Token + X-API-KEY + apikey 三重头。
-所有敏感值从 DataCache 和 env yaml 读取，杜绝硬编码。
+- Bearer 通过 BaseService 的 auth_type='bearer' 承载于 session.headers（由 service_factory 从 TokenManager 注入）
+- X-API-KEY + apikey 为静态头，通过 _get_native_headers() 在每次请求时补充
 """
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from base import BaseService
-from core import DataCache
 from core.config import env_manager
 
 
 def _get_native_headers() -> Dict[str, str]:
-    """获取 Native K8s API 特权接口的默认请求头。
+    """获取 Native K8s API 特权接口的补充请求头（不含 Authorization，由 session.headers 承载）。
 
     包含：
-    - Authorization: Bearer token（Portal 登录后的 token）
     - X-API-KEY: 特权 API Key
     - apikey: API 网关 Key
     """
-    cache = DataCache.get_instance()
     env = env_manager.get_config()
     return {
-        "Authorization": cache.get("token"),
         "X-API-KEY": env.get("nativeXApiKey", "814bc561e79c079fc2356c8631bfd3ce"),
         "apikey": env.get("apiKey", ""),
     }
@@ -47,11 +44,12 @@ class ElasticComputeNativeService(BaseService):
     - HTTP 状态码判断成功/失败（200=成功, 201=创建成功, 404=不存在）
     """
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
             logger: 日志记录器
+            token: Bearer Token（必传，由 service_factory 从 TokenManager 注入）
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -62,7 +60,12 @@ class ElasticComputeNativeService(BaseService):
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
                 "and pass via fixture: api_env.get('apiBaseUrl')"
             )
-        super().__init__(base_url=base_url, logger=logger)
+        super().__init__(
+            base_url=base_url,
+            logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
+        )
 
     # ==================== ServiceAccount（serviceaccount.jmx）====================
 

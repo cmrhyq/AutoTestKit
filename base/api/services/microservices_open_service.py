@@ -1,8 +1,7 @@
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from base import BaseService
-from core import DataCache
 
 from base.api.entity.microservices import (
     Ingress,
@@ -14,17 +13,9 @@ from base.api.entity.microservices import (
 )
 
 
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": cache.get("token"),
-    }
-
-
 class MicroservicesOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         初始化 Panji Microservices OpenAPI 服务
 
@@ -43,7 +34,9 @@ class MicroservicesOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
         )
         self.logger.info(f"Initializing PanJi Microservices OpenAPI Service with base_url: {self.base_url}")
 
@@ -79,7 +72,7 @@ class MicroservicesOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def get_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
@@ -94,7 +87,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info(f"Get ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/detailCode"
         payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def delete_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
@@ -109,7 +102,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info(f"Delete ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/deleteCode"
         payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def add_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
@@ -150,7 +143,7 @@ class MicroservicesOpenService(BaseService):
             ],
             "softLoadName": data.name
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def list_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
@@ -167,7 +160,7 @@ class MicroservicesOpenService(BaseService):
             "systemCode": data.sysCode,
             "unitCode": data.unitCode
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def update_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
@@ -209,7 +202,7 @@ class MicroservicesOpenService(BaseService):
             ],
             "softLoadName": data.name
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def get_ingress_config_detail(self, data: IngressConfig) -> Dict[str, Any]:
@@ -226,7 +219,7 @@ class MicroservicesOpenService(BaseService):
             "systemCode": data.sysCode,
             "unitCode": data.unitCode
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def get_ingress_by_service_name(self, data: IngressConfig) -> Dict[str, Any]:
@@ -247,7 +240,7 @@ class MicroservicesOpenService(BaseService):
             "serviceName": data.serviceName,
             "softLoadCode": data.softLoadCode
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def delete_ingress_config_by_code(self, data: IngressConfig) -> Dict[str, Any]:
@@ -264,7 +257,7 @@ class MicroservicesOpenService(BaseService):
             "systemCode": data.sysCode,
             "unitCode": data.unitCode
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     # ==================== msingressgw Nginx参数模板相关接口 ====================
@@ -287,7 +280,7 @@ class MicroservicesOpenService(BaseService):
             "desc": data.desc,
             "status": data.status,
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def update_nginx_param(self, data: NginxParam) -> Dict[str, Any]:
@@ -308,7 +301,7 @@ class MicroservicesOpenService(BaseService):
             "desc": data.desc,
             "status": data.status
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def query_all_nginx_param(self, param_type: str = "All") -> Dict[str, Any]:
@@ -319,7 +312,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Query all nginx param templates")
         url = f"/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/queryAll?type={param_type}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def update_nginx_param_status(self, data: NginxParamStatus) -> Dict[str, Any]:
@@ -338,7 +331,7 @@ class MicroservicesOpenService(BaseService):
             "rows": data.rows,
             "status": data.status
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def list_nginx_param(self, data: NginxParamStatus) -> Dict[str, Any]:
@@ -357,7 +350,7 @@ class MicroservicesOpenService(BaseService):
             "rows": data.rows,
             "status": data.status
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def delete_nginx_param_by_code(self, code: str, param_type: str) -> Dict[str, Any]:
@@ -370,7 +363,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info(f"Delete nginx param by code: {code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/deleteCode"
         payload = {"code": code, "type": param_type}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def list_ingress_instance(self, data: IngressIns) -> Dict[str, Any]:
@@ -389,7 +382,7 @@ class MicroservicesOpenService(BaseService):
             "keyword": data.keyword,
             "rows": data.rows,
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def update_ingress_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -400,7 +393,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update ingress instance")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     # ==================== msingressksr Ingress网关实例启停扩缩容接口 ====================
@@ -421,7 +414,7 @@ class MicroservicesOpenService(BaseService):
             "systemCode": data.sysCode,
             "unitCode": data.unitCode
         }
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def stop_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
@@ -440,7 +433,7 @@ class MicroservicesOpenService(BaseService):
             "systemCode": data.sysCode,
             "unitCode": data.unitCode
         }
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def scale_ingress_instance(self, instance_id: str, deploy_type: str, replicas: int) -> Dict[str, Any]:
@@ -458,7 +451,7 @@ class MicroservicesOpenService(BaseService):
             "deployType": deploy_type,
             "replicas": replicas
         }
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     # ==================== msistiogateway Istio网关相关接口 ====================
@@ -486,7 +479,7 @@ class MicroservicesOpenService(BaseService):
             "replicas": data.replicas,
             "sysCode": data.sysCode
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def get_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -497,7 +490,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Get gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/getGatewayInstance"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def list_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -508,7 +501,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("List gateway instances")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/list"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def update_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -519,7 +512,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def list_ingress_egress_gateway(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -530,7 +523,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("List ingress and egress gateway instances")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/ingressEgressList"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def add_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -541,7 +534,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Add gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/add"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def list_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -552,7 +545,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("List gateway rules")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/list"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def get_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -563,7 +556,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Get gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/getGateway"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def update_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -574,7 +567,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     # ==================== mscmf CMF服务相关接口 ====================
@@ -589,7 +582,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info("Batch add funcser")
         url = "/openapi/ms-ubm/microservice-ubm/v2/funcser/batch"
         payload = {"controlPlaneCode": control_plane_code, "funcsers": funcsers}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def batch_get_funcser(self, control_plane_code: str, application_code: str, funcser_codes: list) -> Dict[str, Any]:
@@ -607,7 +600,7 @@ class MicroservicesOpenService(BaseService):
             "applicationCode": application_code,
             "funcserCodes": ",".join(funcser_codes) if isinstance(funcser_codes, list) else funcser_codes,
         }
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def add_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -618,7 +611,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Add CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def get_cmf_degrade_detail(self, control_plane_name: str, env_code: str, func_ser_name: str) -> Dict[str, Any]:
@@ -632,7 +625,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info("Get CMF degrade detail")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/detail"
         payload = {"controlPlaneName": control_plane_name, "envCode": env_code, "funcSerName": func_ser_name}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def update_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -643,7 +636,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def update_cmf_degrade_state(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -654,7 +647,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update CMF degrade state")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/updateState"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def delete_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -665,7 +658,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Delete CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/delete"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def add_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -676,7 +669,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Add CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def get_cmf_circuit_breaking_detail(self, control_plane_name: str, env_code: str, func_ser_name: str) -> Dict[str, Any]:
@@ -690,7 +683,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info("Get CMF circuit breaking detail")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/detail"
         payload = {"controlPlaneName": control_plane_name, "envCode": env_code, "funcSerName": func_ser_name}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def update_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -701,7 +694,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def update_cmf_circuit_breaking_state(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -712,7 +705,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update CMF circuit breaking state")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/updateState"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def delete_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -723,7 +716,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Delete CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/delete"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def list_virtualservice_by_gateway_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -734,7 +727,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("List virtualservice by gateway config")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/listByGatewayConfig"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def add_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -745,7 +738,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Add virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/add"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def get_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -756,7 +749,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Get virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/getVirtualService"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def update_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -767,7 +760,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Update virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/update"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def list_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -778,7 +771,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("List virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/list"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def delete_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -789,7 +782,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Delete virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/delete"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def delete_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -800,7 +793,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Delete gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/delete"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     def delete_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -811,7 +804,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Delete gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/delete"
-        response = self.post(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=data)
         return response.json()
 
     # ==================== msubm UBM相关接口 ====================
@@ -822,7 +815,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Get cells list")
         url = "/openapi/ms-ubm/microservice-ubm/v2/cells"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def get_tenant_detail(self) -> Dict[str, Any]:
@@ -831,7 +824,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Get tenant detail")
         url = "/openapi/ms-ubm/microservice-ubm/v2/tenant/detail"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def batch_add_strategy(self, control_plane_code: str, strategies: list) -> Dict[str, Any]:
@@ -844,7 +837,7 @@ class MicroservicesOpenService(BaseService):
         self.logger.info("Batch add strategy")
         url = "/openapi/ms-ubm/microservice-ubm/v2/strategy/batch"
         payload = {"controlPlaneCode": control_plane_code, "strategies": strategies}
-        response = self.post(endpoint=url, json=payload, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def batch_update_strategy_status(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -855,7 +848,7 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info("Batch update strategy status")
         url = "/openapi/ms-ubm/microservice-ubm/v2/strategy/clusterstatus"
-        response = self.put(endpoint=url, json=data, headers=_get_default_headers())
+        response = self.put(endpoint=url, json=data)
         return response.json()
 
     def get_strategy_batch_detail(self, batch_code: str) -> Dict[str, Any]:
@@ -866,5 +859,5 @@ class MicroservicesOpenService(BaseService):
         """
         self.logger.info(f"Get strategy batch detail: {batch_code}")
         url = f"/openapi/ms-ubm/microservice-ubm/v2/strategy/batch/detail/{batch_code}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()

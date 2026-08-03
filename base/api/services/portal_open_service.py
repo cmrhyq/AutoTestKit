@@ -1,8 +1,7 @@
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from base.api.services.base_service import BaseService
-from core import DataCache
 
 from base.api.entity.portal import (
     PortalUserEntity,
@@ -12,23 +11,16 @@ from base.api.entity.portal import (
 )
 
 
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": cache.get("token"),
-    }
-
-
 class PortalOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
         """
         初始化 Panji Portal OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
             logger: 日志记录器
+            token: Bearer Token；登录接口 get_token 调用时可为 None，其他业务方法必需
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -41,7 +33,9 @@ class PortalOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
         )
         self.logger.info(f"Initializing PanJi Portal OpenAPI Service with base_url: {self.base_url}")
 
@@ -80,7 +74,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"Getting First Field Info")
         url = "/openapi/portal/restApi/firstFieldInfo/list"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def get_second_field_info(self) -> Dict[str, Any]:
@@ -92,7 +86,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"Getting Second Field Info")
         url = "/openapi/portal/restApi/secondFieldInfo/list"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def create_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -116,7 +110,7 @@ class PortalOpenService(BaseService):
             "cellName": "a",
             "envName": "生产环境"
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def query_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -128,7 +122,7 @@ class PortalOpenService(BaseService):
         params = {
             "prodInstName": cluster_info.prod_inst_name,
         }
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def update_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -148,7 +142,7 @@ class PortalOpenService(BaseService):
             "planeCode": "multest",
             "planeName": "multest"
         }
-        response = self.patch(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.patch(endpoint=url, json=body)
         return response.json()
 
     def delete_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
@@ -160,7 +154,7 @@ class PortalOpenService(BaseService):
         params = {
             "instanceId": cluster_info.instance_id,
         }
-        response = self.delete(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.delete(endpoint=url, params=params)
         return response.json()
 
     def query_bind_cluster_list(self) -> Dict[str, Any]:
@@ -169,7 +163,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"Query bind cluster list")
         url = "/openapi/portal/restApi/bindCluster/list"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def tenant_bind_cluster(self) -> Dict[str, Any]:
@@ -186,7 +180,7 @@ class PortalOpenService(BaseService):
                 "tenantId": "1"
             }
         ]
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def query_tenant_info_by_username(self, username: str) -> Dict[str, Any]:
@@ -195,7 +189,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"Query tenant info by username: {username}")
         url = f"/openapi/portal/restApi/v1/user/{username}/tenants"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def get_menu_permission_data(self) -> Dict[str, Any]:
@@ -204,7 +198,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"Get menu permission data")
         url = "/openapi/portal/restApi/menu/list"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def sync_user_api(self, user_info: PortalUserEntity) -> Dict[str, Any]:
@@ -230,7 +224,7 @@ class PortalOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def user_bind_tenant(self, user_info: PortalUserEntity) -> Dict[str, Any]:
@@ -249,7 +243,7 @@ class PortalOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def user_bind_role(self, user_info: PortalUserEntity) -> Dict[str, Any]:
@@ -268,7 +262,7 @@ class PortalOpenService(BaseService):
                 }
             ]
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def query_system(self, system_code: str) -> Dict[str, Any]:
@@ -281,7 +275,7 @@ class PortalOpenService(BaseService):
             "systemEnvironment": "PROD",
             "systemName": system_code
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def create_system(self, system: OpenSystemEntity):
@@ -303,7 +297,7 @@ class PortalOpenService(BaseService):
             "createId": system.create_id,
             "userName": system.username
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def system_resource_allocation(self, username: str, code_list: BasicCodeEntity):
@@ -320,7 +314,7 @@ class PortalOpenService(BaseService):
             },
             "username": username
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def system_resource_quota_detail(self, code_list: BasicCodeEntity):
@@ -329,7 +323,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"System resource quota detail")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/detail"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
 
     def create_application(self, app_code: str, app_name: str, app_type: str, workload_type: str, system_id: str):
@@ -352,7 +346,7 @@ class PortalOpenService(BaseService):
             "systemId": system_id,
             "microServiceCode": ""
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def update_system(self, system: OpenSystemEntity):
@@ -395,7 +389,7 @@ class PortalOpenService(BaseService):
             "tenantName": "平台运营租户",
             "isAuthorized": "true"
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def user_system_authorization(self, user_id_list: list[str], system_id_list: list[str]):
@@ -415,7 +409,7 @@ class PortalOpenService(BaseService):
             "objectIdList": user_id_list,
             "entityIdList": system_id_list
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def update_application(self, app_id: str, system_id: str):
@@ -436,7 +430,7 @@ class PortalOpenService(BaseService):
             "environment": "PROD",
             "workloadType": "Deployment"
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def user_application_authorization(self, user_id_list: list[str], application_id_list: list[str]):
@@ -456,7 +450,7 @@ class PortalOpenService(BaseService):
             "objectIdList": user_id_list,
             "entityIdList": application_id_list
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def query_application_list(self, app_code: str):
@@ -472,7 +466,7 @@ class PortalOpenService(BaseService):
             "applicationSourceName": app_code,
             "applicationSourceType": "web_type"
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def query_application_detail(self, app_id: str):
@@ -485,7 +479,7 @@ class PortalOpenService(BaseService):
         params = {
             "applicationSourceId": app_id
         }
-        response = self.get(endpoint=url, params=params, headers=_get_default_headers())
+        response = self.get(endpoint=url, params=params)
         return response.json()
 
     def system_resource_quota_remove(self, code_list: BasicCodeEntity):
@@ -494,7 +488,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"System resource quota remove")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/delete"
-        response = self.post(endpoint=url, headers=_get_default_headers())
+        response = self.post(endpoint=url)
         return response.json()
 
     def delete_application(self, app_id: str):
@@ -507,7 +501,7 @@ class PortalOpenService(BaseService):
         body = {
             "ids": app_id
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()
 
     def system_quota_delete(self, code: BasicCodeEntity):
@@ -516,7 +510,7 @@ class PortalOpenService(BaseService):
         """
         self.logger.info(f"System quota release delete")
         url = f"/openapi/elastic-compute/v2/cells/{code.cell_code}/tenants/{code.tenant_code}/systems/{code.system_code}/quota/delete"
-        response = self.post(endpoint=url, headers=_get_default_headers())
+        response = self.post(endpoint=url)
         return response.json()
 
     def delete_system(self, system_id: str, system_code: str):
@@ -533,5 +527,5 @@ class PortalOpenService(BaseService):
             "systemCode": system_code,
             "tenantCode": "tenant_admin"
         }
-        response = self.post(endpoint=url, json=body, headers=_get_default_headers())
+        response = self.post(endpoint=url, json=body)
         return response.json()

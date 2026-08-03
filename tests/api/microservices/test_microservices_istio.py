@@ -17,7 +17,6 @@ from base.api.services.microservices_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.microservice
 @allure.epic("磐基API自动化测试")
@@ -32,18 +31,10 @@ class TestMicroservicesIstio:
 
     TENANT = "monitor-group"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def istio_service(self, api_env, api_logger):
-        service = MicroservicesOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
+    def istio_service(self, service_factory):
+        with service_factory(MicroservicesOpenService, self.TENANT) as svc:
+            yield svc
 
     @pytest.fixture(scope="class")
     def public_params(self, api_env):

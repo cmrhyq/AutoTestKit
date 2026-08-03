@@ -102,6 +102,22 @@ class DataCache:
         with self._data_lock:
             return key in self._data
     
+    def delete(self, key: str) -> bool:
+        """
+        删除指定键的缓存项
+
+        Args:
+            key: 要删除的缓存键
+
+        Returns:
+            bool: 键存在并成功删除返回 True，键不存在返回 False
+        """
+        with self._data_lock:
+            if key in self._data:
+                del self._data[key]
+                return True
+            return False
+
     def clear(self) -> None:
         """
         清空缓存中的所有数据

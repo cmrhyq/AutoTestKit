@@ -18,7 +18,6 @@ from base.api.services.observable_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.observable
 @allure.epic("磐基API自动化测试")
@@ -32,19 +31,10 @@ class TestObservableQuery:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def observable_service(self, api_env, api_logger):
-        """创建 Observable OpenAPI 服务实例"""
-        service = ObservableOpenService(
-            base_url=api_env.get("apiBaseUrl"), logger=api_logger
-        )
-        yield service
-        service.close()
+    def observable_service(self, service_factory):
+        with service_factory(ObservableOpenService, self.TENANT) as svc:
+            yield svc
 
     @allure.title("查询模型列表")
     @allure.description("分页查询可观测模型列表")

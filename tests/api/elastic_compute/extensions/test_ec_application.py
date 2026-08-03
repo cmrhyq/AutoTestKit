@@ -16,7 +16,6 @@ from base.api.services.elastic_compute_ext_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.extension
 @allure.epic("磐基API自动化测试")

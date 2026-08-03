@@ -16,7 +16,6 @@ from base.api.services.microservices_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.microservice
 @allure.epic("磐基API自动化测试")
@@ -31,19 +30,10 @@ class TestMicroservicesCmf:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def cmf_service(self, api_env, api_logger):
-        service = MicroservicesOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
-
+    def cmf_service(self, service_factory):
+        with service_factory(MicroservicesOpenService, self.TENANT) as svc:
+            yield svc
     @pytest.fixture(scope="class")
     def public_params(self, api_env):
         """提取 CMF 测试所需的公共参数。"""

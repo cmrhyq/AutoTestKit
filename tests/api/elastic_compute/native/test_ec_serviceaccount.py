@@ -22,7 +22,6 @@ HTTP_OK = 200
 HTTP_CREATED = 201
 HTTP_NOT_FOUND = 404
 
-
 @pytest.mark.api
 @pytest.mark.native
 @allure.epic("磐基API自动化测试")
@@ -36,20 +35,10 @@ class TestEcNativeServiceAccount:
 
     TENANT = "tenant_admin"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def native_service(self, api_env, api_logger):
-        """创建 Native API 服务实例，base_url 从 env yaml 显式传入。"""
-        service = ElasticComputeNativeService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
-        )
-        yield service
-        service.close()
+    def native_service(self, service_factory):
+        with service_factory(ElasticComputeNativeService, self.TENANT) as svc:
+            yield svc
 
     @staticmethod
     def _build_service_account_payload(name: str) -> Dict[str, Any]:

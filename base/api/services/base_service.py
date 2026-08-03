@@ -91,37 +91,42 @@ class BaseService:
         设置认证方式
         
         Args:
-            auth_type: 认证类型
+            auth_type: 认证类型，None 表示不设置认证（例如登录接口）
             auth_credentials: 认证凭证
         """
+        if auth_type is None:
+            return
+
         if auth_type == 'bearer':
-            # Bearer Token 认证
+            if not auth_credentials or not auth_credentials.get('token'):
+                raise ValueError("auth_type='bearer' requires auth_credentials={'token': ...}")
             token = auth_credentials.get('token')
-            if token:
-                self.session.headers.update({'Authorization': f'Bearer {token}'})
-                self.logger.info("Bearer token authentication configured")
-        
+            self.session.headers.update({'Authorization': f'Bearer {token}'})
+            self.logger.info("Bearer token authentication configured")
+
         elif auth_type == 'basic':
-            # Basic Auth 认证
+            if not auth_credentials:
+                raise ValueError("auth_type='basic' requires auth_credentials={'username', 'password'}")
             username = auth_credentials.get('username')
             password = auth_credentials.get('password')
-            
-            if username and password:
-                self.session.auth = HTTPBasicAuth(username, password)
-                self.logger.info(f"Basic authentication configured for user: {username}")
-        
+            if not username or not password:
+                raise ValueError("auth_type='basic' requires non-empty username and password")
+            self.session.auth = HTTPBasicAuth(username, password)
+            self.logger.info(f"Basic authentication configured for user: {username}")
+
         elif auth_type == 'api_key':
-            # API Key 认证
+            if not auth_credentials:
+                raise ValueError("auth_type='api_key' requires auth_credentials={'api_key', 'header_name'}")
             api_key = auth_credentials.get('api_key')
             header_name = auth_credentials.get('header_name')
-            
-            if api_key:
-                self.session.headers.update({header_name: api_key})
-                self.logger.info(f"API Key authentication configured with header: {header_name}")
+            if not api_key or not header_name:
+                raise ValueError("auth_type='api_key' requires non-empty api_key and header_name")
+            self.session.headers.update({header_name: api_key})
+            self.logger.info(f"API Key authentication configured with header: {header_name}")
 
         else:
             raise ValueError(
-                f"auth_type {auth_type} is not allow. "
+                f"Unsupported auth_type: {auth_type!r}. Expected: 'bearer', 'basic', 'api_key' or None"
             )
     
     def _build_url(self, endpoint: str) -> str:

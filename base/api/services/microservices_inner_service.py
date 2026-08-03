@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any
 
 from base import BaseService
+from config import get_env_config
 from core.config import env_manager
 
 from base.api.entity.microservices import (
@@ -19,7 +20,6 @@ def _get_default_headers() -> Dict[str, str]:
     """
     env = env_manager.get_config()
     return {
-        "apikey": env.get("ms_apikey"),
         "username": env.get("basicAuthUsername"),
         "tenantCode": env.get("tenantCode"),
     }
@@ -46,7 +46,9 @@ class MicroservicesInnerService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger
+            logger=logger,
+            auth_type="api_key",
+            auth_credentials={"api_key": get_env_config().get("ms_apikey")},
         )
         self.logger.info(f"Initializing PanJi Microservices InnerAPI Service with base_url: {self.base_url}")
 

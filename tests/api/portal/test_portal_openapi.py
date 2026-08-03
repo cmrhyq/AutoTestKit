@@ -15,7 +15,6 @@ from base.api.services.portal_open_service import (
 )
 from core.reporting.allure_helper import AllureHelper
 
-
 @pytest.mark.api
 @pytest.mark.portal
 @allure.epic("磐基API自动化测试")
@@ -27,20 +26,10 @@ class TestPortalOpenAPI:
     SYSTEM_CODE = "portal_open_api_test_sys"
     APP_CODE = "portal_open_api_test_app"
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def portal_open_service(self, api_env, api_logger):
-        """创建 Portal OpenAPI 服务实例"""
-        service = PortalOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger
-        )
-        yield service
-        service.close()
+    def portal_open_service(self, service_factory):
+        with service_factory(PortalOpenService, self.TENANT) as svc:
+            yield svc
 
     @pytest.fixture(scope="class")
     def public_params(self, api_env):
