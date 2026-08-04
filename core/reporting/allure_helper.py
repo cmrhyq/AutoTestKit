@@ -427,20 +427,3 @@ class AllureHelper:
         finally:
             AllureHelper.attach_api_detail(service, assertion_result)
 
-
-# 便捷函数：创建测试步骤
-def allure_step(step_name: str) -> Generator[None, None, None]:
-    """
-    创建 Allure 测试步骤的便捷函数
-    
-    Args:
-        step_name: 步骤名称
-        
-    Returns:
-        contextmanager: 步骤上下文管理器
-        
-    使用示例:
-        with allure_step("Verify user profile"):
-            assert user.name == "John Doe"
-    """
-    return AllureHelper.step(step_name)

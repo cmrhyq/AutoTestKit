@@ -33,8 +33,6 @@ class JSONPlaceholderService(BaseService):
         new_post = service.create_post(user_id=1, title="Test", body="Content")
     """
     
-    DEFAULT_BASE_URL = "https://jsonplaceholder.typicode.com"
-    
     def __init__(self, base_url: str = None):
         """
         初始化 JSONPlaceholder 服务
@@ -43,7 +41,7 @@ class JSONPlaceholderService(BaseService):
             base_url: API 基础 URL，默认使用 JSONPlaceholder 官方地址
         """
         super().__init__(
-            base_url=base_url or self.DEFAULT_BASE_URL,
+            base_url=base_url,
         )
         logger.info(f"Initialized JSONPlaceholderService with URL: {self.base_url}")
     
