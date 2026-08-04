@@ -9,7 +9,6 @@ Plugin（插件中心）相关实体模型。
 from dataclasses import dataclass
 from typing import Any, Dict
 
-
 DEFAULT_TASK_CONTENT = (
     "apiVersion: v1\n"
     "kind: ConfigMap\n"

@@ -8,7 +8,6 @@ Microservices（微服务）相关实体模型。
 
 from dataclasses import dataclass, field
 
-
 # ==================== Microservices Open API 实体 ====================
 
 

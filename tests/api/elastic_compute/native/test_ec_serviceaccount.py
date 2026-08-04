@@ -1,12 +1,13 @@
 """
 弹性计算 Native ServiceAccount 接口测试
 
-测试内容：ServiceAccount 原生接口-特权接口，针对 ServiceAccount 增删改查进行测试
-- 查询指定 ServiceAccount
-- 创建 ServiceAccount
-- 删除指定 ServiceAccount
+转换自 JMeter 脚本: serviceaccount.jmx
+测试内容：ServiceAccount 原生接口生命周期测试（查询、创建、删除）
+
+注意：JMX 中仅包含 GET/POST/DELETE，没有 update / list 接口。
+Service 层的 get_service_account / create_service_account / delete_service_account
+在文件顶部已存在，直接复用。
 """
-import time
 from typing import Any, Dict
 
 import allure
@@ -20,10 +21,10 @@ from core.reporting.allure_helper import AllureHelper
 
 logger = get_logger(__name__)
 
-# Native K8s API 使用 HTTP 状态码，非业务 code
 HTTP_OK = 200
 HTTP_CREATED = 201
 HTTP_NOT_FOUND = 404
+
 
 @pytest.mark.api
 @pytest.mark.native
@@ -33,7 +34,7 @@ HTTP_NOT_FOUND = 404
 class TestEcNativeServiceAccount:
     """
     对应 JMeter 脚本: serviceaccount.jmx
-    线程组: Thread Group - ServiceAccount
+    线程组: Thread Group - serviceaccount
     """
 
     TENANT = "tenant_admin"
@@ -43,97 +44,102 @@ class TestEcNativeServiceAccount:
         with service_factory(ElasticComputeNativeService, self.TENANT) as svc:
             yield svc
 
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env):
+        """提取 ServiceAccount 测试所需的公共参数。"""
+        return {
+            "cluster_id": str(api_env.get("clusterId", "1")),
+            "namespace": api_env.get("namespace", "test-admin"),
+            "name": "native-test-sa",
+        }
+
     @staticmethod
-    def _build_service_account_payload(name: str) -> Dict[str, Any]:
+    def _build_sa_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
         """
         构建 ServiceAccount 创建请求体。
 
-        对应 JMX 中的 POST body（XML 实体还原后）：
-        {
-            "apiVersion": "v1",
-            "kind": "ServiceAccount",
-            "metadata": {"name": "${name}"}
-        }
+        对应 JMX 中的 POST body。结构最简单：仅 metadata.name。
         """
         return {
             "apiVersion": "v1",
             "kind": "ServiceAccount",
-            "metadata": {
-                "name": name
-            },
+            "metadata": {"name": params["name"]},
         }
 
-    # ==================== 生命周期测试 ====================
-
-    @allure.title("ServiceAccount 完整生命周期（查询→清理→创建→删除）")
-    @allure.description("覆盖 Native ServiceAccount 的查询、清理、创建、删除完整生命周期")
+    @pytest.mark.dependency(name="sa_query_and_cleanup")
+    @pytest.mark.order(1)
+    @allure.title("查询指定 ServiceAccount 并清理已有资源")
+    @allure.description("查询指定 ServiceAccount 确认当前状态，若存在则先删除以保证后续创建的幂等性")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_service_account_lifecycle(self, native_service, api_env, api_cache):
-        cluster_id = str(api_env.get("clusterId"))
-        namespace = api_env.get("namespace")
-        sa_name = "test-sa"
-
-        logger.info(
-            f"开始测试: ServiceAccount 生命周期, cluster={cluster_id}, "
-            f"ns={namespace}, name={sa_name}"
-        )
+    def test_query_sa_and_cleanup(self, native_service, public_params, api_cache):
+        """查询指定 ServiceAccount，若已存在则删除，确保测试环境干净。"""
+        cluster_id = public_params["cluster_id"]
+        namespace = public_params["namespace"]
+        name = public_params["name"]
 
         with AllureHelper.api_test(native_service):
-            # Step 1: 查询指定 ServiceAccount 确认当前状态
-            # 对应 JMX: 弹性计算_native_serviceaccount_查询指定ServiceAccount请求
-            # 对应 JMX RegexExtractor: get_http_code
-            with AllureHelper.step("查询指定 ServiceAccount 确认当前状态"):
-                get_http_code, get_resp = native_service.get_service_account(
-                    cluster_id=cluster_id,
-                    namespace=namespace,
-                    name=sa_name,
-                )
-                logger.info(f"查询 SA 状态码: {get_http_code}")
-                assert get_http_code in (HTTP_OK, HTTP_NOT_FOUND), (
-                    f"查询应返回200或404, 实际: {get_http_code}"
-                )
+            get_http_code, _ = native_service.get_service_account(
+                cluster_id=cluster_id, namespace=namespace, name=name,
+            )
 
-            # Step 2: 若已存在则先删除（对应 JMX IfController: get_http_code==200）
+            assert get_http_code in (HTTP_OK, HTTP_NOT_FOUND), (
+                f"查询 ServiceAccount 返回异常, 期望200或404, 实际: {get_http_code}"
+            )
+
             if get_http_code == HTTP_OK:
-                with AllureHelper.step("ServiceAccount 已存在，先删除"):
-                    del_resp = native_service.delete_service_account(
-                        cluster_id=cluster_id,
-                        namespace=namespace,
-                        name=sa_name,
-                    )
-                    assert native_service.last_response.status_code == HTTP_OK, (
-                        f"删除失败, status={native_service.last_response.status_code}"
-                    )
-                    logger.info(f"删除已存在的 SA 成功: {sa_name}")
-
-            # Step 3: 创建 ServiceAccount
-            # 对应 JMX: 弹性计算_native_serviceaccount_创建ServiceAccount请求
-            # 对应 JMX RegexExtractor: create_http_code
-            with AllureHelper.step("创建 ServiceAccount"):
-                payload = self._build_service_account_payload(sa_name)
-                create_resp = native_service.create_service_account(
-                    cluster_id=cluster_id,
-                    namespace=namespace,
-                    payload=payload,
+                native_service.delete_service_account(
+                    cluster_id=cluster_id, namespace=namespace, name=name,
                 )
-                create_http_code = native_service.last_response.status_code
-                assert create_http_code == HTTP_CREATED, (
-                    f"创建失败, 期望201, 实际: {create_http_code}, resp: {create_resp}"
+                assert native_service.last_response.status_code == HTTP_OK, (
+                    f"删除已存在的 ServiceAccount 失败, "
+                    f"status={native_service.last_response.status_code}"
                 )
-                logger.info(f"创建 SA 成功: {sa_name}, status={create_http_code}")
 
-            # Step 4: 等待（对应 JMX ConstantTimer: intervalTime=10000ms）
-            time.sleep(3)
+            api_cache.set("ec_sa_created", False)
 
-            # Step 5: 创建成功后删除（对应内层 IfController: create_http_code==201）
-            if create_http_code == HTTP_CREATED:
-                with AllureHelper.step("删除创建的 ServiceAccount（清理）"):
-                    cleanup_resp = native_service.delete_service_account(
-                        cluster_id=cluster_id,
-                        namespace=namespace,
-                        name=sa_name,
-                    )
-                    assert native_service.last_response.status_code == HTTP_OK, (
-                        f"清理删除失败, status={native_service.last_response.status_code}"
-                    )
-                    logger.info(f"清理删除 SA 成功: {sa_name}")
+    @pytest.mark.dependency(name="sa_create", depends=["sa_query_and_cleanup"])
+    @pytest.mark.order(2)
+    @allure.title("创建 ServiceAccount")
+    @allure.description("创建 ServiceAccount 资源，验证 HTTP 状态码为 201")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_create_sa(self, native_service, public_params, api_cache):
+        """创建 ServiceAccount，断言创建成功。"""
+        cluster_id = public_params["cluster_id"]
+        namespace = public_params["namespace"]
+
+        with AllureHelper.api_test(native_service):
+            payload = self._build_sa_create_payload(public_params)
+            create_resp = native_service.create_service_account(
+                cluster_id=cluster_id, namespace=namespace, payload=payload,
+            )
+            create_http_code = native_service.last_response.status_code
+
+            assert create_http_code == HTTP_CREATED, (
+                f"创建 ServiceAccount 失败, 期望201, 实际: {create_http_code}, "
+                f"响应: {create_resp}"
+            )
+
+            api_cache.set("ec_sa_created", True)
+
+    @pytest.mark.dependency(name="sa_delete", depends=["sa_create"])
+    @pytest.mark.order(3)
+    @allure.title("删除 ServiceAccount")
+    @allure.description("删除创建的 ServiceAccount 清理测试环境，验证删除成功")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_delete_sa(self, native_service, public_params, api_cache):
+        """删除 ServiceAccount，断言删除成功。"""
+        cluster_id = public_params["cluster_id"]
+        namespace = public_params["namespace"]
+        name = public_params["name"]
+
+        with AllureHelper.api_test(native_service):
+            native_service.delete_service_account(
+                cluster_id=cluster_id, namespace=namespace, name=name,
+            )
+
+            assert native_service.last_response.status_code == HTTP_OK, (
+                f"删除 ServiceAccount 失败, "
+                f"status={native_service.last_response.status_code}"
+            )
+
+            api_cache.set("ec_sa_created", False)

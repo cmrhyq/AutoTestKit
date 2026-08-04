@@ -11,7 +11,6 @@ Portal（门户）相关实体模型。
 from dataclasses import dataclass, field
 from typing import List
 
-
 # ==================== Portal Inner API 实体 ====================
 
 

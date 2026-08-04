@@ -2,7 +2,7 @@
 
 本文档以 `pvc-pv.jmx` 真实转换过程为例，展示 JMeter 脚本 → Pytest + Allure 用例的完整转换步骤、目录/命名约定与决策过程。所有示例均与仓库现存代码（`base/api/services/*.py`、`tests/api/**/test_*.py`、`config/env_*.yaml`）保持一致。
 
-> 项目栈：Python 3.10+ / pytest 9 / requests / allure-pytest / pytest-xdist / ruff。
+> 项目栈：Python 3.10+ / pytest 9 / requests / allure-pytest / pytest-xdist / pytest-dependency / pytest-ordering / pytest-rerunfailures / ruff。
 > 目标框架：`AutoTestKit`（本仓库）。
 
 ---
@@ -106,43 +106,57 @@ JMX 文件归属哪个 domain？
 **当前仓库已有 Service 一览（`base/api/services/`）：**
 
 
-| 文件                                                   | 类                             | 鉴权方式                       |
-| ---------------------------------------------------- | ----------------------------- | -------------------------- |
-| `portal_open_service.py`                             | `PortalOpenService`           | 登录换 token / Bearer         |
-| `portal_inner_service.py`                            | `PortalInnerService`          | X-API-KEY                  |
-| `elastic_compute_open_service.py`                    | `ElasticComputeOpenService`   | Bearer（`cache["token"]`）   |
-| `elastic_compute_ext_service.py`                     | `ElasticComputeExtService`    | Bearer                     |
-| `elastic_compute_native_service.py`                  | `ElasticComputeNativeService` | X-API-KEY（`nativeXApiKey`） |
-| `microservices_open_service.py`                      | `MicroservicesOpenService`    | Bearer                     |
-| `microservices_inner_service.py`                     | `MicroservicesInnerService`   | X-API-KEY                  |
-| `observable_open_service.py`                         | `ObservableOpenService`       | Bearer                     |
-| `operation_open_service.py`                          | `OperationOpenService`        | Bearer                     |
-| `plugin_open_service.py` / `plugin_inner_service.py` | `Plugin*Service`              | Bearer / X-API-KEY         |
+| 文件                                                   | 类                             | 鉴权方式                                       |
+| ---------------------------------------------------- | ----------------------------- | ------------------------------------------ |
+| `portal_open_service.py`                             | `PortalOpenService`           | Bearer（登录接口 token=None，其它接口由 factory 注入）  |
+| `portal_inner_service.py`                            | `PortalInnerService`          | X-API-KEY / 内部头                            |
+| `elastic_compute_open_service.py`                    | `ElasticComputeOpenService`   | Bearer（构造时注入到 session）                     |
+| `elastic_compute_ext_service.py`                     | `ElasticComputeExtService`    | Bearer                                     |
+| `elastic_compute_native_service.py`                  | `ElasticComputeNativeService` | Bearer + X-API-KEY / apikey（三重头）           |
+| `microservices_open_service.py`                      | `MicroservicesOpenService`    | Bearer                                     |
+| `microservices_inner_service.py`                     | `MicroservicesInnerService`   | X-API-KEY                                  |
+| `observable_open_service.py`                         | `ObservableOpenService`       | Bearer                                     |
+| `operation_open_service.py`                          | `OperationOpenService`        | Bearer                                     |
+| `plugin_open_service.py` / `plugin_inner_service.py` | `Plugin*Service`              | Bearer / X-API-KEY                         |
 
 
 ### Step 6：编写 Service 方法
 
-遵循以下模式为每个接口添加方法（与 `elastic_compute_open_service.py` 现有方法风格保持一致）：
+遵循以下模式为每个接口添加方法（与 `elastic_compute_open_service.py` 现有方法风格保持一致）。
+
+**关键变化（相较旧版 SOP）：**
+
+- Service 构造签名统一为 `__init__(self, base_url: str, token: Optional[str] = None)`。
+- Bearer 鉴权在 `super().__init__(...)` 时通过 `auth_type="bearer" + auth_credentials={"token": token}` 一次性写入 `session.headers`，**方法内不再手工调用 `_get_default_headers()` 拼 Authorization**。
+- Token 由测试层通过 `service_factory` fixture 从 `TokenManager` 注入，Service **不再自己读 `DataCache["token"]`**。
+- 只有需要**额外静态头**的场景（如 Native 接口的 `X-API-KEY`、Inner 接口的 `x-app-id`）才保留 `_get_default_headers()`（或 `_get_native_headers()`），且**不再包含 Authorization**。
 
 ```python
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from base import BaseService
-from core import DataCache
-from core.log import get_logger
+from core import get_logger
 
 logger = get_logger(__name__)
 
 
-def _get_default_headers() -> Dict[str, str]:
-    """获取默认请求头（走 Portal 登录得到的 Bearer Token）。"""
-    cache = DataCache.get_instance()
-    return {
-        "Authorization": cache.get("token"),
-    }
-
-
 class ElasticComputeOpenService(BaseService):
+
+    def __init__(self, base_url: str, token: Optional[str] = None):
+        """
+        Args:
+            base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
+            token: Bearer Token（由 service_factory 从 TokenManager 注入）
+        """
+        if not base_url:
+            raise ValueError(
+                "base_url is required. Configure it in config/env_*.yaml (apiBaseUrl)"
+            )
+        super().__init__(
+            base_url=base_url,
+            auth_type="bearer" if token else None,
+            auth_credentials={"token": token} if token else None,
+        )
 
     def get_pvc(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -158,8 +172,34 @@ class ElasticComputeOpenService(BaseService):
         """
         logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
-        response = self.get(endpoint=url, headers=_get_default_headers())
+        response = self.get(endpoint=url)
         return response.json()
+```
+
+**Native / Inner 接口的 `_get_default_headers()` 模式**（仅当有 Bearer 之外的静态头时使用）：
+
+```python
+def _get_native_headers() -> Dict[str, str]:
+    """Native K8s 特权接口的补充请求头（不含 Authorization，由 session.headers 承载）。"""
+    return {
+        "X-API-KEY": "xxxxxxxxxxxxxxxx",
+    }
+
+
+class ElasticComputeNativeService(BaseService):
+
+    def __init__(self, base_url: str, token: Optional[str] = None):
+        super().__init__(
+            base_url=base_url,
+            auth_type="api_key",
+            auth_credentials={"api_key": "xxxx", "header_name": "apikey"},
+        )
+        # Bearer token 由 session.headers 承载（若需要），额外 X-API-KEY 通过 _get_native_headers 补充
+
+    def get_configmap(self, cluster_id: str, namespace: str, name: str):
+        url = f"/elastic-compute/v2/k8s/clusters/{cluster_id}/api/v1/namespaces/{namespace}/configmaps/{name}"
+        response = self.get(endpoint=url, headers=_get_native_headers())
+        return response.status_code, response.json()
 ```
 
 **关键规范：**
@@ -167,12 +207,13 @@ class ElasticComputeOpenService(BaseService):
 - 类命名 `{Domain}{Type}Service`（例 `ElasticComputeOpenService`）。
 - 方法名 `snake_case`，动词前缀：`get_/list_/create_/update_/patch_/delete_`。
 - 每个方法首行 `logger.info(...)` 描述业务动作；docstring 必须包含**对应 JMX 名称**和 **HTTP 方法+路径**，方便与源脚本对照。
-- 需要鉴权的接口：`headers=_get_default_headers()`；Native / Inner 接口改用对应的 `_get_default_headers()`（读 `nativeXApiKey` 等）。
-- 返回 `response.json()`，类型标注 `Dict[str, Any]`（响应可能是列表时用 `Any`）。
+- Bearer 类接口：**不需要**在方法中传 `headers`，鉴权已由 `super().__init__` 写入 `session.headers`。
+- Native / Inner 类接口（有额外静态头如 `X-API-KEY`、`apikey`、`x-app-id`）：方法调用时 `headers=_get_default_headers()`（或 `_get_native_headers()`），**该函数不再返回 Authorization**。
+- 返回 `response.json()`，类型标注 `Dict[str, Any]`（响应可能是列表时用 `Any`）。Native 接口需返回 `(status_code, json)` 时用 `Tuple[int, Dict[str, Any]]`。
 - POST/PUT/PATCH 请求体由调用方传入 `payload: Dict[str, Any]`，**不在 Service 中写死**。
 - 路径参数用 f-string 插值：`f"/openapi/.../cells/{cell_code}/..."`。
 - 只新增方法，不修改已有方法签名，避免破坏其他用例。
-- Service 类顶端建议保留 `DEFAULT_BASE_URL` 常量，构造函数签名统一 `(self, base_url: str = None)`。
+- 构造函数签名统一 `(self, base_url: str, token: Optional[str] = None)`，`base_url` 校验为空则抛 `ValueError`，**不再保留 `DEFAULT_BASE_URL` 常量**。
 
 ### Step 7：处理 POST 请求体
 
@@ -289,7 +330,7 @@ PVC_CREATE_WAIT_SECONDS = 3
 
 
 @pytest.mark.api
-@pytest.mark.openapi                       # 按业务模块选择：openapi/portal/extension/native/microservice/observable/operation/plugin
+@pytest.mark.openapi                       # 按业务模块选择：见 pytest.ini 的 markers 列表
 @allure.epic("磐基API自动化测试")            # 项目级 epic，所有 API 用例统一
 @allure.feature("磐基弹性计算OpenAPI接口")   # 一级业务域
 @allure.story("PVC/PV/StorageClass 生命周期接口")  # 二级故事
@@ -301,37 +342,33 @@ class TestEcOpenapiPvcPv:
 
     TENANT = "monitor-group"                # 显式声明本类使用的租户，值必须存在于 yaml.tenants
 
-    @pytest.fixture(autouse=True)
-    def _login(self, get_token):
-        """每个用例前自动切换到本测试类声明的租户 token。"""
-        get_token(self.TENANT)
-
     @pytest.fixture(scope="class")
-    def ec_service(self, api_env):
-        """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
-        service = ElasticComputeOpenService(
-            base_url=api_env.get("apiBaseUrl"),
-        )
-        yield service
-        service.close()
+    def ec_service(self, service_factory):
+        """通过 service_factory 上下文管理器构造 Service，token 由 TokenManager 自动注入。"""
+        with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
+            yield svc
 ```
 
 **必须项（缺一不可）：**
 
 - 类装饰器四件套：`@pytest.mark.api` + `@pytest.mark.<module>` + `@allure.epic` + `@allure.feature` + `@allure.story`
-- `TENANT` 类属性 + `autouse` 的 `_login` fixture（调用 `get_token(self.TENANT)`）
-- Service fixture 使用 `yield` + `service.close()`（scope 建议 `class`，全类共用一个 session）
-- `base_url=api_env.get("apiBaseUrl")`（**camelCase key**，不要写 `api_base_url`）
+- `TENANT` 类属性，值必须存在于 `config/env_*.yaml` 的 `tenants` 字典
+- Service fixture 使用 `service_factory(ServiceCls, self.TENANT)` 作为 **context manager**（`with ... as svc: yield svc`），scope 建议 `class`
+- **不再需要** `_login` autouse fixture、也不再手动 `base_url=api_env.get("apiBaseUrl")` —— `service_factory` 会自动传入 `base_url` 和 `token`
+- 如需覆盖 `base_url`（例如切到 `apiInnerBaseUrl`），在 factory 中传关键字参数：`service_factory(SvcCls, self.TENANT, base_url=api_env["apiInnerBaseUrl"])`
 - 顶部常量抽取：业务码（`BUSINESS_SUCCESS_CODE = 2000`）、等待时长（`XXX_WAIT_SECONDS`）等
 
 **可用的项目级 fixtures（由 `base/api/fixtures.py` + `tests/api/conftest.py` 提供）：**
 
 
-| Fixture                  | Scope   | 说明                         |
-| ------------------------ | ------- | -------------------------- |
-| `api_env`                | session | 当前环境 yaml 全量字典             |
-| `api_cache`              | session | `DataCache` 单例，跨用例数据传递     |
-| `get_token(tenant_code)` | session | 多租户 token 懒加载工厂，切租户只需再调用一次 |
+| Fixture           | Scope   | 说明                                                                                     |
+| ----------------- | ------- | -------------------------------------------------------------------------------------- |
+| `api_env`         | session | 当前环境 yaml 全量字典（camelCase key）                                                          |
+| `api_cache`       | session | `DataCache` 单例，跨用例数据传递                                                                 |
+| `_login_fn`       | session | 登录回调工厂 `(tenant) -> token`，一般无需在用例中直接引用                                                |
+| `service_factory` | session | Service 构造工厂（context manager）：`service_factory(ServiceCls, tenant, **overrides)`        |
+
+> 注意：旧版 SOP 中的 `get_token(tenant_code)` fixture 与 `autouse` 的 `_login` fixture 已被 `service_factory` 取代，新用例请勿再引用它们。
 
 
 ### Step 10：拆分接口为独立测试函数
@@ -802,16 +839,16 @@ pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -n auto --alluredir=r
 - Service 类为 `{Domain}{Type}Service`，方法名 `snake_case + 动词前缀`
 - import 路径正确（`from base.api.services.xxx_service import ...Service`）
 - 类装饰器齐全：`@pytest.mark.api` + `@pytest.mark.<module>` + `@allure.epic("磐基API自动化测试")` + `@allure.feature(...)` + `@allure.story(...)`
-- 测试类顶部声明 `TENANT = "..."`，值存在于 `yaml.tenants`，并有 `autouse` 的 `_login` fixture
-- Service fixture `scope="class"`，用 `yield` + `service.close()`
-- Service 构造参数 `base_url=api_env.get("apiBaseUrl")`（**不是** `api_base_url`）
+- 测试类顶部声明 `TENANT = "..."`，值存在于 `yaml.tenants`
+- Service fixture 通过 `service_factory(ServiceCls, self.TENANT)` 构造，作为 context manager 使用（`with ... as svc: yield svc`），scope 建议 `class`
+- **不再**使用 `_login` autouse fixture / `get_token` fixture / 手动 `base_url=api_env.get("apiBaseUrl")`
 - 每个测试方法有 `@allure.title` + `@allure.description` + `@allure.severity`
 - `@allure.title` 一句业务动词短语（6–20 字），不含 HTTP 方法/URL/断言细节
 - `@allure.description` 一句业务描述，**不含** HTTP 方法+URL，且**不与 title 完全一致**
 - title / description / `def test`_ 三者数量一致
 - 测试方法体最外层用 `AllureHelper.api_test(service)` 包裹
 - 关键操作用 `AllureHelper.step()` 分段
-- Service 方法调用带 `_get_default_headers()`（Bearer / X-API-KEY 按业务域选择）
+- Bearer 类 Service 方法**不再**手动传 `headers`（认证已在 `__init__` 写入 session）；Native / Inner 类保留 `headers=_get_default_headers()` 传静态头（不含 Authorization）
 - 数据依赖通过 `api_cache` 传递
 - 断言的是业务字段（`code`），不是 HTTP status（`raise_for_status` 已覆盖）
 - 没有硬编码的 URL、账号、明文 token、魔法数字
@@ -837,9 +874,9 @@ pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -n auto --alluredir=r
 | JSONPostProcessor                     | `api_cache.set()`           | 测试方法内                                          |
 | ResponseAssertion / JSONPathAssertion | `assert` 语句                 | 测试方法内                                          |
 | ConstantTimer                         | `time.sleep(常量)`            | 测试方法内                                          |
-| HeaderManager + token                 | `_get_default_headers()`    | Service 层自动处理                                  |
+| HeaderManager + token                 | Service `__init__(token=...)` 自动写入 session | Service 层自动处理                              |
 | POST body (raw JSON)                  | helper 方法构造 dict            | 测试类的 `@staticmethod`                           |
-| Login Sampler                         | `get_token(TENANT)` fixture | `tests/api/conftest.py` 已提供                    |
+| Login Sampler                         | `service_factory(SvcCls, TENANT)` fixture | `tests/api/conftest.py` 已提供                    |
 
 
 ### 命名约定速查
@@ -856,7 +893,7 @@ pytest tests/api/elastic_compute/openapi/test_ec_pvc_pv.py -n auto --alluredir=r
 | 测试方法          | `test_{功能描述}`                          | `test_pvc_lifecycle`, `test_get_pv`                                        |
 | YAML 参数       | camelCase 名词短语                         | `pvcName`, `cellCode`, `apiBaseUrl`                                        |
 | 顶部常量          | `UPPER_SNAKE_CASE`                     | `BUSINESS_SUCCESS_CODE`, `PVC_CREATE_WAIT_SECONDS`                         |
-| pytest marker | `@pytest.mark.api` + 模块 marker         | `openapi/portal/extension/native/microservice/observable/operation/plugin` |
+| pytest marker | `@pytest.mark.api` + 模块 marker         | `openapi/portal/extension/native/microservice/observable/operation/plugin`（详见 `pytest.ini`） |
 
 
 ### title / description 一键校验
@@ -916,14 +953,16 @@ print('MISSING:', missing) if missing else print('YAML_OK')
 
 | 陷阱                                        | 后果                          | 预防                                      |
 | ----------------------------------------- | --------------------------- | --------------------------------------- |
-| 遗漏 `_login` fixture                       | 全部请求 401                    | 骨架模板强制包含                                |
+| 仍然使用旧版 `_login` autouse fixture / `get_token` | fixture 找不到，用例 ERROR       | 改用 `service_factory(SvcCls, self.TENANT)` context manager |
+| Service `__init__` 中在方法内读 `DataCache["token"]` | token 未按租户隔离；切租户失效         | 通过构造函数 `token` 参数由 `service_factory` 注入 |
+| Bearer 类方法仍手动 `headers=_get_default_headers()` | 双份 Authorization / 冲突        | 认证已在 `super().__init__` 写入 session，方法无需传 headers |
 | 参数只加了一个 yaml                              | 切环境后 `None` → 401 / 500     | 同步所有 `env_*.yaml`                       |
 | YAML key 用 snake_case                     | `api_env.get()` 拿到 `None`   | 统一 camelCase（对齐现有 yaml）                 |
-| Service 构造用 `api_env.get("api_base_url")` | base_url = `None`，请求全部失败    | 用 `apiBaseUrl`                          |
+| Service 构造用 `api_env.get("api_base_url")` | base_url = `None`，请求全部失败    | 用 `apiBaseUrl`；或直接依赖 `service_factory`  |
 | 忘记 `@pytest.mark.<module>` marker         | `-m openapi` 收集不到用例         | 类装饰器 4 件套齐全                             |
 | 缺 `@allure.epic`                          | Allure 报告归属层次断裂             | 项目统一 `@allure.epic("磐基API自动化测试")`       |
 | POST body 在 Service 中写死                   | 无法参数化测试                     | body 由调用方传入                             |
-| 断言 HTTP status 而非业务码                      | `raise_for_status` 已覆盖，冗余断言 | 只断 `response_json["code"]`              |
+| 断言 HTTP status 而非业务码                      | `raise_for_status` 已覆盖，冗余断言 | 只断 `response_json["code"]`（Native 除外，Native 直接看 status_code）|
 | 用魔法数字断言（`== 2000`）                        | 语义弱、无法搜索                    | 顶部常量 `BUSINESS_SUCCESS_CODE`            |
 | dataclass 字段末尾加逗号                         | 值变成 `tuple`                 | 严格禁止尾逗号                                 |
 | 拆分接口但未声明 dependency/order                  | 执行顺序不确定/前置失败后续误报            | 必须加 `@pytest.mark.dependency` + `@pytest.mark.order` |
@@ -934,6 +973,6 @@ print('MISSING:', missing) if missing else print('YAML_OK')
 | 缺 title 或 缺 description                   | Allure 报告用例失去可读标题/说明        | 检查清单：三者数量必须相等                           |
 | Service 直接调 `requests`，绕过 `BaseService`   | 丢失日志/重试/session 复用          | 一律走 `self.get/post/put/patch/delete`    |
 | 测试文件放错目录（少 `openapi/` 子目录）                | 团队约定不一致，难查                  | 严格按 `tests/api/{domain}/{api_type}/`    |
-| Service fixture `scope="function"`        | 每个用例重建 session，性能差          | 用 `scope="class"` + `yield` + `close()` |
+| Service fixture `scope="function"`        | 每个用例重登录/重建 session，性能差       | 用 `scope="class"` + `service_factory(...) as svc: yield svc` |
 
 
