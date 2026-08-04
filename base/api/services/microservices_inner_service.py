@@ -1,8 +1,8 @@
-import logging
 from typing import Dict, Any
 
 from base import BaseService
 from config import get_env_config
+from core import get_logger
 from core.config import env_manager
 
 from base.api.entity.microservices import (
@@ -10,6 +10,8 @@ from base.api.entity.microservices import (
     MeshVS,
     MeshNode,
 )
+
+logger = get_logger(__name__)
 
 
 def _get_default_headers() -> Dict[str, str]:
@@ -27,13 +29,12 @@ def _get_default_headers() -> Dict[str, str]:
 
 class MicroservicesInnerService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str):
         """
         初始化 Panji Microservices InnerAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -46,11 +47,10 @@ class MicroservicesInnerService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="api_key",
             auth_credentials={"api_key": get_env_config().get("ms_apikey")},
         )
-        self.logger.info(f"Initializing PanJi Microservices InnerAPI Service with base_url: {self.base_url}")
+        logger.info(f"Initializing PanJi Microservices InnerAPI Service with base_url: {self.base_url}")
 
     # ==================== ISTIO网关内部接口 ====================
 
@@ -60,7 +60,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             check_info: 校验信息，数据类参数全都需要
         """
-        self.logger.info("KEM check")
+        logger.info("KEM check")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/kem/check"
         body = [
             {
@@ -105,7 +105,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: 创建数据，数据类参数全都需要
         """
-        self.logger.info("KEM create")
+        logger.info("KEM create")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/kem/create"
         body = [
             {
@@ -387,7 +387,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: Kem 删除数据
         """
-        self.logger.info("KEM delete")
+        logger.info("KEM delete")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/kem/delete"
         body = [
             {
@@ -450,7 +450,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: Kem 证书数据
         """
-        self.logger.info("Batch create secret")
+        logger.info("Batch create secret")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/kem/batchCreateSecret"
         body = [
             {
@@ -487,7 +487,7 @@ class MicroservicesInnerService(BaseService):
             - planeCode
             - clusterId
         """
-        self.logger.info("List virtual service")
+        logger.info("List virtual service")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/list"
         body = {
           "sysCode": data.sysCode,
@@ -508,7 +508,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("Get virtual service")
+        logger.info("Get virtual service")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/getVirtualService"
         body = {
             "sysCode": data.sysCode,
@@ -527,7 +527,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: Dict 虚拟服务数据
         """
-        self.logger.info("Add virtual service")
+        logger.info("Add virtual service")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/add"
         body = {
             "cellCode": data.cellCode,
@@ -572,7 +572,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete virtual service")
+        logger.info("Delete virtual service")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/delete"
         body = {
             "sysCode": data.sysCode,
@@ -589,7 +589,7 @@ class MicroservicesInnerService(BaseService):
         """
         查询网关配置名称
         """
-        self.logger.info("Get gateway name")
+        logger.info("Get gateway name")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v3/mesh/gateway/getGatewayName"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
@@ -600,7 +600,7 @@ class MicroservicesInnerService(BaseService):
         Args:
             data: MeshNode 查询参数
         """
-        self.logger.info("List node")
+        logger.info("List node")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v1/mesh/node/list"
         body = {
             "cellCode": data.cellCode,

@@ -30,10 +30,13 @@ import pytest
 
 from base.api.services.portal_open_service import PortalOpenService, PortalUserEntity
 from core.auth import TokenManager
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 @pytest.fixture(scope="session")
-def _login_fn(api_env, api_logger):
+def _login_fn(api_env):
     """登录回调工厂：接受 tenant_code，返回该租户的 token 字符串。
 
     - 使用未鉴权的 PortalOpenService 调用登录接口（token=None）
@@ -42,7 +45,6 @@ def _login_fn(api_env, api_logger):
     """
     portal = PortalOpenService(
         base_url=api_env["apiBaseUrl"],
-        logger=api_logger,
     )
 
     def _login(tenant: str) -> str:
@@ -59,7 +61,7 @@ def _login_fn(api_env, api_logger):
         assert isinstance(resp, dict), f"[{tenant}] 登录响应非 dict: {resp!r}"
         assert resp.get("code") == 200, f"[{tenant}] 登录失败: {resp}"
         assert resp.get("data"), f"[{tenant}] 登录响应缺少 data: {resp}"
-        api_logger.info(f"[Login] {tenant} success")
+        logger.info(f"[Login] {tenant} success")
         return resp["data"]
 
     yield _login
@@ -67,7 +69,7 @@ def _login_fn(api_env, api_logger):
 
 
 @pytest.fixture(scope="session")
-def service_factory(api_env, api_logger, _login_fn):
+def service_factory(api_env, _login_fn):
     """Service 构造工厂 + 租户绑定。
 
     调用签名：
@@ -77,7 +79,7 @@ def service_factory(api_env, api_logger, _login_fn):
     参数：
     - service_cls: Service 类（BaseService 子类），其 __init__ 需支持 `token` 关键字参数
     - tenant: 租户 code，用于从 TokenManager 获取或首次登录并缓存 token
-    - overrides: 可选覆盖 `base_url` / `logger`，或传递给 Service 的其他构造参数
+    - overrides: 可选覆盖 `base_url`，或传递给 Service 的其他构造参数
 
     session teardown 时会清理 TokenManager 中的全部 token 缓存。
     """
@@ -87,7 +89,6 @@ def service_factory(api_env, api_logger, _login_fn):
         token = TokenManager.get_or_login(tenant, _login_fn)
         service = service_cls(
             base_url=overrides.pop("base_url", api_env["apiBaseUrl"]),
-            logger=overrides.pop("logger", api_logger),
             token=token,
             **overrides,
         )

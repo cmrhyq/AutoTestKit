@@ -11,7 +11,9 @@ from typing import Any, Dict, List, Optional, Union
 from jsonschema import validate, ValidationError, Draft7Validator
 from jsonschema.exceptions import SchemaError
 
-from core.log.logger import TestLogger
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 class SchemaValidator:
@@ -50,11 +52,10 @@ class SchemaValidator:
         Args:
             schema_dir: Schema 文件目录路径，默认为项目根目录下的 schemas 目录
         """
-        self.logger = TestLogger.get_logger(self.__class__.__name__)
         self.schema_dir = Path(schema_dir) if schema_dir else Path("schemas")
         self._schema_cache: Dict[str, dict] = {}
         
-        self.logger.debug(f"SchemaValidator initialized with schema_dir: {self.schema_dir}")
+        logger.debug(f"SchemaValidator initialized with schema_dir: {self.schema_dir}")
     
     def validate(
         self, 
@@ -92,19 +93,19 @@ class SchemaValidator:
                     error_path = " -> ".join(str(p) for p in error.absolute_path) if error.absolute_path else "root"
                     error_msg = f"[{error_path}] {error.message}"
                     errors.append(error_msg)
-                    self.logger.warning(f"Schema validation error: {error_msg}")
+                    logger.warning(f"Schema validation error: {error_msg}")
                 
                 if raise_on_error:
                     raise ValidationError(f"Schema validation failed with {len(errors)} error(s)")
                 
                 return False, errors
             
-            self.logger.debug("Schema validation passed")
+            logger.debug("Schema validation passed")
             return True, []
             
         except SchemaError as e:
             error_msg = f"Invalid schema: {str(e)}"
-            self.logger.error(error_msg)
+            logger.error(error_msg)
             if raise_on_error:
                 raise
             return False, [error_msg]
@@ -146,7 +147,7 @@ class SchemaValidator:
         """
         # 检查缓存
         if schema_file in self._schema_cache:
-            self.logger.debug(f"Loading schema from cache: {schema_file}")
+            logger.debug(f"Loading schema from cache: {schema_file}")
             return self._schema_cache[schema_file]
         
         # 构建完整路径
@@ -160,23 +161,23 @@ class SchemaValidator:
             
             # 缓存 schema
             self._schema_cache[schema_file] = schema
-            self.logger.debug(f"Schema loaded from file: {schema_path}")
+            logger.debug(f"Schema loaded from file: {schema_path}")
             return schema
             
         except FileNotFoundError:
-            self.logger.error(f"Schema file not found: {schema_path}")
+            logger.error(f"Schema file not found: {schema_path}")
             return None
         except json.JSONDecodeError as e:
-            self.logger.error(f"Invalid JSON in schema file {schema_path}: {e}")
+            logger.error(f"Invalid JSON in schema file {schema_path}: {e}")
             return None
         except Exception as e:
-            self.logger.error(f"Failed to load schema from {schema_path}: {e}")
+            logger.error(f"Failed to load schema from {schema_path}: {e}")
             return None
     
     def clear_cache(self) -> None:
         """清除 schema 缓存"""
         self._schema_cache.clear()
-        self.logger.debug("Schema cache cleared")
+        logger.debug("Schema cache cleared")
 
 
 # =============================================================================

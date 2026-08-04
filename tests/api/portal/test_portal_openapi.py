@@ -13,7 +13,10 @@ from base.api.services.portal_open_service import (
     PortalOpenService,
     PortalUserEntity,
 )
+from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+logger = get_logger(__name__)
 
 @pytest.mark.api
 @pytest.mark.portal
@@ -51,7 +54,7 @@ class TestPortalOpenAPI:
     @allure.title("获取一级域")
     @allure.description("获取一级域列表数据")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_first_field_info(self, portal_open_service, api_cache, api_logger):
+    def test_get_first_field_info(self, portal_open_service, api_cache):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 GET 请求获取一级域"):
                 response_json = portal_open_service.get_first_field_info()
@@ -63,13 +66,13 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("缓存一级域id"):
                 api_cache.set("firstFieldId", response_json["data"][0]["systemId"])
-                api_logger.info(f"已缓存一级域Id: {response_json['data'][0]['systemId']}")
+                logger.info(f"已缓存一级域Id: {response_json['data'][0]['systemId']}")
 
     @pytest.mark.dependency()
     @allure.title("获取二级域")
     @allure.description("获取二级域列表数据")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_second_field_info(self, portal_open_service, api_cache, api_logger):
+    def test_get_second_field_info(self, portal_open_service, api_cache):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 GET 请求获取二级域"):
                 response_json = portal_open_service.get_second_field_info()
@@ -81,7 +84,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("缓存二级域id"):
                 api_cache.set("secondFieldId", response_json["data"][0]["moduleId"])
-                api_logger.info(f"已缓存二级域Id: {response_json['data'][0]['moduleId']}")
+                logger.info(f"已缓存二级域Id: {response_json['data'][0]['moduleId']}")
 
     # ==================== 集群平面单元 CRUD ====================
 
@@ -101,7 +104,7 @@ class TestPortalOpenAPI:
     @allure.title("查询集群平面单元")
     @allure.description("根据prodInstName查询集群平面单元并缓存instanceId")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_query_cluster_plane(self, portal_open_service, public_params, api_cache, api_logger):
+    def test_query_cluster_plane(self, portal_open_service, public_params, api_cache):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 GET 请求查询集群平面单元"):
                 cluster = ClusterPlaneEntity(prod_inst_name=public_params["prod_inst_name"])
@@ -114,7 +117,7 @@ class TestPortalOpenAPI:
             with AllureHelper.step("缓存instanceId"):
                 instance_id = response_json["data"]["list"][0]["instanceId"]
                 api_cache.set("instanceId", instance_id)
-                api_logger.info(f"已缓存instanceId: {instance_id}")
+                logger.info(f"已缓存instanceId: {instance_id}")
 
     @allure.title("修改集群平面单元")
     @allure.description("修改已创建的集群平面单元")
@@ -252,7 +255,7 @@ class TestPortalOpenAPI:
     @allure.title("创建系统")
     @allure.description("创建新系统（cleanup fixture 已保证系统不存在）")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_create_system(self, portal_open_service, public_params, api_cache, api_logger):
+    def test_create_system(self, portal_open_service, public_params, api_cache):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求创建系统"):
                 system = OpenSystemEntity(
@@ -272,7 +275,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("缓存创建结果"):
                 api_cache.set("createSystemCode", response_json["code"])
-                api_logger.info(f"系统创建成功，code: {response_json['code']}")
+                logger.info(f"系统创建成功，code: {response_json['code']}")
 
     @allure.title("系统资源配额分配")
     @allure.description("为新创建的系统分配资源配额（CPU/内存）")
@@ -296,7 +299,7 @@ class TestPortalOpenAPI:
     @allure.title("创建后查询系统ID")
     @allure.description("创建系统后再次查询以获取systemId")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_query_system_id_after_create(self, portal_open_service, api_cache, api_logger):
+    def test_query_system_id_after_create(self, portal_open_service, api_cache):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 POST 请求查询系统"):
                 response_json = portal_open_service.query_system(self.SYSTEM_CODE)
@@ -310,7 +313,7 @@ class TestPortalOpenAPI:
                 for item in data_list:
                     if item["systemCode"] == self.SYSTEM_CODE:
                         api_cache.set("systemId1", item["systemId"])
-                        api_logger.info(f"已缓存systemId1: {item['systemId']}")
+                        logger.info(f"已缓存systemId1: {item['systemId']}")
                         break
 
     # ==================== 应用管理 ====================
@@ -318,7 +321,7 @@ class TestPortalOpenAPI:
     @allure.title("创建应用")
     @allure.description("在系统下创建新应用")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_create_application(self, portal_open_service, api_cache, api_logger):
+    def test_create_application(self, portal_open_service, api_cache):
         system_id = api_cache.get("systemId1")
         if not system_id:
             pytest.skip("未获取到systemId1，跳过创建应用")
@@ -340,7 +343,7 @@ class TestPortalOpenAPI:
             with AllureHelper.step("缓存applicationSourceId"):
                 app_id = response_json["data"]["applicationSourceId"]
                 api_cache.set("applicationSourceId", app_id)
-                api_logger.info(f"已缓存applicationSourceId: {app_id}")
+                logger.info(f"已缓存applicationSourceId: {app_id}")
 
     # ==================== 授权管理 ====================
 
@@ -461,7 +464,7 @@ class TestPortalOpenAPI:
     @allure.title("系统资源配额详情")
     @allure.description("查询系统资源配额详情")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_system_resource_quota_detail(self, portal_open_service, public_params, api_cache, api_logger):
+    def test_system_resource_quota_detail(self, portal_open_service, public_params, api_cache):
         with AllureHelper.api_test(portal_open_service):
             with AllureHelper.step("发送 GET 请求查询系统资源配额详情"):
                 code_entity = BasicCodeEntity(
@@ -479,7 +482,7 @@ class TestPortalOpenAPI:
                 if response_json.get("data"):
                     cpu_total = response_json["data"].get("cpuTotal", 0)
                     api_cache.set("cpuTotal", cpu_total)
-                    api_logger.info(f"已缓存cpuTotal: {cpu_total}")
+                    logger.info(f"已缓存cpuTotal: {cpu_total}")
 
     # ==================== 清理：删除资源 ====================
 

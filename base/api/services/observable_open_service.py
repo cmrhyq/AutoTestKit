@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Any, Optional
 
 from base import BaseService
@@ -8,17 +7,19 @@ from base.api.entity.observable import (
     LogContext,
     QueryModelConf,
 )
+from core import get_logger
+
+logger = get_logger(__name__)
 
 
 class ObservableOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
+    def __init__(self, base_url: str, token: Optional[str] = None):
         """
         初始化 Panji Observable OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
             token: Bearer Token（必传，由 service_factory 从 TokenManager 注入）
 
         Raises:
@@ -32,11 +33,10 @@ class ObservableOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="bearer" if token else None,
             auth_credentials={"token": token} if token else None,
         )
-        self.logger.info(f"Initializing PanJi Observable OpenAPI Service with base_url: {self.base_url}")
+        logger.info(f"Initializing PanJi Observable OpenAPI Service with base_url: {self.base_url}")
 
     # ==================== observable-log 日志相关接口 ====================
 
@@ -47,7 +47,7 @@ class ObservableOpenService(BaseService):
         Args:
             log: 日志数据类
         """
-        self.logger.info(f"Query log by quadruple: {log.namespace}/{log.cluster_name}/{log.pod_name}/{log.container_name}")
+        logger.info(f"Query log by quadruple: {log.namespace}/{log.cluster_name}/{log.pod_name}/{log.container_name}")
         url = "/openapi/monitor-o11y/webgate-log-console/3rd/log/query"
         params = {
             "resource.k8s.namespace": log.namespace,
@@ -70,7 +70,7 @@ class ObservableOpenService(BaseService):
         Args:
             request_id: 请求ID
         """
-        self.logger.info(f"Pull log by request_id: {request_id}")
+        logger.info(f"Pull log by request_id: {request_id}")
         url = "/openapi/monitor-o11y/webgate-log-console/3rd/log/pull"
         params = {"requestId": request_id}
         response = self.get(endpoint=url, params=params)
@@ -83,7 +83,7 @@ class ObservableOpenService(BaseService):
         Args:
             context：日志上下文
         """
-        self.logger.info(f"Query log context, id: {context.log_id}")
+        logger.info(f"Query log context, id: {context.log_id}")
         url = "/openapi/monitor-o11y/webgate-log-console/3rd/log/context"
         params = {
             "_id": context.log_id,
@@ -108,7 +108,7 @@ class ObservableOpenService(BaseService):
         Args:
             request_id: 上下文请求ID
         """
-        self.logger.info(f"Pull log context by request_id: {request_id}")
+        logger.info(f"Pull log context by request_id: {request_id}")
         url = "/openapi/monitor-o11y/webgate-log-console/3rd/log/context/pull"
         params = {"requestId": request_id}
         response = self.get(endpoint=url, params=params)
@@ -123,7 +123,7 @@ class ObservableOpenService(BaseService):
         Args:
             config: 查询配置
         """
-        self.logger.info(f"Query models, page: {config.page}, per_page: {config.per_page}")
+        logger.info(f"Query models, page: {config.page}, per_page: {config.per_page}")
         url = "/openapi/monitor-o11y/amdb-console/publish/v3/confs/models"
         params = {
             "page": config.page,
@@ -144,7 +144,7 @@ class ObservableOpenService(BaseService):
         Args:
             model_id_or_name: 模型ID或名称
         """
-        self.logger.info(f"Get model by id or name: {model_id_or_name}")
+        logger.info(f"Get model by id or name: {model_id_or_name}")
         url = f"/openapi/monitor-o11y/amdb-console/publish/v3/confs/models/{model_id_or_name}"
         response = self.get(endpoint=url)
         return response.json()
@@ -156,7 +156,7 @@ class ObservableOpenService(BaseService):
         Args:
             query: 查询条件对象
         """
-        self.logger.info("Search conf items")
+        logger.info("Search conf items")
         url = "/openapi/monitor-o11y/amdb-console/publish/v3/confs/search/conf-items"
         response = self.post(endpoint=url, json=query)
         return response.json()

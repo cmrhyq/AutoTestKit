@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Any, Optional
 
 from base import BaseService
@@ -11,17 +10,20 @@ from base.api.entity.microservices import (
     IngressIns,
     GatewayInstance,
 )
+from core import get_logger
+
+logger = get_logger(__name__)
 
 
 class MicroservicesOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
+    def __init__(self, base_url: str, token: Optional[str] = None):
         """
         初始化 Panji Microservices OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
+            token: Bearer Token
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -34,11 +36,10 @@ class MicroservicesOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="bearer" if token else None,
             auth_credentials={"token": token} if token else None,
         )
-        self.logger.info(f"Initializing PanJi Microservices OpenAPI Service with base_url: {self.base_url}")
+        logger.info(f"Initializing PanJi Microservices OpenAPI Service with base_url: {self.base_url}")
 
     # ==================== ingressnginx Ingress网关实例相关接口 ====================
 
@@ -48,7 +49,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Ingress 网关实例数据，数据类参数全必填
         """
-        self.logger.info("Add ingress gateway instance")
+        logger.info("Add ingress gateway instance")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/add"
         body = {
             "name": data.name,
@@ -84,7 +85,7 @@ class MicroservicesOpenService(BaseService):
             - system_code: str 系统编码
             - unit_code: str 单元编码
         """
-        self.logger.info(f"Get ingress instance by code: {data.code}")
+        logger.info(f"Get ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/detailCode"
         payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
         response = self.post(endpoint=url, json=payload)
@@ -99,7 +100,7 @@ class MicroservicesOpenService(BaseService):
             - system_code: str 系统编码
             - unit_code: str 单元编码
         """
-        self.logger.info(f"Delete ingress instance by code: {data.code}")
+        logger.info(f"Delete ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/deleteCode"
         payload = {"code": data.code, "systemCode": data.sysCode, "unitCode": data.unitCode}
         response = self.post(endpoint=url, json=payload)
@@ -116,7 +117,7 @@ class MicroservicesOpenService(BaseService):
             - unitCode: 单元编码
             - softControllerId
         """
-        self.logger.info("Add ingress gateway config")
+        logger.info("Add ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/add"
         body = {
             "systemCode": data.sysCode,
@@ -152,7 +153,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("List ingress gateway config")
+        logger.info("List ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/list"
         body = {
             "name": data.name,
@@ -174,7 +175,7 @@ class MicroservicesOpenService(BaseService):
             - unitCode: 单元编码
             - softControllerId
         """
-        self.logger.info("Update ingress gateway config")
+        logger.info("Update ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/update"
         body = {
             "systemCode": data.sysCode,
@@ -211,7 +212,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("Get ingress gateway config detail")
+        logger.info("Get ingress gateway config detail")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/detail"
         body = {
             "name": data.name,
@@ -229,7 +230,7 @@ class MicroservicesOpenService(BaseService):
             data: 网关配置，必填：
             -
         """
-        self.logger.info("Get ingress by service name")
+        logger.info("Get ingress by service name")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/getIngressByServiceName"
         body = {
             "systemCode": data.sysCode,
@@ -249,7 +250,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete ingress gateway config")
+        logger.info("Delete ingress gateway config")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/deleteCode"
         body = {
             "name": data.name,
@@ -268,7 +269,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: NginxParam 参数模板数据
         """
-        self.logger.info("Add nginx param template")
+        logger.info("Add nginx param template")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/add"
         body = {
             "loadType": data.loadType,
@@ -289,7 +290,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: NginxParam 更新数据
         """
-        self.logger.info("Update nginx param template")
+        logger.info("Update nginx param template")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/update"
         body = {
             "loadType": data.loadType,
@@ -310,7 +311,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             param_type: str 参数类型，默认All
         """
-        self.logger.info("Query all nginx param templates")
+        logger.info("Query all nginx param templates")
         url = f"/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/queryAll?type={param_type}"
         response = self.get(endpoint=url)
         return response.json()
@@ -321,7 +322,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: NginxParamStatus 状态更新数据
         """
-        self.logger.info("Update nginx param status")
+        logger.info("Update nginx param status")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/updateStatus"
         body = {
             "id": data.id,
@@ -340,7 +341,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: NginxParamStatus 分页查询参数
         """
-        self.logger.info("List nginx param templates")
+        logger.info("List nginx param templates")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/list"
         body = {
             "id": data.id,
@@ -360,7 +361,7 @@ class MicroservicesOpenService(BaseService):
             code: str 参数模板编码
             param_type: str 参数类型
         """
-        self.logger.info(f"Delete nginx param by code: {code}")
+        logger.info(f"Delete nginx param by code: {code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/deleteCode"
         payload = {"code": code, "type": param_type}
         response = self.post(endpoint=url, json=payload)
@@ -372,7 +373,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: IngressIns 分页查询参数
         """
-        self.logger.info("List ingress instances")
+        logger.info("List ingress instances")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/list"
         body = {
             "systemCode": data.systemCode,
@@ -391,7 +392,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 更新数据
         """
-        self.logger.info("Update ingress instance")
+        logger.info("Update ingress instance")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/update"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -407,7 +408,7 @@ class MicroservicesOpenService(BaseService):
             - system_code: str 系统编码
             - unit_code: str 单元编码
         """
-        self.logger.info(f"Start ingress instance by code: {data.code}")
+        logger.info(f"Start ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/startCode"
         payload = {
             "code": data.code,
@@ -426,7 +427,7 @@ class MicroservicesOpenService(BaseService):
             - system_code: str 系统编码
             - unit_code: str 单元编码
         """
-        self.logger.info(f"Stop ingress instance by code: {data.code}")
+        logger.info(f"Stop ingress instance by code: {data.code}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/stopCode"
         payload = {
             "code": data.code,
@@ -444,7 +445,7 @@ class MicroservicesOpenService(BaseService):
             deploy_type: str 部署类型
             replicas: int 副本数
         """
-        self.logger.info(f"Scale ingress instance: {instance_id}")
+        logger.info(f"Scale ingress instance: {instance_id}")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/scale"
         payload = {
             "id": instance_id,
@@ -462,7 +463,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 网关实例数据
         """
-        self.logger.info("Add gateway instance")
+        logger.info("Add gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/add"
         body = {
             "cellCode": data.cellCode,
@@ -488,7 +489,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("Get gateway instance")
+        logger.info("Get gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/getGatewayInstance"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -499,7 +500,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 分页查询参数
         """
-        self.logger.info("List gateway instances")
+        logger.info("List gateway instances")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/list"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -510,7 +511,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 更新数据
         """
-        self.logger.info("Update gateway instance")
+        logger.info("Update gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/update"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -521,7 +522,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 分页查询参数
         """
-        self.logger.info("List ingress and egress gateway instances")
+        logger.info("List ingress and egress gateway instances")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/ingressEgressList"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -532,7 +533,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 网关规则数据
         """
-        self.logger.info("Add gateway rule")
+        logger.info("Add gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/add"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -543,7 +544,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 分页查询参数
         """
-        self.logger.info("List gateway rules")
+        logger.info("List gateway rules")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/list"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -554,7 +555,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("Get gateway rule")
+        logger.info("Get gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/getGateway"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -565,7 +566,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 更新数据
         """
-        self.logger.info("Update gateway rule")
+        logger.info("Update gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/update"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -579,7 +580,7 @@ class MicroservicesOpenService(BaseService):
             control_plane_code: str 控制面编码
             funcsers: list 服务列表
         """
-        self.logger.info("Batch add funcser")
+        logger.info("Batch add funcser")
         url = "/openapi/ms-ubm/microservice-ubm/v2/funcser/batch"
         payload = {"controlPlaneCode": control_plane_code, "funcsers": funcsers}
         response = self.post(endpoint=url, json=payload)
@@ -593,7 +594,7 @@ class MicroservicesOpenService(BaseService):
             application_code: str 应用编码
             funcser_codes: list 服务编码列表
         """
-        self.logger.info("Batch get funcser")
+        logger.info("Batch get funcser")
         url = "/openapi/ms-ubm/microservice-ubm/v2/funcser/batch"
         params = {
             "controlPlaneCode": control_plane_code,
@@ -609,7 +610,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 降级配置数据
         """
-        self.logger.info("Add CMF degrade config")
+        logger.info("Add CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -622,7 +623,7 @@ class MicroservicesOpenService(BaseService):
             env_code: str 环境编码
             func_ser_name: str 服务名称
         """
-        self.logger.info("Get CMF degrade detail")
+        logger.info("Get CMF degrade detail")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/detail"
         payload = {"controlPlaneName": control_plane_name, "envCode": env_code, "funcSerName": func_ser_name}
         response = self.post(endpoint=url, json=payload)
@@ -634,7 +635,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 更新数据
         """
-        self.logger.info("Update CMF degrade config")
+        logger.info("Update CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/update"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -645,7 +646,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 状态更新数据
         """
-        self.logger.info("Update CMF degrade state")
+        logger.info("Update CMF degrade state")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/updateState"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -656,7 +657,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete CMF degrade config")
+        logger.info("Delete CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/delete"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -667,7 +668,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 熔断配置数据
         """
-        self.logger.info("Add CMF circuit breaking config")
+        logger.info("Add CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -680,7 +681,7 @@ class MicroservicesOpenService(BaseService):
             env_code: str 环境编码
             func_ser_name: str 服务名称
         """
-        self.logger.info("Get CMF circuit breaking detail")
+        logger.info("Get CMF circuit breaking detail")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/detail"
         payload = {"controlPlaneName": control_plane_name, "envCode": env_code, "funcSerName": func_ser_name}
         response = self.post(endpoint=url, json=payload)
@@ -692,7 +693,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 更新数据
         """
-        self.logger.info("Update CMF circuit breaking config")
+        logger.info("Update CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/update"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -703,7 +704,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 状态更新数据
         """
-        self.logger.info("Update CMF circuit breaking state")
+        logger.info("Update CMF circuit breaking state")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/updateState"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -714,7 +715,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete CMF circuit breaking config")
+        logger.info("Delete CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/delete"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -725,7 +726,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("List virtualservice by gateway config")
+        logger.info("List virtualservice by gateway config")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/listByGatewayConfig"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -736,7 +737,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 虚拟服务数据
         """
-        self.logger.info("Add virtual service (openapi)")
+        logger.info("Add virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/add"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -747,7 +748,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 查询参数
         """
-        self.logger.info("Get virtual service (openapi)")
+        logger.info("Get virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/getVirtualService"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -758,7 +759,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 更新数据
         """
-        self.logger.info("Update virtual service (openapi)")
+        logger.info("Update virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/update"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -769,7 +770,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 分页查询参数
         """
-        self.logger.info("List virtual service (openapi)")
+        logger.info("List virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/list"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -780,7 +781,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete virtual service (openapi)")
+        logger.info("Delete virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/delete"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -791,7 +792,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete gateway rule")
+        logger.info("Delete gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/delete"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -802,7 +803,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 删除参数
         """
-        self.logger.info("Delete gateway instance")
+        logger.info("Delete gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/delete"
         response = self.post(endpoint=url, json=data)
         return response.json()
@@ -813,7 +814,7 @@ class MicroservicesOpenService(BaseService):
         """
         查询平面单元列表
         """
-        self.logger.info("Get cells list")
+        logger.info("Get cells list")
         url = "/openapi/ms-ubm/microservice-ubm/v2/cells"
         response = self.get(endpoint=url)
         return response.json()
@@ -822,7 +823,7 @@ class MicroservicesOpenService(BaseService):
         """
         查询租户信息
         """
-        self.logger.info("Get tenant detail")
+        logger.info("Get tenant detail")
         url = "/openapi/ms-ubm/microservice-ubm/v2/tenant/detail"
         response = self.get(endpoint=url)
         return response.json()
@@ -834,7 +835,7 @@ class MicroservicesOpenService(BaseService):
             control_plane_code: str 控制面编码
             strategies: list 策略列表
         """
-        self.logger.info("Batch add strategy")
+        logger.info("Batch add strategy")
         url = "/openapi/ms-ubm/microservice-ubm/v2/strategy/batch"
         payload = {"controlPlaneCode": control_plane_code, "strategies": strategies}
         response = self.post(endpoint=url, json=payload)
@@ -846,7 +847,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             data: Dict 状态更新数据
         """
-        self.logger.info("Batch update strategy status")
+        logger.info("Batch update strategy status")
         url = "/openapi/ms-ubm/microservice-ubm/v2/strategy/clusterstatus"
         response = self.put(endpoint=url, json=data)
         return response.json()
@@ -857,7 +858,7 @@ class MicroservicesOpenService(BaseService):
         Args:
             batch_code: str 批次编码
         """
-        self.logger.info(f"Get strategy batch detail: {batch_code}")
+        logger.info(f"Get strategy batch detail: {batch_code}")
         url = f"/openapi/ms-ubm/microservice-ubm/v2/strategy/batch/detail/{batch_code}"
         response = self.get(endpoint=url)
         return response.json()

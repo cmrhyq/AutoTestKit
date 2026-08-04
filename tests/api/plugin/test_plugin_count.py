@@ -10,7 +10,10 @@ import allure
 import pytest
 
 from base.api.services.plugin_inner_service import PluginInnerService
+from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+logger = get_logger(__name__)
 
 @pytest.mark.api
 @pytest.mark.plugin
@@ -22,10 +25,10 @@ class TestPluginCount:
     TENANT = "tenant_admin"
 
     @pytest.fixture(scope="class")
-    def plugin_inner_service(self, api_env, api_logger):
+    def plugin_inner_service(self, api_env):
         """创建 Plugin Inner API 服务实例"""
         service = PluginInnerService(
-            base_url=api_env.get("apiInnerBaseUrl"), logger=api_logger
+            base_url=api_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()

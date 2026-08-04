@@ -26,10 +26,12 @@ K8s 集群级资源 / 命名空间配额：
 - RBAC_V2.jmx           （4）
 - pvc-pv.jmx（标准 K8s 路径 /persistentvolumeclaims /persistentvolumes）（12）
 """
-import logging
 from typing import Any, Dict, Optional
 
 from base import BaseService
+from core import get_logger
+
+logger = get_logger(__name__)
 
 
 class ElasticComputeOpenService(BaseService):
@@ -40,13 +42,12 @@ class ElasticComputeOpenService(BaseService):
     - base_url 由 api_env["apiBaseUrl"] 提供（必传，不再硬编码默认值）
     """
 
-    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
+    def __init__(self, base_url: str, token: Optional[str] = None):
         """
         初始化 PanJi 弹性计算 OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
             token: Bearer Token（必传，由 service_factory 从 TokenManager 注入）
 
         Raises:
@@ -60,11 +61,10 @@ class ElasticComputeOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="bearer" if token else None,
             auth_credentials={"token": token} if token else None,
         )
-        self.logger.info(
+        logger.info(
             f"Initializing PanJi ElasticCompute OpenAPI Service with base_url: {self.base_url}"
         )
 
@@ -77,7 +77,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_cluster_获取paas系统下集群列表信息的接口
         GET /openapi/elastic-compute/v1/clusters/info
         """
-        self.logger.info("List elastic-compute clusters info v1")
+        logger.info("List elastic-compute clusters info v1")
         url = "/openapi/elastic-compute/v1/clusters/info"
         response = self.get(endpoint=url)
         return response.json()
@@ -89,7 +89,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_cluster_获取运行面集群信息列表V2
         GET /openapi/elastic-compute/v2/clusters/info
         """
-        self.logger.info("List elastic-compute clusters info v2")
+        logger.info("List elastic-compute clusters info v2")
         url = "/openapi/elastic-compute/v2/clusters/info"
         response = self.get(endpoint=url)
         return response.json()
@@ -106,7 +106,7 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
         """
-        self.logger.info(f"List namespaces of cell: {cell_code}")
+        logger.info(f"List namespaces of cell: {cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems"
         response = self.get(endpoint=url)
         return response.json()
@@ -122,7 +122,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             sys_code: 系统编码
         """
-        self.logger.info(f"Get namespace detail: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Get namespace detail: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
         response = self.get(endpoint=url)
         return response.json()
@@ -136,7 +136,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询集群配额信息
         GET /openapi/elastic-compute/v2/metrics/clusterQuota
         """
-        self.logger.info("List elastic-compute cluster quota metrics")
+        logger.info("List elastic-compute cluster quota metrics")
         url = "/openapi/elastic-compute/v2/metrics/clusterQuota"
         response = self.get(endpoint=url)
         return response.json()
@@ -148,7 +148,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询租户配额信息
         GET /openapi/elastic-compute/v2/metrics/tenantQuota
         """
-        self.logger.info("List elastic-compute tenant quota metrics")
+        logger.info("List elastic-compute tenant quota metrics")
         url = "/openapi/elastic-compute/v2/metrics/tenantQuota"
         response = self.get(endpoint=url)
         return response.json()
@@ -160,7 +160,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询集群资源信息
         GET /openapi/elastic-compute/v2/metrics/clusterResource
         """
-        self.logger.info("List elastic-compute cluster resource metrics")
+        logger.info("List elastic-compute cluster resource metrics")
         url = "/openapi/elastic-compute/v2/metrics/clusterResource"
         response = self.get(endpoint=url)
         return response.json()
@@ -172,7 +172,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询中间件信息
         GET /openapi/elastic-compute/v2/metrics/middlewareInfo
         """
-        self.logger.info("List elastic-compute middleware info metrics")
+        logger.info("List elastic-compute middleware info metrics")
         url = "/openapi/elastic-compute/v2/metrics/middlewareInfo"
         response = self.get(endpoint=url)
         return response.json()
@@ -184,7 +184,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_elastic-computer-resource-collection_查询应用/组件系统配额信息
         GET /openapi/elastic-compute/v2/metrics/systemQuota
         """
-        self.logger.info("List elastic-compute system quota metrics")
+        logger.info("List elastic-compute system quota metrics")
         url = "/openapi/elastic-compute/v2/metrics/systemQuota"
         response = self.get(endpoint=url)
         return response.json()
@@ -202,7 +202,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             name: Node 名（如 IP）
         """
-        self.logger.info(f"Get node detail: cell={cell_code}, name={name}")
+        logger.info(f"Get node detail: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
         response = self.get(endpoint=url)
         return response.json()
@@ -217,7 +217,7 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
         """
-        self.logger.info(f"List nodes of cell: {cell_code}")
+        logger.info(f"List nodes of cell: {cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes"
         response = self.get(endpoint=url)
         return response.json()
@@ -239,7 +239,7 @@ class ElasticComputeOpenService(BaseService):
             name: Node 名
             payload: patch body（strategic merge patch）
         """
-        self.logger.info(f"Patch node: cell={cell_code}, name={name}")
+        logger.info(f"Patch node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
         response = self.patch(endpoint=url, json=payload)
         return response.json()
@@ -261,7 +261,7 @@ class ElasticComputeOpenService(BaseService):
             name: Node 名
             payload: 完整 Node 对象
         """
-        self.logger.info(f"Update node: cell={cell_code}, name={name}")
+        logger.info(f"Update node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
         response = self.put(endpoint=url, json=payload)
         return response.json()
@@ -280,7 +280,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: PVC 名称
         """
-        self.logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
         response = self.get(endpoint=url)
         return response.json()
@@ -302,7 +302,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             payload: PVC 资源定义（K8s PersistentVolumeClaim 对象）
         """
-        self.logger.info(f"Create PVC: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create PVC: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
         response = self.post(endpoint=url, json=payload)
         return response.json()
@@ -319,7 +319,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: PVC 名称
         """
-        self.logger.info(f"Delete PVC: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete PVC: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
         response = self.delete(endpoint=url)
         return response.json()
@@ -335,7 +335,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             sys_code: 系统编码
         """
-        self.logger.info(f"List PVC: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List PVC: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
         response = self.get(endpoint=url)
         return response.json()
@@ -350,7 +350,7 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
         """
-        self.logger.info(f"List all cluster PVC: cell={cell_code}")
+        logger.info(f"List all cluster PVC: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pvc"
         response = self.get(endpoint=url)
         return response.json()
@@ -368,7 +368,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             pv_name: PV 名称
         """
-        self.logger.info(f"Get PV: cell={cell_code}, name={pv_name}")
+        logger.info(f"Get PV: cell={cell_code}, name={pv_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pv/{pv_name}"
         response = self.get(endpoint=url)
         return response.json()
@@ -386,7 +386,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             storage_class_name: StorageClass 名称
         """
-        self.logger.info(f"Get StorageClass: cell={cell_code}, name={storage_class_name}")
+        logger.info(f"Get StorageClass: cell={cell_code}, name={storage_class_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/storageClass/{storage_class_name}"
         response = self.get(endpoint=url)
         return response.json()
@@ -395,13 +395,13 @@ class ElasticComputeOpenService(BaseService):
 
     def get_configmap(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """查询指定 configmap。GET /openapi/elastic-compute/v2/cells/{c}/systems/{s}/configmaps/{name}"""
-        self.logger.info(f"Get configmap: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
         return self.get(endpoint=url).json()
 
     def delete_configmap(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除指定 configmap。DELETE /.../configmaps/{name}"""
-        self.logger.info(f"Delete configmap: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
         return self.delete(endpoint=url).json()
 
@@ -409,19 +409,19 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 configmap 请求。POST /.../configmaps"""
-        self.logger.info(f"Create configmap: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create configmap: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps"
         return self.post(endpoint=url, json=payload).json()
 
     def list_configmaps_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询 cm 列表请求。GET /.../configmaps"""
-        self.logger.info(f"List configmaps by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List configmaps by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps"
         return self.get(endpoint=url).json()
 
     def list_configmaps_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群所有 cm 列表请求。GET /openapi/elastic-compute/v2/cells/{c}/configmaps"""
-        self.logger.info(f"List configmaps by cell: cell={cell_code}")
+        logger.info(f"List configmaps by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/configmaps"
         return self.get(endpoint=url).json()
 
@@ -429,7 +429,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新指定 configmap。PUT /.../configmaps/{name}"""
-        self.logger.info(f"Update configmap: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -437,7 +437,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新指定 configmap。PATCH /.../configmaps/{name}"""
-        self.logger.info(f"Patch configmap: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
         return self.patch(endpoint=url, json=payload).json()
 
@@ -445,13 +445,13 @@ class ElasticComputeOpenService(BaseService):
 
     def get_secret(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """查询 Secret。GET /.../secrets/{name}"""
-        self.logger.info(f"Get secret: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
         return self.get(endpoint=url).json()
 
     def delete_secret(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除 Secret。DELETE /.../secrets/{name}"""
-        self.logger.info(f"Delete secret: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
         return self.delete(endpoint=url).json()
 
@@ -459,19 +459,19 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 Secret。POST /.../secrets"""
-        self.logger.info(f"Create secret: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create secret: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets"
         return self.post(endpoint=url, json=payload).json()
 
     def list_secrets_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询指定命名空间下的 Secret 列表。GET /.../secrets"""
-        self.logger.info(f"List secrets by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List secrets by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets"
         return self.get(endpoint=url).json()
 
     def list_secrets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 Secret 列表。GET /openapi/elastic-compute/v2/cells/{c}/secrets"""
-        self.logger.info(f"List secrets by cell: cell={cell_code}")
+        logger.info(f"List secrets by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/secrets"
         return self.get(endpoint=url).json()
 
@@ -479,7 +479,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 Secret。PUT /.../secrets/{name}"""
-        self.logger.info(f"Update secret: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -487,7 +487,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新 Secret。PATCH /.../secrets/{name}"""
-        self.logger.info(f"Patch secret: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
         return self.patch(endpoint=url, json=payload).json()
 
@@ -495,13 +495,13 @@ class ElasticComputeOpenService(BaseService):
 
     def get_service(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """查询 Service。GET /.../services/{name}"""
-        self.logger.info(f"Get service: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
         return self.get(endpoint=url).json()
 
     def delete_service(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除 Service。DELETE /.../services/{name}"""
-        self.logger.info(f"Delete service: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
         return self.delete(endpoint=url).json()
 
@@ -509,19 +509,19 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 Service。POST /.../services"""
-        self.logger.info(f"Create service: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create service: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services"
         return self.post(endpoint=url, json=payload).json()
 
     def list_services_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询指定命名空间下的 Service 列表。GET /.../services"""
-        self.logger.info(f"List services by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List services by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services"
         return self.get(endpoint=url).json()
 
     def list_services_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 Service 列表。GET /openapi/elastic-compute/v2/cells/{c}/services"""
-        self.logger.info(f"List services by cell: cell={cell_code}")
+        logger.info(f"List services by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/services"
         return self.get(endpoint=url).json()
 
@@ -529,7 +529,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 Service。PUT /.../services/{name}"""
-        self.logger.info(f"Update service: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -537,7 +537,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新 Service。PATCH /.../services/{name}"""
-        self.logger.info(f"Patch service: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
         return self.patch(endpoint=url, json=payload).json()
 
@@ -545,13 +545,13 @@ class ElasticComputeOpenService(BaseService):
 
     def list_service_accounts_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 ServiceAccount 列。GET /.../serviceaccounts"""
-        self.logger.info(f"List service accounts by cell: cell={cell_code}")
+        logger.info(f"List service accounts by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/serviceaccounts"
         return self.get(endpoint=url).json()
 
     def list_service_accounts_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询 ServiceAccount 列。GET /.../serviceaccounts"""
-        self.logger.info(f"List service accounts by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List service accounts by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/serviceaccounts"
         return self.get(endpoint=url).json()
 
@@ -559,7 +559,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """查询 ServiceAccount。GET /.../serviceaccounts/{name}"""
-        self.logger.info(f"Get service account: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get service account: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/serviceaccounts/{name}"
@@ -570,7 +570,7 @@ class ElasticComputeOpenService(BaseService):
 
     def list_endpoints(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询 Endpoints 列表。GET /.../endpoints"""
-        self.logger.info(f"List endpoints: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List endpoints: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/endpoints"
         return self.get(endpoint=url).json()
 
@@ -578,7 +578,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """查询 Endpoints。GET /.../endpoints/{name}"""
-        self.logger.info(f"Get endpoints: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get endpoints: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/endpoints/{name}"
         return self.get(endpoint=url).json()
 
@@ -586,20 +586,20 @@ class ElasticComputeOpenService(BaseService):
 
     def list_limitranges_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 LimitRange。GET /openapi/elastic-compute/v2/cells/{c}/limitranges"""
-        self.logger.info(f"List limitranges by cell: cell={cell_code}")
+        logger.info(f"List limitranges by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/limitranges",
         ).json()
 
     def list_limitranges_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询命名空间下 LimitRange。GET /.../limitranges"""
-        self.logger.info(f"List limitranges by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List limitranges by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/limitranges"
         return self.get(endpoint=url).json()
 
     def get_limitrange(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """查询 LimitRange。GET /.../limitranges/{name}"""
-        self.logger.info(f"Get limitrange: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get limitrange: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
@@ -610,7 +610,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 LimitRange。POST /.../limitranges"""
-        self.logger.info(f"Create limitrange: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create limitrange: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/limitranges"
         return self.post(endpoint=url, json=payload).json()
 
@@ -618,7 +618,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 LimitRange。PUT /.../limitranges/{name}"""
-        self.logger.info(f"Update limitrange: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update limitrange: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
@@ -629,7 +629,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新 LimitRange。PATCH /.../limitranges/{name}"""
-        self.logger.info(f"Patch limitrange: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch limitrange: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
@@ -638,7 +638,7 @@ class ElasticComputeOpenService(BaseService):
 
     def delete_limitrange(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """删除 LimitRange。DELETE /.../limitranges/{name}"""
-        self.logger.info(f"Delete limitrange: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete limitrange: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitranges/{name}"
@@ -649,14 +649,14 @@ class ElasticComputeOpenService(BaseService):
 
     def list_resource_quotas_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 ResourceQuota。GET /.../resourcequotas"""
-        self.logger.info(f"List resourcequotas by cell: cell={cell_code}")
+        logger.info(f"List resourcequotas by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/resourcequotas",
         ).json()
 
     def list_resource_quotas_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询命名空间 ResourceQuota。GET /.../resourcequotas"""
-        self.logger.info(f"List resourcequotas by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List resourcequotas by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourcequotas"
         return self.get(endpoint=url).json()
 
@@ -664,7 +664,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """查询 ResourceQuota。GET /.../resourcequotas/{name}"""
-        self.logger.info(f"Get resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
@@ -675,7 +675,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 ResourceQuota。POST /.../resourcequotas"""
-        self.logger.info(f"Create resourcequota: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create resourcequota: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourcequotas"
         return self.post(endpoint=url, json=payload).json()
 
@@ -683,7 +683,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 ResourceQuota。PUT /.../resourcequotas/{name}"""
-        self.logger.info(f"Update resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
@@ -694,7 +694,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新 ResourceQuota。PATCH /.../resourcequotas/{name}"""
-        self.logger.info(f"Patch resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
@@ -705,7 +705,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """删除 ResourceQuota。DELETE /.../resourcequotas/{name}"""
-        self.logger.info(f"Delete resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete resourcequota: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resourcequotas/{name}"
@@ -716,20 +716,20 @@ class ElasticComputeOpenService(BaseService):
 
     def list_priority_classes(self, cell_code: str) -> Dict[str, Any]:
         """查询 PriorityClass 列表。GET /.../priorityclasses"""
-        self.logger.info(f"List priority classes: cell={cell_code}")
+        logger.info(f"List priority classes: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses",
         ).json()
 
     def get_priority_class(self, cell_code: str, name: str) -> Dict[str, Any]:
         """查询 PriorityClass。GET /.../priorityclasses/{name}"""
-        self.logger.info(f"Get priority class: cell={cell_code}, name={name}")
+        logger.info(f"Get priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
         return self.get(endpoint=url).json()
 
     def create_priority_class(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """创建 PriorityClass。POST /.../priorityclasses"""
-        self.logger.info(f"Create priority class: cell={cell_code}")
+        logger.info(f"Create priority class: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses"
         return self.post(endpoint=url, json=payload).json()
 
@@ -737,7 +737,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 PriorityClass。PUT /.../priorityclasses/{name}"""
-        self.logger.info(f"Update priority class: cell={cell_code}, name={name}")
+        logger.info(f"Update priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -745,13 +745,13 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新 PriorityClass。PATCH /.../priorityclasses/{name}"""
-        self.logger.info(f"Patch priority class: cell={cell_code}, name={name}")
+        logger.info(f"Patch priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_priority_class(self, cell_code: str, name: str) -> Dict[str, Any]:
         """删除 PriorityClass。DELETE /.../priorityclasses/{name}"""
-        self.logger.info(f"Delete priority class: cell={cell_code}, name={name}")
+        logger.info(f"Delete priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
         return self.delete(endpoint=url).json()
 
@@ -764,7 +764,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_RBAC_V2_查询role列表请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/rbac/roles
         """
-        self.logger.info(f"List rbac roles: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List rbac roles: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/roles"
         return self.get(endpoint=url).json()
 
@@ -780,7 +780,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: Role 名称
         """
-        self.logger.info(f"Get rbac role: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get rbac role: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/roles/{name}"
         return self.get(endpoint=url).json()
 
@@ -791,7 +791,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_RBAC_V2_查询rolebinding列表请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/rbac/rolebindings
         """
-        self.logger.info(f"List rbac rolebindings: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List rbac rolebindings: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/rolebindings"
         return self.get(endpoint=url).json()
 
@@ -807,20 +807,20 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: RoleBinding 名称
         """
-        self.logger.info(f"Get rbac rolebinding: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get rbac rolebinding: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/rbac/rolebindings/{name}"
         return self.get(endpoint=url).json()
 
     def list_rbac_cluster_roles(self, cell_code: str) -> Dict[str, Any]:
         """查询 ClusterRole 列表。GET /.../clusterroles"""
-        self.logger.info(f"List rbac clusterroles: cell={cell_code}")
+        logger.info(f"List rbac clusterroles: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/clusterroles",
         ).json()
 
     def list_rbac_cluster_role_bindings(self, cell_code: str) -> Dict[str, Any]:
         """查询 ClusterRoleBinding 列表。GET /.../clusterrolebindings"""
-        self.logger.info(f"List rbac clusterrolebindings: cell={cell_code}")
+        logger.info(f"List rbac clusterrolebindings: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/clusterrolebindings",
         ).json()
@@ -843,7 +843,7 @@ class ElasticComputeOpenService(BaseService):
             kind: CR kind（如 Apple）
             name: CR 名称
         """
-        self.logger.info(
+        logger.info(
             f"Get cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -868,7 +868,7 @@ class ElasticComputeOpenService(BaseService):
             kind: CR kind
             payload: CR 资源定义
         """
-        self.logger.info(
+        logger.info(
             f"Create cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}"
         )
         url = (
@@ -894,7 +894,7 @@ class ElasticComputeOpenService(BaseService):
             kind: CR kind
             label_selector: labelSelector 过滤条件（可选）
         """
-        self.logger.info(
+        logger.info(
             f"List cluster CRs: cell={cell_code}, group={group}, version={version}, kind={kind}"
         )
         url = (
@@ -924,7 +924,7 @@ class ElasticComputeOpenService(BaseService):
             name: CR 名称
             payload: 完整 CR 对象
         """
-        self.logger.info(
+        logger.info(
             f"Update cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -951,7 +951,7 @@ class ElasticComputeOpenService(BaseService):
             name: CR 名称
             payload: 增量更新字段
         """
-        self.logger.info(
+        logger.info(
             f"Patch cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -976,7 +976,7 @@ class ElasticComputeOpenService(BaseService):
             kind: CR kind
             name: CR 名称
         """
-        self.logger.info(
+        logger.info(
             f"Delete cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -991,7 +991,7 @@ class ElasticComputeOpenService(BaseService):
 
     def list_persistentvolumeclaims_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询全集群 PVC。GET /.../persistentvolumeclaims"""
-        self.logger.info(f"List persistentvolumeclaims by cell: cell={cell_code}")
+        logger.info(f"List persistentvolumeclaims by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumeclaims",
         ).json()
@@ -1000,7 +1000,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str
     ) -> Dict[str, Any]:
         """查询命名空间 PVC。GET /.../persistentvolumeclaims"""
-        self.logger.info(
+        logger.info(
             f"List persistentvolumeclaims by ns: cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -1013,7 +1013,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """查询 PVC。GET /.../persistentvolumeclaims/{name}"""
-        self.logger.info(
+        logger.info(
             f"Get persistentvolumeclaim: cell={cell_code}, sys={sys_code}, name={name}"
         )
         url = (
@@ -1026,7 +1026,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 PVC。POST /.../persistentvolumeclaims"""
-        self.logger.info(f"Create persistentvolumeclaim: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create persistentvolumeclaim: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/persistentvolumeclaims"
@@ -1037,7 +1037,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 PVC。PUT /.../persistentvolumeclaims/{name}"""
-        self.logger.info(
+        logger.info(
             f"Update persistentvolumeclaim: cell={cell_code}, sys={sys_code}, name={name}"
         )
         url = (
@@ -1050,7 +1050,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """增量更新 PVC。PATCH /.../persistentvolumeclaims/{name}"""
-        self.logger.info(
+        logger.info(
             f"Patch persistentvolumeclaim: cell={cell_code}, sys={sys_code}, name={name}"
         )
         url = (
@@ -1063,7 +1063,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """删除 PVC。DELETE /.../persistentvolumeclaims/{name}"""
-        self.logger.info(
+        logger.info(
             f"Delete persistentvolumeclaim: cell={cell_code}, sys={sys_code}, name={name}"
         )
         url = (
@@ -1074,14 +1074,14 @@ class ElasticComputeOpenService(BaseService):
 
     def list_persistentvolumes(self, cell_code: str) -> Dict[str, Any]:
         """查询 PV 列表。GET /.../persistentvolumes"""
-        self.logger.info(f"List persistentvolumes: cell={cell_code}")
+        logger.info(f"List persistentvolumes: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes",
         ).json()
 
     def get_persistentvolume(self, cell_code: str, name: str) -> Dict[str, Any]:
         """查询 PV。GET /.../persistentvolumes/{name}"""
-        self.logger.info(f"Get persistentvolume: cell={cell_code}, name={name}")
+        logger.info(f"Get persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
         return self.get(endpoint=url).json()
 
@@ -1089,7 +1089,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建 PV。POST /.../persistentvolumes"""
-        self.logger.info(f"Create persistentvolume: cell={cell_code}")
+        logger.info(f"Create persistentvolume: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes"
         return self.post(endpoint=url, json=payload).json()
 
@@ -1097,13 +1097,13 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, name: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """更新 PV。PUT /.../persistentvolumes/{name}"""
-        self.logger.info(f"Update persistentvolume: cell={cell_code}, name={name}")
+        logger.info(f"Update persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
         return self.put(endpoint=url, json=payload).json()
 
     def delete_persistentvolume(self, cell_code: str, name: str) -> Dict[str, Any]:
         """删除 PV。DELETE /.../persistentvolumes/{name}"""
-        self.logger.info(f"Delete persistentvolume: cell={cell_code}, name={name}")
+        logger.info(f"Delete persistentvolume: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
         return self.delete(endpoint=url).json()
 
@@ -1118,7 +1118,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_CustomResource-ns_查询指定CR
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Get ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -1137,7 +1137,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_CustomResource-ns_创建CR请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources
         """
-        self.logger.info(
+        logger.info(
             f"Create ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}"
         )
         url = (
@@ -1156,7 +1156,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_CustomResource-ns_查询CR列表请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources
         """
-        self.logger.info(
+        logger.info(
             f"List ns CRs: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}"
         )
         url = (
@@ -1178,7 +1178,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_CustomResource-ns_更新指定CR
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Update ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -1197,7 +1197,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_CustomResource-ns_增量更新指定CR
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Patch ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -1215,7 +1215,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_CustomResource-ns_删除指定CR
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Delete ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
         )
         url = (
@@ -1232,7 +1232,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
         """
-        self.logger.info(f"Get helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
         return self.get(endpoint=url).json()
 
@@ -1242,7 +1242,7 @@ class ElasticComputeOpenService(BaseService):
 
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts
         """
-        self.logger.info(f"Create helm chart: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create helm chart: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts"
         return self.post(endpoint=url, json=payload).json()
 
@@ -1252,7 +1252,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts
         """
-        self.logger.info(f"List helm charts by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List helm charts by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts"
         return self.get(endpoint=url).json()
 
@@ -1262,7 +1262,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/helmCharts
         """
-        self.logger.info(f"List helm charts by cell: cell={cell_code}")
+        logger.info(f"List helm charts by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helmCharts"
         return self.get(endpoint=url).json()
 
@@ -1272,7 +1272,7 @@ class ElasticComputeOpenService(BaseService):
 
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
         """
-        self.logger.info(f"Update helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -1282,7 +1282,7 @@ class ElasticComputeOpenService(BaseService):
 
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
         """
-        self.logger.info(f"Patch helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
         return self.patch(endpoint=url, json=payload).json()
 
@@ -1292,7 +1292,7 @@ class ElasticComputeOpenService(BaseService):
 
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helmCharts/{name}
         """
-        self.logger.info(f"Delete helm chart: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete helm chart: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
         return self.delete(endpoint=url).json()
 
@@ -1304,7 +1304,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}
         """
-        self.logger.info(f"Get harbor project: cell={cell_code}, project={project_name}")
+        logger.info(f"Get harbor project: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
         return self.get(endpoint=url).json()
 
@@ -1314,7 +1314,7 @@ class ElasticComputeOpenService(BaseService):
 
         POST /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects
         """
-        self.logger.info(f"Create harbor project: cell={cell_code}")
+        logger.info(f"Create harbor project: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects"
         return self.post(endpoint=url, json=payload).json()
 
@@ -1324,7 +1324,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects
         """
-        self.logger.info(f"List harbor projects: cell={cell_code}")
+        logger.info(f"List harbor projects: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects"
         return self.get(endpoint=url).json()
 
@@ -1334,7 +1334,7 @@ class ElasticComputeOpenService(BaseService):
 
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}
         """
-        self.logger.info(f"Update harbor project: cell={cell_code}, project={project_name}")
+        logger.info(f"Update harbor project: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -1344,7 +1344,7 @@ class ElasticComputeOpenService(BaseService):
 
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}
         """
-        self.logger.info(f"Delete harbor project: cell={cell_code}, project={project_name}")
+        logger.info(f"Delete harbor project: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
         return self.delete(endpoint=url).json()
 
@@ -1354,7 +1354,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories
         """
-        self.logger.info(f"List harbor repositories: cell={cell_code}, project={project_name}")
+        logger.info(f"List harbor repositories: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/repositories"
         return self.get(endpoint=url).json()
 
@@ -1364,7 +1364,7 @@ class ElasticComputeOpenService(BaseService):
 
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories/{repoName}
         """
-        self.logger.info(f"Delete harbor repository: cell={cell_code}, project={project_name}, repo={repo_name}")
+        logger.info(f"Delete harbor repository: cell={cell_code}, project={project_name}, repo={repo_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/repositories/{repo_name}"
         return self.delete(endpoint=url).json()
 
@@ -1374,7 +1374,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories/{repoName}/artifacts
         """
-        self.logger.info(f"List harbor artifacts: cell={cell_code}, project={project_name}, repo={repo_name}")
+        logger.info(f"List harbor artifacts: cell={cell_code}, project={project_name}, repo={repo_name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}"
             f"/repositories/{repo_name}/artifacts"
@@ -1389,7 +1389,7 @@ class ElasticComputeOpenService(BaseService):
 
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/repositories/{repoName}/artifacts/{reference}
         """
-        self.logger.info(
+        logger.info(
             f"Delete harbor artifact: cell={cell_code}, project={project_name}, repo={repo_name}, ref={reference}"
         )
         url = (
@@ -1404,7 +1404,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/projects/{projectName}/summary
         """
-        self.logger.info(f"Get harbor project summary: cell={cell_code}, project={project_name}")
+        logger.info(f"Get harbor project summary: cell={cell_code}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/projects/{project_name}/summary"
         return self.get(endpoint=url).json()
 
@@ -1414,7 +1414,7 @@ class ElasticComputeOpenService(BaseService):
 
         POST /openapi/elastic-compute/v2/cells/{cellCode}/harbor/init
         """
-        self.logger.info(f"Init harbor: cell={cell_code}")
+        logger.info(f"Init harbor: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/init"
         return self.post(endpoint=url, json=payload).json()
 
@@ -1424,7 +1424,7 @@ class ElasticComputeOpenService(BaseService):
 
         GET /openapi/elastic-compute/v2/cells/{cellCode}/harbor/status
         """
-        self.logger.info(f"Get harbor status: cell={cell_code}")
+        logger.info(f"Get harbor status: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/status"
         return self.get(endpoint=url).json()
 
@@ -1439,7 +1439,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_查询指定hpa
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Get HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
         )
         url = (
@@ -1457,7 +1457,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_创建hpa请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas
         """
-        self.logger.info(
+        logger.info(
             f"Create HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}"
         )
         url = (
@@ -1475,7 +1475,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_查询hpa列表请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas
         """
-        self.logger.info(
+        logger.info(
             f"List HPAs by ns: cell={cell_code}, sys={sys_code}, apiVer={api_version}"
         )
         url = (
@@ -1491,7 +1491,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_查询全集群所有hpa列表请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/{apiVersion}/hpas
         """
-        self.logger.info(f"List HPAs by cell: cell={cell_code}, apiVer={api_version}")
+        logger.info(f"List HPAs by cell: cell={cell_code}, apiVer={api_version}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/{api_version}/hpas"
         return self.get(endpoint=url).json()
 
@@ -1505,7 +1505,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_更新指定hpa
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Update HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
         )
         url = (
@@ -1524,7 +1524,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_增量更新指定hpa
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Patch HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
         )
         url = (
@@ -1542,7 +1542,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_HPA_删除指定hpa
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
         """
-        self.logger.info(
+        logger.info(
             f"Delete HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
         )
         url = (
@@ -1560,7 +1560,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor-init_更新harbor版本信息
         POST /openapi/elastic-compute/v2/harbor/refreshHarborVersion?clusterId={harborId}
         """
-        self.logger.info(f"Refresh harbor version: harborId={harbor_id}")
+        logger.info(f"Refresh harbor version: harborId={harbor_id}")
         url = "/openapi/elastic-compute/v2/harbor/refreshHarborVersion"
         params = {"clusterId": harbor_id}
         return self.post(endpoint=url, params=params).json()
@@ -1574,7 +1574,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor列表
         GET /openapi/elastic-compute/v2/harbors
         """
-        self.logger.info("List harbors")
+        logger.info("List harbors")
         return self.get(
             endpoint="/openapi/elastic-compute/v2/harbors",
         ).json()
@@ -1586,7 +1586,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询所有集群harbor地址
         GET /openapi/elastic-compute/v2/harbor/list
         """
-        self.logger.info("List all cluster harbor addresses")
+        logger.info("List all cluster harbor addresses")
         return self.get(
             endpoint="/openapi/elastic-compute/v2/harbor/list",
         ).json()
@@ -1600,7 +1600,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor项目信息
         GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}
         """
-        self.logger.info(f"Get harbor project: harborId={harbor_id}, project={project_name}")
+        logger.info(f"Get harbor project: harborId={harbor_id}, project={project_name}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_name}"
         return self.get(endpoint=url).json()
 
@@ -1613,7 +1613,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_删除harbor项目
         DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}
         """
-        self.logger.info(
+        logger.info(
             f"Delete harbor project: harborId={harbor_id}, project={project_name}"
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_name}"
@@ -1628,7 +1628,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_创建harbor项目
         POST /openapi/elastic-compute/v2/harbors/{harborId}/projects
         """
-        self.logger.info(f"Create harbor project: harborId={harbor_id}")
+        logger.info(f"Create harbor project: harborId={harbor_id}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
         return self.post(endpoint=url, json=payload).json()
 
@@ -1641,7 +1641,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor项目列表
         GET /openapi/elastic-compute/v2/harbors/{harborId}/projects
         """
-        self.logger.info(
+        logger.info(
             f"List harbor projects: harborId={harbor_id}, page={page}, size={page_size}"
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
@@ -1657,7 +1657,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_创建harbor项目成员关系
         POST /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectId}/members
         """
-        self.logger.info(
+        logger.info(
             f"Create harbor project member: harborId={harbor_id}, projectId={project_id}"
         )
         url = (
@@ -1674,7 +1674,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_删除harbor项目成员
         DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectId}/members/{memberId}
         """
-        self.logger.info(
+        logger.info(
             f"Delete harbor project member: harborId={harbor_id}, "
             f"projectId={project_id}, memberId={member_id}"
         )
@@ -1691,7 +1691,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor新注册中心/新仓库
         GET /openapi/elastic-compute/v2/harbors/{harborId}/registries/{targetId}
         """
-        self.logger.info(f"Get harbor registry: harborId={harbor_id}, targetId={target_id}")
+        logger.info(f"Get harbor registry: harborId={harbor_id}, targetId={target_id}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/registries/{target_id}"
         return self.get(endpoint=url).json()
 
@@ -1704,7 +1704,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_添加harbor复制策略
         POST /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies
         """
-        self.logger.info(f"Create harbor replication policy: harborId={harbor_id}")
+        logger.info(f"Create harbor replication policy: harborId={harbor_id}")
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies"
         return self.post(endpoint=url, json=payload).json()
 
@@ -1717,7 +1717,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询复制/备份策略列表
         GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies
         """
-        self.logger.info(
+        logger.info(
             f"List harbor replication policies: harborId={harbor_id}, name={name}"
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies"
@@ -1735,7 +1735,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor复制策略
         GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
         """
-        self.logger.info(
+        logger.info(
             f"Get harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
         )
         url = (
@@ -1752,7 +1752,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_更新复制/备份策略
         PUT /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
         """
-        self.logger.info(
+        logger.info(
             f"Update harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
         )
         url = (
@@ -1769,7 +1769,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_删除harbor策略详情
         DELETE /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
         """
-        self.logger.info(
+        logger.info(
             f"Delete harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
         )
         url = (
@@ -1786,7 +1786,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_启动harbor复制策略
         POST /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions
         """
-        self.logger.info(
+        logger.info(
             f"Start harbor replication execution: harborId={harbor_id}, policyId={policy_id}"
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/executions"
@@ -1802,7 +1802,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor策略执行列表
         GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions
         """
-        self.logger.info(
+        logger.info(
             f"List harbor replication executions: harborId={harbor_id}, policyId={policy_id}"
         )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/executions"
@@ -1818,7 +1818,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor复制执行任务列表
         GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions/{executionId}/tasks
         """
-        self.logger.info(
+        logger.info(
             f"List harbor replication tasks: harborId={harbor_id}, executionId={execution_id}"
         )
         url = (
@@ -1836,7 +1836,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor复制执行任务日志
         GET /openapi/elastic-compute/v2/harbors/{harborId}/replication/executions/{executionId}/tasks/{taskId}/log
         """
-        self.logger.info(
+        logger.info(
             f"Get harbor replication task log: harborId={harbor_id}, "
             f"executionId={execution_id}, taskId={task_id}"
         )
@@ -1855,7 +1855,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_查询harbor镜像列表
         GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories
         """
-        self.logger.info(
+        logger.info(
             f"List harbor repositories: harborId={harbor_id}, project={project_name}"
         )
         url = (
@@ -1875,7 +1875,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_获取harbor镜像库artifacts
         GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}/artifacts
         """
-        self.logger.info(
+        logger.info(
             f"List harbor artifacts: harborId={harbor_id}, project={project_name}, repo={rep_name}"
         )
         url = (
@@ -1894,7 +1894,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_获取指定的harbor镜像库
         GET /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}
         """
-        self.logger.info(
+        logger.info(
             f"Get harbor repository: harborId={harbor_id}, project={project_name}, repo={rep_name}"
         )
         url = (
@@ -1913,7 +1913,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_从harbor镜像指定artifacts中删除标签
         DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}/artifacts/{artifact}/tags/{tag}
         """
-        self.logger.info(
+        logger.info(
             f"Delete harbor artifact tag: harborId={harbor_id}, project={project_name}, "
             f"repo={rep_name}, artifact={artifact}, tag={tag}"
         )
@@ -1933,7 +1933,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_harbor_根据harbor镜像名删除
         DELETE /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectName}/repositories/{repName}
         """
-        self.logger.info(
+        logger.info(
             f"Delete harbor repository: harborId={harbor_id}, project={project_name}, repo={rep_name}"
         )
         url = (
@@ -1957,7 +1957,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             chart_file_path: 本地 chart 包文件路径
         """
-        self.logger.info(f"Upload helm chart: cell={cell_code}, path={chart_file_path}")
+        logger.info(f"Upload helm chart: cell={cell_code}, path={chart_file_path}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/upload"
         with open(chart_file_path, "rb") as fh:
             files = {"file": (chart_file_path, fh, "application/octet-stream")}
@@ -1974,7 +1974,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_查询Chart列表
         GET /openapi/elastic-compute/v2/cells/{cellCode}/helm/charts?keyword=xxx
         """
-        self.logger.info(f"List helm charts: cell={cell_code}, keyword={keyword}")
+        logger.info(f"List helm charts: cell={cell_code}, keyword={keyword}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts"
         params = {}
         if keyword is not None:
@@ -1992,7 +1992,7 @@ class ElasticComputeOpenService(BaseService):
 
         返回原始 Response 对象，调用方自行处理 status_code / content。
         """
-        self.logger.info(
+        logger.info(
             f"Download helm chart: cell={cell_code}, name={chart_name}, version={chart_version}"
         )
         url = (
@@ -2010,7 +2010,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm Install请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/install
         """
-        self.logger.info(f"Helm install: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Helm install: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/install"
         return self.post(endpoint=url, json=payload).json()
 
@@ -2023,7 +2023,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm Uninstall请求
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/uninstall
         """
-        self.logger.info(f"Helm uninstall: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Helm uninstall: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/uninstall"
@@ -2039,7 +2039,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm Manifest请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/manifest
         """
-        self.logger.info(f"Get helm manifest: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get helm manifest: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/manifest"
@@ -2053,7 +2053,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm list请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release
         """
-        self.logger.info(f"List helm releases: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List helm releases: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/release"
         return self.get(endpoint=url).json()
 
@@ -2066,7 +2066,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_查询Helm服务关联应用服务状态列表请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/apps
         """
-        self.logger.info(
+        logger.info(
             f"List helm release apps: cell={cell_code}, sys={sys_code}, name={name}"
         )
         url = (
@@ -2084,7 +2084,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm Upgrade请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/upgrade
         """
-        self.logger.info(f"Helm upgrade: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Helm upgrade: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/upgrade"
@@ -2100,7 +2100,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm History请求
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/history
         """
-        self.logger.info(f"List helm history: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"List helm history: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/history"
@@ -2116,7 +2116,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_Helm Rollback请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/rollback?revision=X
         """
-        self.logger.info(
+        logger.info(
             f"Helm rollback: cell={cell_code}, sys={sys_code}, name={name}, revision={revision}"
         )
         url = (
@@ -2135,7 +2135,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_helm-chart_删除Chart
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/helm/charts/{chartName}?version=X
         """
-        self.logger.info(
+        logger.info(
             f"Delete helm chart by name: cell={cell_code}, chart={chart_name}, version={version}"
         )
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/helm/charts/{chart_name}"
@@ -2151,7 +2151,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_image-api_获取镜像列表
         GET /openapi/elastic-compute/v1/images
         """
-        self.logger.info("List images")
+        logger.info("List images")
         return self.get(
             endpoint="/openapi/elastic-compute/v1/images",
         ).json()
@@ -2166,7 +2166,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_image-api_获取镜像已部署应用服务列表
         GET /openapi/elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/images/apps
         """
-        self.logger.info(
+        logger.info(
             f"List image apps: clusterId={cluster_id}, namespace={namespace}, "
             f"project={project_name}, image={image_name}, version={version}"
         )
@@ -2194,7 +2194,7 @@ class ElasticComputeOpenService(BaseService):
 
         备注：JMX 未指定请求体（postBodyRaw=false），依赖服务端根据 cell/sys 自动生成。
         """
-        self.logger.info(
+        logger.info(
             f"Create imagePullSecret: cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -2212,7 +2212,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_imagePullSecret_删除Secret
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/secrets/{secretName}
         """
-        self.logger.info(
+        logger.info(
             f"Delete secret: cell={cell_code}, sys={sys_code}, name={secret_name}"
         )
         url = (
@@ -2232,7 +2232,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_LimitRange_创建LimitRang
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
         """
-        self.logger.info(
+        logger.info(
             f"Create limitRange (ns): cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -2250,7 +2250,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_LimitRange_更新LimitRange
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
         """
-        self.logger.info(
+        logger.info(
             f"Update limitRange (ns): cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -2268,7 +2268,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_LimitRange_增量更新LimitRange
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
         """
-        self.logger.info(
+        logger.info(
             f"Patch limitRange (ns): cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -2286,7 +2286,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_LimitRange_删除LimitRange
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
         """
-        self.logger.info(
+        logger.info(
             f"Delete limitRange (ns): cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -2302,7 +2302,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_LimitRange_查询LimitRangeList
         GET /openapi/elastic-compute/v2/cells/{cellCode}/limitRanges
         """
-        self.logger.info(f"List limitRanges by cell (v2): cell={cell_code}")
+        logger.info(f"List limitRanges by cell (v2): cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/limitRanges",
         ).json()
@@ -2316,7 +2316,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_LimitRange_查询LimitRange
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
         """
-        self.logger.info(
+        logger.info(
             f"List limitRanges by ns (v2): cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -2334,7 +2334,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_oidc-harborinit_获取oidc信息
         GET /openapi/elastic-compute/v2/oidc/info
         """
-        self.logger.info("Get OIDC info")
+        logger.info("Get OIDC info")
         url = "/openapi/elastic-compute/v2/oidc/info"
         return self.get(endpoint=url).json()
 
@@ -2352,7 +2352,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: Pod 名称
         """
-        self.logger.info(f"Get Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
         return self.get(endpoint=url).json()
 
@@ -2370,7 +2370,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             payload: Pod 对象 JSON
         """
-        self.logger.info(f"Create Pod: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create Pod: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods"
         return self.post(endpoint=url, json=payload).json()
 
@@ -2386,7 +2386,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: Pod 名称
         """
-        self.logger.info(f"Delete Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
         return self.delete(endpoint=url).json()
 
@@ -2404,7 +2404,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             label_selector: 标签选择器（可选）
         """
-        self.logger.info(f"List Pods by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List Pods by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods"
         params = {}
         if label_selector:
@@ -2424,7 +2424,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             label_selector: 标签选择器（可选）
         """
-        self.logger.info(f"List Pods by cell: cell={cell_code}")
+        logger.info(f"List Pods by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/pods"
         params = {}
         if label_selector:
@@ -2445,7 +2445,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: Pod 名称
         """
-        self.logger.info(f"List Pod events: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"List Pod events: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/pods/{name}/events"
@@ -2467,7 +2467,7 @@ class ElasticComputeOpenService(BaseService):
             name: Pod 名称
             container: 容器名称
         """
-        self.logger.info(
+        logger.info(
             f"Get Pod logs: cell={cell_code}, sys={sys_code}, name={name}, container={container}"
         )
         url = (
@@ -2491,7 +2491,7 @@ class ElasticComputeOpenService(BaseService):
             name: Pod 名称
             payload: 更新后的 Pod 完整对象
         """
-        self.logger.info(f"Update Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
         return self.put(endpoint=url, json=payload).json()
 
@@ -2510,7 +2510,7 @@ class ElasticComputeOpenService(BaseService):
             name: Pod 名称
             payload: 增量更新 Patch 对象
         """
-        self.logger.info(f"Patch Pod: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Patch Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
         return self.patch(endpoint=url, json=payload).json()
 
@@ -2526,7 +2526,7 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
         """
-        self.logger.info(f"List nodeports: cell={cell_code}")
+        logger.info(f"List nodeports: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports"
         return self.get(endpoint=url).json()
 
@@ -2541,7 +2541,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             nodeport: NodePort 端口号
         """
-        self.logger.info(f"Get nodeport: cell={cell_code}, nodeport={nodeport}")
+        logger.info(f"Get nodeport: cell={cell_code}, nodeport={nodeport}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports/{nodeport}"
         return self.get(endpoint=url).json()
 
@@ -2556,7 +2556,7 @@ class ElasticComputeOpenService(BaseService):
             cell_code: 单元编码
             payload: 分配请求体（kind, tenantCode, ports）
         """
-        self.logger.info(f"Allocate ports: cell={cell_code}")
+        logger.info(f"Allocate ports: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
         return self.post(endpoint=url, json=payload).json()
 
@@ -2570,7 +2570,7 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
         """
-        self.logger.info(f"List ports by cell: cell={cell_code}")
+        logger.info(f"List ports by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
         return self.get(endpoint=url).json()
 
@@ -2581,7 +2581,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_port-nodeport_查询租户全部nodeport端口范围
         GET /openapi/elastic-compute/v2/ports
         """
-        self.logger.info("List all ports")
+        logger.info("List all ports")
         url = "/openapi/elastic-compute/v2/ports"
         return self.get(endpoint=url).json()
 
@@ -2594,7 +2594,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_查询集群资源配额概览
         GET /openapi/elastic-compute/v2/cells/{cellCode}/quota
         """
-        self.logger.info(f"Get cluster quota overview: cell={cell_code}")
+        logger.info(f"Get cluster quota overview: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/quota"
         return self.get(endpoint=url).json()
 
@@ -2608,7 +2608,7 @@ class ElasticComputeOpenService(BaseService):
         Args:
             payload: 包含 tenantCodeList 的请求体
         """
-        self.logger.info("Batch query tenant quotas")
+        logger.info("Batch query tenant quotas")
         url = "/openapi/elastic-compute/v2/tenants/quota/batch"
         return self.post(endpoint=url, json=payload).json()
 
@@ -2626,7 +2626,7 @@ class ElasticComputeOpenService(BaseService):
             tenant_code: 租户编码
             payload: 分配请求体
         """
-        self.logger.info(f"Allocate tenant quota: cell={cell_code}, tenant={tenant_code}")
+        logger.info(f"Allocate tenant quota: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/allocate"
         return self.post(endpoint=url, json=payload).json()
 
@@ -2644,7 +2644,7 @@ class ElasticComputeOpenService(BaseService):
             tenant_code: 租户编码
             payload: 调整请求体
         """
-        self.logger.info(f"Scale tenant quota: cell={cell_code}, tenant={tenant_code}")
+        logger.info(f"Scale tenant quota: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
         return self.put(endpoint=url, json=payload).json()
 
@@ -2655,7 +2655,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_系统资源配额各集群概览
         GET /openapi/elastic-compute/v2/tenants/{tenantCode}/systems/{sysCode}/quota
         """
-        self.logger.info(f"Get system quota overview: tenant={tenant_code}, sys={sys_code}")
+        logger.info(f"Get system quota overview: tenant={tenant_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/systems/{sys_code}/quota"
         return self.get(endpoint=url).json()
 
@@ -2668,7 +2668,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_系统资源配额详情
         GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/detail
         """
-        self.logger.info(
+        logger.info(
             f"Get system quota detail: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
         )
         url = (
@@ -2686,7 +2686,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_系统可调整资源配额查询
         GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/scale
         """
-        self.logger.info(
+        logger.info(
             f"Get system quota scalable: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
         )
         url = (
@@ -2702,7 +2702,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_查询租户资源配额详情
         GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/detail
         """
-        self.logger.info(f"Get tenant quota detail: cell={cell_code}, tenant={tenant_code}")
+        logger.info(f"Get tenant quota detail: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/detail"
         return self.get(endpoint=url).json()
 
@@ -2713,7 +2713,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_查询租户资源配额列表（按单元区分）
         GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quotas
         """
-        self.logger.info(f"List tenant quotas by cell: cell={cell_code}, tenant={tenant_code}")
+        logger.info(f"List tenant quotas by cell: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quotas"
         return self.get(endpoint=url).json()
 
@@ -2724,7 +2724,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_查询租户资源配额列表
         GET /openapi/elastic-compute/v2/tenants/{tenantCode}/quotas
         """
-        self.logger.info(f"List tenant quotas: tenant={tenant_code}")
+        logger.info(f"List tenant quotas: tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/quotas"
         return self.get(endpoint=url).json()
 
@@ -2735,7 +2735,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_租户资源配额总览
         GET /openapi/elastic-compute/v2/tenants/{tenantCode}/quota
         """
-        self.logger.info(f"Get tenant quota overview: tenant={tenant_code}")
+        logger.info(f"Get tenant quota overview: tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/tenants/{tenant_code}/quota"
         return self.get(endpoint=url).json()
 
@@ -2746,7 +2746,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_单租户资源配额单集群下总览信息
         GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota
         """
-        self.logger.info(f"Get tenant cell quota overview: cell={cell_code}, tenant={tenant_code}")
+        logger.info(f"Get tenant cell quota overview: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota"
         return self.get(endpoint=url).json()
 
@@ -2757,7 +2757,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_租户可调整资源配额查询
         GET /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/scale
         """
-        self.logger.info(f"Get tenant quota scalable: cell={cell_code}, tenant={tenant_code}")
+        logger.info(f"Get tenant quota scalable: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
         return self.get(endpoint=url).json()
 
@@ -2772,7 +2772,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-tenant_租户管理员审批通过系统资源申请时调用
         POST /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/allocate
         """
-        self.logger.info(
+        logger.info(
             f"Allocate system quota: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
         )
         url = (
@@ -2790,7 +2790,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-tenant_针对系统资源配额进行扩缩容
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/systems/{sysCode}/quota/scale
         """
-        self.logger.info(
+        logger.info(
             f"Scale system quota: cell={cell_code}, tenant={tenant_code}, sys={sys_code}"
         )
         url = (
@@ -2810,7 +2810,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ScaledObject_查询指定ScaledObject
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
         """
-        self.logger.info(f"Get ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
@@ -2826,7 +2826,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ScaledObject_创建ScaledObject
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject
         """
-        self.logger.info(f"Create ScaledObject: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create ScaledObject: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/scaledObject"
         return self.post(endpoint=url, json=payload).json()
 
@@ -2839,7 +2839,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ScaledObject_更新ScaledObject
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
         """
-        self.logger.info(f"Update ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Update ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
@@ -2855,7 +2855,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ScaledObject_删除ScaledObject
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
         """
-        self.logger.info(f"Delete ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Delete ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
@@ -2873,7 +2873,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_recovery-resource_查询资源
         GET /openapi/elastic-compute/v2/systems/{sysCode}/resources?cells={cellCode}
         """
-        self.logger.info(f"List recovery resources: sys={sys_code}, cell={cell_code}")
+        logger.info(f"List recovery resources: sys={sys_code}, cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/systems/{sys_code}/resources"
         return self.get(
             endpoint=url, params={"cells": cell_code},
@@ -2888,7 +2888,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_recovery-resource_创建资源
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources
         """
-        self.logger.info(f"Create recovery resources: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create recovery resources: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resources"
         )
@@ -2903,7 +2903,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_recovery-resource_删除资源
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources/delete
         """
-        self.logger.info(f"Delete recovery resources: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Delete recovery resources: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resources/delete"
@@ -2919,7 +2919,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_recovery-resource_Apply资源
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources/apply
         """
-        self.logger.info(f"Apply recovery resources: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Apply recovery resources: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resources/apply"
@@ -2935,7 +2935,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ReplicaSetV2_查询全集群ReplicaSet列表
         GET /openapi/elastic-compute/v2/cells/{cellCode}/replicaSets
         """
-        self.logger.info(f"List replicaSets by cell: cell={cell_code}")
+        logger.info(f"List replicaSets by cell: cell={cell_code}")
         return self.get(
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/replicaSets",
         ).json()
@@ -2949,7 +2949,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ReplicaSetV2_查询命名空间下ReplicaSet列表
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/replicaSets
         """
-        self.logger.info(f"List replicaSets by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List replicaSets by ns: cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/replicaSets"
         return self.get(endpoint=url).json()
 
@@ -2962,7 +2962,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_ReplicaSetV2_查询指定ReplicaSet
         GET /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/replicaSets/{name}
         """
-        self.logger.info(f"Get replicaSet: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get replicaSet: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/replicaSets/{name}"
@@ -2980,7 +2980,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_resourcequota_PUT更新ResourceQuota
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
         """
-        self.logger.info(f"Update resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
+        logger.info(f"Update resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
         return self.put(endpoint=url, json=payload).json()
 
@@ -2993,7 +2993,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_resourcequota_PATCH更新ResourceQuota
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
         """
-        self.logger.info(f"Patch resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
+        logger.info(f"Patch resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
         return self.patch(endpoint=url, json=payload).json()
 
@@ -3006,7 +3006,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_resourcequota_删除ResourceQuota
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
         """
-        self.logger.info(f"Delete resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
+        logger.info(f"Delete resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
         return self.delete(endpoint=url).json()
 
@@ -3016,7 +3016,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str
     ) -> Dict[str, Any]:
         """按命名空间+Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
-        self.logger.info(
+        logger.info(
             f"List workloads by ns+kind: cell={cell_code}, sys={sys_code}, kind={kind}"
         )
         url = (
@@ -3027,7 +3027,7 @@ class ElasticComputeOpenService(BaseService):
 
     def list_workloads_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """按命名空间查询工作负载列表。GET /.../workloads"""
-        self.logger.info(f"List workloads by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List workloads by ns: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/workloads"
         )
@@ -3037,7 +3037,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, kind: str
     ) -> Dict[str, Any]:
         """按集群+Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
-        self.logger.info(f"List workloads by cell+kind: cell={cell_code}, kind={kind}")
+        logger.info(f"List workloads by cell+kind: cell={cell_code}, kind={kind}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/kinds/{kind}/workloads"
         )
@@ -3047,7 +3047,7 @@ class ElasticComputeOpenService(BaseService):
         self, sys_code: str, kind: str
     ) -> Dict[str, Any]:
         """按系统+Kind 查询工作负载列表。GET /.../systems/{sysCode}/kinds/{kind}/workloads"""
-        self.logger.info(f"List workloads by sys+kind: sys={sys_code}, kind={kind}")
+        logger.info(f"List workloads by sys+kind: sys={sys_code}, kind={kind}")
         url = (
             f"/openapi/elastic-compute/v2/systems/{sys_code}/kinds/{kind}/workloads"
         )
@@ -3055,25 +3055,25 @@ class ElasticComputeOpenService(BaseService):
 
     def list_workloads_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """按集群查询工作负载列表。GET /.../cells/{cellCode}/workloads"""
-        self.logger.info(f"List workloads by cell: cell={cell_code}")
+        logger.info(f"List workloads by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads"
         return self.get(endpoint=url).json()
 
     def list_workloads_by_sys(self, sys_code: str) -> Dict[str, Any]:
         """按系统查询工作负载列表。GET /.../systems/{sysCode}/workloads"""
-        self.logger.info(f"List workloads by sys: sys={sys_code}")
+        logger.info(f"List workloads by sys: sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/systems/{sys_code}/workloads"
         return self.get(endpoint=url).json()
 
     def list_workloads_by_kind(self, kind: str) -> Dict[str, Any]:
         """按 Kind 查询工作负载列表。GET /.../kinds/{kind}/workloads"""
-        self.logger.info(f"List workloads by kind: kind={kind}")
+        logger.info(f"List workloads by kind: kind={kind}")
         url = f"/openapi/elastic-compute/v2/kinds/{kind}/workloads"
         return self.get(endpoint=url).json()
 
     def list_all_workloads(self) -> Dict[str, Any]:
         """查询所有工作负载列表。GET /.../workloads"""
-        self.logger.info("List all workloads")
+        logger.info("List all workloads")
         url = "/openapi/elastic-compute/v2/workloads"
         return self.get(endpoint=url).json()
 
@@ -3081,7 +3081,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, app_code: str, name: str
     ) -> Dict[str, Any]:
         """查询工作负载拓扑信息（含 appCode）。GET /.../appcode/{appCode}/workloads/{name}/topologyinfo"""
-        self.logger.info(
+        logger.info(
             f"Get workload topology with app: cell={cell_code}, sys={sys_code}, "
             f"app={app_code}, name={name}"
         )
@@ -3095,7 +3095,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, name: str
     ) -> Dict[str, Any]:
         """查询工作负载拓扑信息。GET /.../workloads/{name}/topologyinfo"""
-        self.logger.info(
+        logger.info(
             f"Get workload topology: cell={cell_code}, sys={sys_code}, name={name}"
         )
         url = (
@@ -3108,7 +3108,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, app_code: str
     ) -> Dict[str, Any]:
         """查询命名空间拓扑信息（含 appCode）。GET /.../appcode/{appCode}/topologyinfo"""
-        self.logger.info(
+        logger.info(
             f"Get ns topology with app: cell={cell_code}, sys={sys_code}, app={app_code}"
         )
         url = (
@@ -3119,7 +3119,7 @@ class ElasticComputeOpenService(BaseService):
 
     def get_ns_topology(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """查询命名空间拓扑信息。GET /.../topologyinfo"""
-        self.logger.info(f"Get ns topology: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Get ns topology: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/topologyinfo"
@@ -3130,7 +3130,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str
     ) -> Dict[str, Any]:
         """查询命名空间下 Deployment 列表。GET /.../deployments"""
-        self.logger.info(f"List deployments by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List deployments by ns: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/deployments"
@@ -3139,7 +3139,7 @@ class ElasticComputeOpenService(BaseService):
 
     def list_deployments_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询集群下 Deployment 列表。GET /.../deployments"""
-        self.logger.info(f"List deployments by cell: cell={cell_code}")
+        logger.info(f"List deployments by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/deployments"
         return self.get(endpoint=url).json()
 
@@ -3147,7 +3147,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str
     ) -> Dict[str, Any]:
         """查询命名空间下 StatefulSet 列表。GET /.../statefulsets"""
-        self.logger.info(f"List statefulsets by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List statefulsets by ns: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/statefulsets"
@@ -3156,7 +3156,7 @@ class ElasticComputeOpenService(BaseService):
 
     def list_statefulsets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询集群下 StatefulSet 列表。GET /.../statefulsets"""
-        self.logger.info(f"List statefulsets by cell: cell={cell_code}")
+        logger.info(f"List statefulsets by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/statefulsets"
         return self.get(endpoint=url).json()
 
@@ -3164,7 +3164,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str
     ) -> Dict[str, Any]:
         """查询命名空间下 DaemonSet 列表。GET /.../daemonsets"""
-        self.logger.info(f"List daemonsets by ns: cell={cell_code}, sys={sys_code}")
+        logger.info(f"List daemonsets by ns: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/daemonsets"
@@ -3173,13 +3173,13 @@ class ElasticComputeOpenService(BaseService):
 
     def list_daemonsets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """查询集群下 DaemonSet 列表。GET /.../daemonsets"""
-        self.logger.info(f"List daemonsets by cell: cell={cell_code}")
+        logger.info(f"List daemonsets by cell: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/daemonsets"
         return self.get(endpoint=url).json()
 
     def list_workload_events(self, cell_code: str) -> Dict[str, Any]:
         """查询集群工作负载事件。GET /.../workloads/events"""
-        self.logger.info(f"List workload events: cell={cell_code}")
+        logger.info(f"List workload events: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads/events"
         return self.get(endpoint=url).json()
 
@@ -3189,7 +3189,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str, name: str
     ) -> Dict[str, Any]:
         """查询工作负载状态。GET /.../kinds/{kind}/workloads/{name}/status"""
-        self.logger.info(
+        logger.info(
             f"Get workload status: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3202,7 +3202,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """创建工作负载。POST /.../apps/{appCode}/workloads?paas-app-service-version=v1"""
-        self.logger.info(
+        logger.info(
             f"Create workload: cell={cell_code}, sys={sys_code}, app={app_code}"
         )
         url = (
@@ -3216,7 +3216,7 @@ class ElasticComputeOpenService(BaseService):
         payload: Dict[str, Any],
     ) -> Dict[str, Any]:
         """全量更新工作负载。PUT /.../kinds/{kind}/workloads/{name}"""
-        self.logger.info(
+        logger.info(
             f"Update workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3230,7 +3230,7 @@ class ElasticComputeOpenService(BaseService):
         payload: Dict[str, Any],
     ) -> Dict[str, Any]:
         """增量更新工作负载。PATCH /.../kinds/{kind}/workloads/{name}"""
-        self.logger.info(
+        logger.info(
             f"Patch workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3245,7 +3245,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str, name: str
     ) -> Dict[str, Any]:
         """删除工作负载。DELETE /.../kinds/{kind}/workloads/{name}"""
-        self.logger.info(
+        logger.info(
             f"Delete workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3258,7 +3258,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str, labels: str
     ) -> Dict[str, Any]:
         """按标签删除工作负载。DELETE /.../kinds/{kind}/workloads?labels={labels}"""
-        self.logger.info(
+        logger.info(
             f"Delete workload by labels: cell={cell_code}, sys={sys_code}, "
             f"kind={kind}, labels={labels}"
         )
@@ -3272,7 +3272,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量查询工作负载状态。POST /.../workloads/status/batch"""
-        self.logger.info(
+        logger.info(
             f"Batch query workload status: cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -3285,7 +3285,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量增量更新工作负载。PATCH /.../workloads/batch"""
-        self.logger.info(f"Batch patch workloads: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Batch patch workloads: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/batch"
@@ -3299,7 +3299,7 @@ class ElasticComputeOpenService(BaseService):
         action: str, payload: Dict[str, Any] = None,
     ) -> Dict[str, Any]:
         """工作负载滚动操作。POST /.../workloads/{name}/rolling?action={action}"""
-        self.logger.info(
+        logger.info(
             f"Workload rolling: cell={cell_code}, sys={sys_code}, "
             f"kind={kind}, name={name}, action={action}"
         )
@@ -3315,7 +3315,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, action: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量工作负载滚动操作。POST /.../workloads/rolling/batch?action={action}"""
-        self.logger.info(
+        logger.info(
             f"Batch workload rolling: cell={cell_code}, sys={sys_code}, action={action}"
         )
         url = (
@@ -3330,7 +3330,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str, name: str
     ) -> Dict[str, Any]:
         """停止工作负载。POST /.../workloads/{name}/stop"""
-        self.logger.info(
+        logger.info(
             f"Stop workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3345,7 +3345,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str, name: str
     ) -> Dict[str, Any]:
         """启动工作负载。POST /.../workloads/{name}/start"""
-        self.logger.info(
+        logger.info(
             f"Start workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3360,7 +3360,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, kind: str, name: str
     ) -> Dict[str, Any]:
         """重启工作负载。POST /.../workloads/{name}/restart"""
-        self.logger.info(
+        logger.info(
             f"Restart workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
         url = (
@@ -3375,7 +3375,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量停止工作负载。POST /.../workloads/stop/batch"""
-        self.logger.info(f"Batch stop workloads: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Batch stop workloads: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/stop/batch"
@@ -3388,7 +3388,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量启动工作负载。POST /.../workloads/start/batch"""
-        self.logger.info(f"Batch start workloads: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Batch start workloads: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/start/batch"
@@ -3401,7 +3401,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量重启工作负载。POST /.../workloads/restart/batch"""
-        self.logger.info(f"Batch restart workloads: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Batch restart workloads: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/restart/batch"
@@ -3414,7 +3414,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """工作负载 Pod 执行命令。POST /.../apps/{appCode}/exec"""
-        self.logger.info(
+        logger.info(
             f"Workload exec: cell={cell_code}, sys={sys_code}, app={app_code}"
         )
         url = (
@@ -3430,7 +3430,7 @@ class ElasticComputeOpenService(BaseService):
         pod_name: str, container_name: str, file_path: str,
     ) -> Dict[str, Any]:
         """工作负载 Pod 拷贝文件。GET /.../pods/{podName}/copy?containerName=...&filePathInPod=..."""
-        self.logger.info(
+        logger.info(
             f"Workload copy file: cell={cell_code}, sys={sys_code}, "
             f"kind={kind}, name={name}, pod={pod_name}"
         )
@@ -3445,7 +3445,7 @@ class ElasticComputeOpenService(BaseService):
         self, cell_code: str, sys_code: str, payload: Dict[str, Any]
     ) -> Dict[str, Any]:
         """批量删除工作负载 Pod。POST /.../workloads/pods/delete/batch"""
-        self.logger.info(
+        logger.info(
             f"Batch delete workload pods: cell={cell_code}, sys={sys_code}"
         )
         url = (
@@ -3458,7 +3458,7 @@ class ElasticComputeOpenService(BaseService):
 
     def batch_delete_app_pods(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """批量删除应用 Pod。POST /.../applications/pods/delete/batch"""
-        self.logger.info("Batch delete app pods")
+        logger.info("Batch delete app pods")
         url = "/openapi/elastic-compute/v2/applications/pods/delete/batch"
         return self.post(
             endpoint=url, json=payload

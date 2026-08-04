@@ -1,6 +1,9 @@
 from playwright.sync_api import Page, expect
 
 from base.ui.pages.base_page import BasePage
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 class LoginPage(BasePage):
@@ -17,7 +20,7 @@ class LoginPage(BasePage):
             page: Playwright Page 对象
         """
         super().__init__(page)
-        self.logger.info("Panji Login Page initialized")
+        logger.info("Panji Login Page initialized")
 
         self.input_username = page.get_by_placeholder("请输入用户名")
         self.input_password = page.get_by_placeholder("请输入密码")
@@ -52,7 +55,7 @@ class LoginPage(BasePage):
         """
         self.wait_for_element(self.WELCOME)
         self.wait_for_load_state("networkidle")
-        self.logger.info("Panji login page loaded successfully")
+        logger.info("Panji login page loaded successfully")
 
     def login(self,username: str, password: str):
         #元素定位器处理器关闭弹窗定位元素

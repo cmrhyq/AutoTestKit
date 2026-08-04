@@ -8,12 +8,14 @@ Extensions 类接口使用 apikey/username/tenantCode 三件头鉴权，
 不需要走 Portal 登录、也不需要 Bearer Token。
 所有敏感值均从 core.config.env_manager 的 yaml 配置读取，杜绝硬编码。
 """
-import logging
 from typing import Dict, Any
 
 from base import BaseService
 from config import get_env_config
+from core import get_logger
 from core.config import env_manager
+
+logger = get_logger(__name__)
 
 
 def _get_ext_headers() -> Dict[str, str]:
@@ -41,13 +43,12 @@ class ElasticComputeExtService(BaseService):
     - URL 前缀通常为 /elastic-compute/... 而非 /openapi/elastic-compute/...
     """
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str):
         """
         初始化 PanJi 弹性计算 Extensions 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -60,11 +61,10 @@ class ElasticComputeExtService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="api_key",
             auth_credentials={"api_key": get_env_config().get("ec_apikey")},
         )
-        self.logger.info(
+        logger.info(
             f"Initializing PanJi ElasticCompute Extensions Service with base_url: {self.base_url}"
         )
 
@@ -80,7 +80,7 @@ class ElasticComputeExtService(BaseService):
         Args:
             kinds: 应用类型，如 "Deployment"、"StatefulSet" 等
         """
-        self.logger.info(f"Search app with kinds: {kinds}")
+        logger.info(f"Search app with kinds: {kinds}")
         url = "/elastic-compute/server/v2/searchApp"
         params = {"kinds": kinds}
         response = self.get(endpoint=url, params=params, headers=_get_ext_headers())

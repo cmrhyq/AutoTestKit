@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Any, Optional
 
 from base.api.services.base_service import BaseService
@@ -9,17 +8,19 @@ from base.api.entity.portal import (
     OpenSystemEntity,
     BasicCodeEntity,
 )
+from core import get_logger
+
+logger = get_logger(__name__)
 
 
 class PortalOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
+    def __init__(self, base_url: str, token: Optional[str] = None):
         """
         初始化 Panji Portal OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
             token: Bearer Token；登录接口 get_token 调用时可为 None，其他业务方法必需
 
         Raises:
@@ -33,11 +34,10 @@ class PortalOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="bearer" if token else None,
             auth_credentials={"token": token} if token else None,
         )
-        self.logger.info(f"Initializing PanJi Portal OpenAPI Service with base_url: {self.base_url}")
+        logger.info(f"Initializing PanJi Portal OpenAPI Service with base_url: {self.base_url}")
 
     def get_token(self, panji_sign: PortalUserEntity) -> Dict[str, Any]:
         """
@@ -54,7 +54,7 @@ class PortalOpenService(BaseService):
         Returns:
             Dict[str, Any]
         """
-        self.logger.info(f"Getting PanJi Token")
+        logger.info(f"Getting PanJi Token")
         url = "/apisix/plugin/jwt/sign"
         sign_info = {
             "userName": panji_sign.username,
@@ -72,7 +72,7 @@ class PortalOpenService(BaseService):
         Returns:
             Dict[str, Any]
         """
-        self.logger.info(f"Getting First Field Info")
+        logger.info(f"Getting First Field Info")
         url = "/openapi/portal/restApi/firstFieldInfo/list"
         response = self.get(endpoint=url)
         return response.json()
@@ -84,7 +84,7 @@ class PortalOpenService(BaseService):
         Returns:
             Dict[str, Any]
         """
-        self.logger.info(f"Getting Second Field Info")
+        logger.info(f"Getting Second Field Info")
         url = "/openapi/portal/restApi/secondFieldInfo/list"
         response = self.get(endpoint=url)
         return response.json()
@@ -93,7 +93,7 @@ class PortalOpenService(BaseService):
         """
         新增集群平面单元
         """
-        self.logger.info(f"Create cluster plane")
+        logger.info(f"Create cluster plane")
         url = "/openapi/portal/restApi/cluster/add"
         body = {
             "prodInstName": cluster_info.prod_inst_name,
@@ -117,7 +117,7 @@ class PortalOpenService(BaseService):
         """
         查询集群平面单元
         """
-        self.logger.info(f"Query cluster plane")
+        logger.info(f"Query cluster plane")
         url = "/openapi/portal/restApi/cluster/list"
         params = {
             "prodInstName": cluster_info.prod_inst_name,
@@ -129,7 +129,7 @@ class PortalOpenService(BaseService):
         """
         修改集群平面单元
         """
-        self.logger.info(f"Update cluster plane")
+        logger.info(f"Update cluster plane")
         url = "/openapi/portal/restApi/cluster/update"
         body = {
             "instanceId": cluster_info.instance_id,
@@ -149,7 +149,7 @@ class PortalOpenService(BaseService):
         """
         删除集群平面单元
         """
-        self.logger.info(f"Delete cluster plane")
+        logger.info(f"Delete cluster plane")
         url = "/openapi/portal/restApi/cluster/delete"
         params = {
             "instanceId": cluster_info.instance_id,
@@ -161,7 +161,7 @@ class PortalOpenService(BaseService):
         """
         根据租户、环境查询绑定集群信息
         """
-        self.logger.info(f"Query bind cluster list")
+        logger.info(f"Query bind cluster list")
         url = "/openapi/portal/restApi/bindCluster/list"
         response = self.get(endpoint=url)
         return response.json()
@@ -170,7 +170,7 @@ class PortalOpenService(BaseService):
         """
         租户绑定集群平面单元
         """
-        self.logger.info(f"Tenant bind cluster plane cell")
+        logger.info(f"Tenant bind cluster plane cell")
         url = "/openapi/portal/restApi/tenantCluster/addBatch"
         body = [
             {
@@ -187,7 +187,7 @@ class PortalOpenService(BaseService):
         """
         根据用户名查询绑定的租户信息
         """
-        self.logger.info(f"Query tenant info by username: {username}")
+        logger.info(f"Query tenant info by username: {username}")
         url = f"/openapi/portal/restApi/v1/user/{username}/tenants"
         response = self.get(endpoint=url)
         return response.json()
@@ -196,7 +196,7 @@ class PortalOpenService(BaseService):
         """
         获取菜单权限数据
         """
-        self.logger.info(f"Get menu permission data")
+        logger.info(f"Get menu permission data")
         url = "/openapi/portal/restApi/menu/list"
         response = self.get(endpoint=url)
         return response.json()
@@ -205,7 +205,7 @@ class PortalOpenService(BaseService):
         """
         同步用户
         """
-        self.logger.info(f"Sync user information")
+        logger.info(f"Sync user information")
         url = "/openapi/portal/restApi/sync/user"
         body = {
             "sourceCode": "1",
@@ -231,7 +231,7 @@ class PortalOpenService(BaseService):
         """
         绑定租户
         """
-        self.logger.info(f"Bind tenant")
+        logger.info(f"Bind tenant")
         url = "/openapi/portal/restApi/addTenantUsers"
         body = {
             "tenantId": "1",
@@ -250,7 +250,7 @@ class PortalOpenService(BaseService):
         """
         绑定角色
         """
-        self.logger.info(f"Bind role")
+        logger.info(f"Bind role")
         url = "/openapi/portal/restApi/addRoleMember"
         body = {
             "tenantId": "1",
@@ -269,7 +269,7 @@ class PortalOpenService(BaseService):
         """
         查询系统
         """
-        self.logger.info(f"Query system")
+        logger.info(f"Query system")
         url = "/openapi/portal/restApi/system/list"
         body = {
             "systemEnvironment": "PROD",
@@ -282,7 +282,7 @@ class PortalOpenService(BaseService):
         """
         创建系统
         """
-        self.logger.info(f"Create system")
+        logger.info(f"Create system")
         url = "/openapi/portal/restApi/system/add"
         body = {
             "systemName": system.system_name,
@@ -304,7 +304,7 @@ class PortalOpenService(BaseService):
         """
         系统资源配额分配
         """
-        self.logger.info(f"System resource allocation")
+        logger.info(f"System resource allocation")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/allocate"
         body = {
             "memory": 1073741824,
@@ -321,7 +321,7 @@ class PortalOpenService(BaseService):
         """
         系统资源配额详情
         """
-        self.logger.info(f"System resource quota detail")
+        logger.info(f"System resource quota detail")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/detail"
         response = self.get(endpoint=url)
         return response.json()
@@ -335,7 +335,7 @@ class PortalOpenService(BaseService):
         workload_type: 工作负载类型
         system_id: 所属系统编号
         """
-        self.logger.info(f"Create application")
+        logger.info(f"Create application")
         url = "/openapi/portal/restApi/application/add"
         body = {
             "applicationSourceCode": app_code,
@@ -353,7 +353,7 @@ class PortalOpenService(BaseService):
         """
         更新系统
         """
-        self.logger.info(f"Update system")
+        logger.info(f"Update system")
         url = "/openapi/portal/restApi/system/update"
         body = {
             "systemId": system.system_id,
@@ -398,7 +398,7 @@ class PortalOpenService(BaseService):
         user_id_list: 授权的用户id列表，["200685","201214"]
         system_id_list: 授权的系统id列表
         """
-        self.logger.info(f"User system authorization")
+        logger.info(f"User system authorization")
         url = "/openapi/portal/restApi/batchAuthorization"
         body = {
             "authorizedType": "1",
@@ -418,7 +418,7 @@ class PortalOpenService(BaseService):
         app_id: 更新的应用编号
         system_id: 所属的系统
         """
-        self.logger.info(f"Update application")
+        logger.info(f"Update application")
         url = "/openapi/portal/restApi/application/update"
         body = {
             "applicationSourceId": app_id,
@@ -439,7 +439,7 @@ class PortalOpenService(BaseService):
         user_id_list: 授权的用户id列表，["200685","201214"]
         application_id_list: 授权的应用id列表
         """
-        self.logger.info(f"User application authorization")
+        logger.info(f"User application authorization")
         url = "/openapi/portal/restApi/batchAuthorization"
         body = {
             "authorizedType": "1",
@@ -458,7 +458,7 @@ class PortalOpenService(BaseService):
         查询应用列表
         app_code: 应用编号
         """
-        self.logger.info(f"Query application list")
+        logger.info(f"Query application list")
         url = "/openapi/portal/restApi/application/list"
         body = {
             "pageNum": "1",
@@ -474,7 +474,7 @@ class PortalOpenService(BaseService):
         查看应用详细信息
         app_id: 要查看的应用的编号
         """
-        self.logger.info(f"Query application detail")
+        logger.info(f"Query application detail")
         url = f"/openapi/portal/restApi/application/detail"
         params = {
             "applicationSourceId": app_id
@@ -486,7 +486,7 @@ class PortalOpenService(BaseService):
         """
         系统资源配额释放/删除
         """
-        self.logger.info(f"System resource quota remove")
+        logger.info(f"System resource quota remove")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/delete"
         response = self.post(endpoint=url)
         return response.json()
@@ -496,7 +496,7 @@ class PortalOpenService(BaseService):
         删除应用
         app_id: 要删除的应用的编号
         """
-        self.logger.info(f"Delete application")
+        logger.info(f"Delete application")
         url = "/openapi/portal/restApi/application/delete"
         body = {
             "ids": app_id
@@ -508,7 +508,7 @@ class PortalOpenService(BaseService):
         """
         系统配额释放/删除
         """
-        self.logger.info(f"System quota release delete")
+        logger.info(f"System quota release delete")
         url = f"/openapi/elastic-compute/v2/cells/{code.cell_code}/tenants/{code.tenant_code}/systems/{code.system_code}/quota/delete"
         response = self.post(endpoint=url)
         return response.json()
@@ -520,7 +520,7 @@ class PortalOpenService(BaseService):
         system_id: 要删除的系统的id
         system_name: 要删除的系统的Code
         """
-        self.logger.info(f"Delete application")
+        logger.info(f"Delete application")
         url = "/openapi/portal/restApi/system/delete"
         body = {
             "ids": system_id,

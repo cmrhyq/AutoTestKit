@@ -11,7 +11,6 @@ UI 测试 Fixtures 模块
 """
 import os
 import shutil
-from logging import Logger
 
 import pytest
 from datetime import datetime
@@ -26,8 +25,10 @@ from playwright.sync_api import (
 
 from core.config import env_manager
 from core.config import Settings
-from core.log.logger import TestLogger
+from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+logger = get_logger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -41,7 +42,6 @@ def playwright_instance() -> Generator[Playwright, None, None]:
     Yields:
         Playwright: Playwright 实例
     """
-    logger = TestLogger.get_logger("PlaywrightFixture")
     logger.info("Initializing Playwright instance")
     
     with sync_playwright() as playwright:
@@ -64,7 +64,6 @@ def browser(playwright_instance: Playwright) -> Generator[Browser, None, None]:
     Yields:
         Browser: 浏览器实例
     """
-    logger = TestLogger.get_logger("BrowserFixture")
     
     # 根据配置选择浏览器类型
     browser_type = getattr(playwright_instance, Settings.BROWSER_TYPE)
@@ -118,7 +117,6 @@ def context(browser: Browser) -> Generator[BrowserContext, None, None]:
     Yields:
         BrowserContext: 浏览器上下文
     """
-    logger = TestLogger.get_logger("ContextFixture")
     logger.debug("Creating new browser context")
     
     # 创建浏览器上下文，配置视口大小
@@ -159,7 +157,6 @@ def page(context: BrowserContext, request: pytest.FixtureRequest) -> Generator[P
     Yields:
         Page: 页面实例
     """
-    logger = TestLogger.get_logger("PageFixture")
     test_name = request.node.name
     
     logger.debug(f"Creating new page for test: {test_name}")
@@ -202,7 +199,6 @@ def auto_screenshot_on_failure(request: pytest.FixtureRequest, page: Page) -> Ge
     Yields:
         None
     """
-    logger = TestLogger.get_logger("AutoScreenshot")
     test_name = request.node.name
     
     # 测试执行前不做任何操作
@@ -237,7 +233,6 @@ def _capture_failure_screenshot(page: Page, test_name: str, failure_type: str) -
         test_name: 测试名称
         failure_type: 失败类型（failure, exception 等）
     """
-    logger = TestLogger.get_logger("ScreenshotCapture")
     
     try:
         # 生成唯一的截图文件名
@@ -265,7 +260,7 @@ def _capture_failure_screenshot(page: Page, test_name: str, failure_type: str) -
 
 
 @pytest.fixture(scope="function")
-def ui_logger(request: pytest.FixtureRequest) -> Logger:
+def ui_logger(request: pytest.FixtureRequest):
     """
     UI 测试日志记录器 fixture
     
@@ -275,10 +270,9 @@ def ui_logger(request: pytest.FixtureRequest) -> Logger:
         request: Pytest 请求对象
         
     Returns:
-        TestLogger: 日志记录器实例
+        logging.Logger: 日志记录器实例
     """
-    test_name = request.node.name
-    return TestLogger.get_logger(f"UITest.{test_name}")
+    return get_logger(f"UITest.{request.node.name}")
 
 
 # ==================== 保持登录 Session Fixture ====================
@@ -317,7 +311,6 @@ def authenticated_context(browser: Browser) -> Generator[BrowserContext, None, N
             yield context
             context.close()
     """
-    logger = TestLogger.get_logger("AuthenticatedContext")
     logger.info("Creating authenticated browser context")
     
     # 创建带配置的 context
@@ -368,7 +361,6 @@ def module_page(authenticated_context: BrowserContext) -> Generator[Page, None, 
             def test_export_report(self, module_page):
                 module_page.locator("#export").click()
     """
-    logger = TestLogger.get_logger("ModulePage")
     logger.debug("Creating module-scoped page from authenticated context")
     
     page = authenticated_context.new_page()

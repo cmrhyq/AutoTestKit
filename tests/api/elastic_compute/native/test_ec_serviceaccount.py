@@ -15,7 +15,10 @@ import pytest
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
+from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+logger = get_logger(__name__)
 
 # Native K8s API 使用 HTTP 状态码，非业务 code
 HTTP_OK = 200
@@ -65,12 +68,12 @@ class TestEcNativeServiceAccount:
     @allure.title("ServiceAccount 完整生命周期（查询→清理→创建→删除）")
     @allure.description("覆盖 Native ServiceAccount 的查询、清理、创建、删除完整生命周期")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_service_account_lifecycle(self, native_service, api_env, api_cache, api_logger):
+    def test_service_account_lifecycle(self, native_service, api_env, api_cache):
         cluster_id = str(api_env.get("clusterId"))
         namespace = api_env.get("namespace")
         sa_name = "test-sa"
 
-        api_logger.info(
+        logger.info(
             f"开始测试: ServiceAccount 生命周期, cluster={cluster_id}, "
             f"ns={namespace}, name={sa_name}"
         )
@@ -85,7 +88,7 @@ class TestEcNativeServiceAccount:
                     namespace=namespace,
                     name=sa_name,
                 )
-                api_logger.info(f"查询 SA 状态码: {get_http_code}")
+                logger.info(f"查询 SA 状态码: {get_http_code}")
                 assert get_http_code in (HTTP_OK, HTTP_NOT_FOUND), (
                     f"查询应返回200或404, 实际: {get_http_code}"
                 )
@@ -101,7 +104,7 @@ class TestEcNativeServiceAccount:
                     assert native_service.last_response.status_code == HTTP_OK, (
                         f"删除失败, status={native_service.last_response.status_code}"
                     )
-                    api_logger.info(f"删除已存在的 SA 成功: {sa_name}")
+                    logger.info(f"删除已存在的 SA 成功: {sa_name}")
 
             # Step 3: 创建 ServiceAccount
             # 对应 JMX: 弹性计算_native_serviceaccount_创建ServiceAccount请求
@@ -117,7 +120,7 @@ class TestEcNativeServiceAccount:
                 assert create_http_code == HTTP_CREATED, (
                     f"创建失败, 期望201, 实际: {create_http_code}, resp: {create_resp}"
                 )
-                api_logger.info(f"创建 SA 成功: {sa_name}, status={create_http_code}")
+                logger.info(f"创建 SA 成功: {sa_name}, status={create_http_code}")
 
             # Step 4: 等待（对应 JMX ConstantTimer: intervalTime=10000ms）
             time.sleep(3)
@@ -133,4 +136,4 @@ class TestEcNativeServiceAccount:
                     assert native_service.last_response.status_code == HTTP_OK, (
                         f"清理删除失败, status={native_service.last_response.status_code}"
                     )
-                    api_logger.info(f"清理删除 SA 成功: {sa_name}")
+                    logger.info(f"清理删除 SA 成功: {sa_name}")

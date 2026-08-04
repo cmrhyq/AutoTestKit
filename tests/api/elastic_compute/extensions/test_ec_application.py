@@ -14,7 +14,10 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+logger = get_logger(__name__)
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -33,10 +36,9 @@ class TestEcExtensionsApplication:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env, api_logger):
+    def ec_ext_service(self, api_env):
         service = ElasticComputeExtService(
             base_url=api_env.get("apiInnerBaseUrl"),
-            logger=api_logger,
         )
         yield service
         service.close()

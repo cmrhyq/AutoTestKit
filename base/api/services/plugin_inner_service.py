@@ -1,7 +1,9 @@
-import logging
 from typing import Dict, Any
 
 from base import BaseService
+from core import get_logger
+
+logger = get_logger(__name__)
 
 
 def _get_default_headers() -> Dict[str, str]:
@@ -13,13 +15,12 @@ def _get_default_headers() -> Dict[str, str]:
 
 class PluginInnerService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None):
+    def __init__(self, base_url: str):
         """
         初始化 Panji Plugin InnerAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -32,17 +33,16 @@ class PluginInnerService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="api_key",
             auth_credentials={"api_key": "67d5da7b76b1030ea6888f7644e05195"},
         )
-        self.logger.info(f"Initializing PanJi Plugin InnerAPI Service with base_url: {self.base_url}")
+        logger.info(f"Initializing PanJi Plugin InnerAPI Service with base_url: {self.base_url}")
 
     def get_plugin_install_count(self) -> Dict[str, Any]:
         """
         统计插件安装数量
         """
-        self.logger.info(f"Getting Plugin Install Count")
+        logger.info(f"Getting Plugin Install Count")
         url = "/plugin/server/api/v1/plugin/list/instance"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()

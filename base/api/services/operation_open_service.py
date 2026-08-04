@@ -1,19 +1,21 @@
-import logging
 from typing import Dict, Any, List, Optional, Union
 
 from base import BaseService
 from base.api.entity.operation import MetricQuery
+from core import get_logger
+
+logger = get_logger(__name__)
 
 
 class OperationOpenService(BaseService):
 
-    def __init__(self, base_url: str, logger: logging.Logger = None, token: Optional[str] = None):
+    def __init__(self, base_url: str, token: Optional[str] = None):
         """
         初始化 Panji Operation OpenAPI 服务
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）
-            logger: 日志记录器
+            token: Bearer Token
 
         Raises:
             ValueError: 如果 base_url 为空
@@ -26,17 +28,16 @@ class OperationOpenService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            logger=logger,
             auth_type="bearer" if token else None,
             auth_credentials={"token": token} if token else None,
         )
-        self.logger.info(f"Initializing PanJi Operation OpenAPI Service with base_url: {self.base_url}")
+        logger.info(f"Initializing PanJi Operation OpenAPI Service with base_url: {self.base_url}")
 
     def query_alarms_number_three(self):
         """
         查询最近3小时指定告警数量
         """
-        self.logger.info("Query the number of specified alarms in the last 3 hours")
+        logger.info("Query the number of specified alarms in the last 3 hours")
         url = "/openapi/monitor-inspection/cluster-inspection/api/alertLabelsFiring/selectRecentAlerts"
         response = self.get(endpoint=url)
         return response.json()
@@ -48,7 +49,7 @@ class OperationOpenService(BaseService):
         Args:
             log_id: 日志ID, 运营运维/云拨测/任务分析页面，找接口编排的数据id=15174
         """
-        self.logger.info(f"Query interface synthetic log detail, id: {log_id}")
+        logger.info(f"Query interface synthetic log detail, id: {log_id}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/synthetic/interface/log"
         response = self.get(endpoint=url, params={"id": log_id})
         return response.json()
@@ -60,7 +61,7 @@ class OperationOpenService(BaseService):
         Args:
             log_id: 日志ID
         """
-        self.logger.info(f"Query service synthetic log detail, id: {log_id}")
+        logger.info(f"Query service synthetic log detail, id: {log_id}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/synthetic/service/log"
         response = self.get(endpoint=url, params={"id": log_id})
         return response.json()
@@ -90,7 +91,7 @@ class OperationOpenService(BaseService):
               "stepSeconds": 1
             }
         """
-        self.logger.info(f"Batch query metrics, count: {len(metrics)}")
+        logger.info(f"Batch query metrics, count: {len(metrics)}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/component/batchQuery"
         normalized_metrics: List[Dict[str, Any]] = [
             m.to_payload() if isinstance(m, MetricQuery) else m for m in metrics
@@ -109,7 +110,7 @@ class OperationOpenService(BaseService):
         Args:
             task_name: 任务名称
         """
-        self.logger.info(f"Execute inspection task: {task_name}")
+        logger.info(f"Execute inspection task: {task_name}")
         url = "/openapi/monitor-inspection/cluster-inspection/api/inspectionTask/executeTask"
         payload = {"taskName": task_name}
         response = self.post(endpoint=url, json=payload)

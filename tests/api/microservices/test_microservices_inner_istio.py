@@ -19,7 +19,10 @@ from base.api.services.microservices_inner_service import (
     MeshVS,
     MicroservicesInnerService,
 )
+from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+logger = get_logger(__name__)
 
 @pytest.mark.api
 @pytest.mark.microservice
@@ -36,10 +39,9 @@ class TestMicroservicesInnerIstio:
     TENANT = "monitor-group"
 
     @pytest.fixture(scope="class")
-    def inner_service(self, api_env, api_logger):
+    def inner_service(self, api_env):
         service = MicroservicesInnerService(
             base_url=api_env.get("apiInnerBaseUrl") or api_env.get("apiBaseUrl"),
-            logger=api_logger,
         )
         yield service
         service.close()
