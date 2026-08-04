@@ -62,7 +62,10 @@ class ElasticComputeExtService(BaseService):
         super().__init__(
             base_url=base_url,
             auth_type="api_key",
-            auth_credentials={"api_key": get_env_config().get("ec_apikey")},
+            auth_credentials={
+                "api_key": get_env_config().get("ec_apikey"),
+                "header_name": "apikey"
+            },
         )
         logger.info(
             f"Initializing PanJi ElasticCompute Extensions Service with base_url: {self.base_url}"

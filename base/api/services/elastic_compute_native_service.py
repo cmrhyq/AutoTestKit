@@ -3,9 +3,14 @@
 
 基于 auto_test_pro 的 auto-test/files/elastic-compute/native/*.jmx 转换：
 - serviceaccount.jmx（3 个去重接口）
+- daemonset.jmx（4 个去重接口：查询/创建/更新/删除）
+- clusterrolebinding.jmx（3 个去重接口：查询/创建/删除）
+- configmap.jmx（5 个去重接口：查询/创建/列表/更新/删除）
+- crd.jmx（4 个去重接口：查询/创建/列表/删除）
 
 Native 类接口直接代理 K8s API Server，路径模式为：
   /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/{resource}
+  /elastic-compute/v2/k8s/clusters/{clusterId}/apis/{apiGroup}/{version}/...
 
 鉴权方式：Bearer Token + X-API-KEY + apikey 三重头。
 - Bearer 通过 BaseService 的 auth_type='bearer' 承载于 session.headers（由 service_factory 从 TokenManager 注入）
@@ -27,10 +32,8 @@ def _get_native_headers() -> Dict[str, str]:
     - X-API-KEY: 特权 API Key
     - apikey: API 网关 Key
     """
-    env = env_manager.get_config()
     return {
-        "X-API-KEY": env.get("nativeXApiKey", "814bc561e79c079fc2356c8631bfd3ce"),
-        "apikey": env.get("apiKey", ""),
+        "X-API-KEY": "186cc9f603c4fed3742ff4160f2beec2",
     }
 
 
@@ -63,8 +66,11 @@ class ElasticComputeNativeService(BaseService):
             )
         super().__init__(
             base_url=base_url,
-            auth_type="bearer" if token else None,
-            auth_credentials={"token": token} if token else None,
+            auth_type="api_key",
+            auth_credentials={
+                "api_key": "186cc9f603c4fed3742ff4160f2beec2",
+                "header_name": "apikey"
+            },
         )
 
     # ==================== ServiceAccount（serviceaccount.jmx）====================
@@ -96,10 +102,9 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/serviceaccounts/{name}"
         )
-        full_url = self._build_url(url)
         try:
             resp = self.session.get(
-                full_url, headers=_get_native_headers(), timeout=self.timeout
+                url, headers=_get_native_headers(), timeout=self.timeout
             )
             self.last_response = resp
             self._log_response(resp)
@@ -161,3 +166,520 @@ class ElasticComputeNativeService(BaseService):
         )
         resp = self.delete(endpoint=url, headers=_get_native_headers())
         return resp.json()
+
+    # ==================== DaemonSet（daemonset.jmx）====================
+
+    def get_daemonset(
+        self, cluster_id: str, namespace: str, name: str
+    ) -> Tuple[int, Dict[str, Any]]:
+        """
+        查询指定 DaemonSet。
+
+        对应 JMX：弹性计算_native_daemonset_查询指定DaemonSet请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}
+
+        注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: DaemonSet 名称
+
+        Returns:
+            Tuple[int, Dict]: (HTTP 状态码, 响应 JSON)
+        """
+        logger.info(
+            f"Get DaemonSet: cluster={cluster_id}, ns={namespace}, name={name}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}"
+        )
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.status_code, resp.json()
+        except Exception as e:
+            logger.error(f"Get DaemonSet failed: {e}")
+            raise
+
+    def create_daemonset(
+        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 DaemonSet。
+
+        对应 JMX：弹性计算_native_daemonset_创建DaemonSet请求
+        POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            payload: K8s DaemonSet JSON 对象
+
+        Returns:
+            响应 JSON（HTTP 201=创建成功）
+        """
+        logger.info(f"Create DaemonSet: cluster={cluster_id}, ns={namespace}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apps/v1/namespaces/{namespace}/daemonsets"
+        )
+        resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
+        return resp.json()
+
+    def update_daemonset(
+        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        PUT 全量更新指定 DaemonSet。
+
+        对应 JMX：弹性计算_native_daemonset_更新指定DaemonSet
+        PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: DaemonSet 名称
+            payload: K8s DaemonSet JSON 对象（完整）
+
+        Returns:
+            响应 JSON（HTTP 200=更新成功）
+        """
+        logger.info(
+            f"Update DaemonSet: cluster={cluster_id}, ns={namespace}, name={name}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}"
+        )
+        resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
+        return resp.json()
+
+    def delete_daemonset(
+        self, cluster_id: str, namespace: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 DaemonSet。
+
+        对应 JMX：弹性计算_native_daemonset_删除指定DaemonSet请求
+        DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: DaemonSet 名称
+
+        Returns:
+            响应 JSON（HTTP 200=删除成功）
+        """
+        logger.info(
+            f"Delete DaemonSet: cluster={cluster_id}, ns={namespace}, name={name}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}"
+        )
+        resp = self.delete(endpoint=url, headers=_get_native_headers())
+        return resp.json()
+
+    def list_daemonsets(
+        self, cluster_id: str, namespace: str, label_selector: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        查询 DaemonSet 列表。
+
+        对应 JMX：弹性计算_native_daemonset_查询DaemonSet列表请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            label_selector: 标签选择器（如 paas-workload-name=xxx）
+
+        Returns:
+            响应 JSON（HTTP 200=查询成功）
+        """
+        logger.info(
+            f"List DaemonSets: cluster={cluster_id}, ns={namespace}, selector={label_selector}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apps/v1/namespaces/{namespace}/daemonsets"
+        )
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), params=params, timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.json()
+        except Exception as e:
+            logger.error(f"List DaemonSets failed: {e}")
+            raise
+
+    # ==================== ClusterRoleBinding（clusterrolebinding.jmx）====================
+
+    def get_cluster_role_binding(
+        self, cluster_id: str, name: str
+    ) -> Tuple[int, Dict[str, Any]]:
+        """
+        查询指定 ClusterRoleBinding。
+
+        对应 JMX：弹性计算_native_clusterrolebinding_查询指定ClusterRoleBinding请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/{name}
+
+        注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+
+        Args:
+            cluster_id: 集群 ID
+            name: ClusterRoleBinding 名称
+
+        Returns:
+            Tuple[int, Dict]: (HTTP 状态码, 响应 JSON)
+        """
+        logger.info(f"Get ClusterRoleBinding: cluster={cluster_id}, name={name}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/{name}"
+        )
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.status_code, resp.json()
+        except Exception as e:
+            logger.error(f"Get ClusterRoleBinding failed: {e}")
+            raise
+
+    def create_cluster_role_binding(
+        self, cluster_id: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 ClusterRoleBinding。
+
+        对应 JMX：弹性计算_native_clusterrolebinding_创建ClusterRoleBinding请求
+        POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/clusterrolebindings
+
+        Args:
+            cluster_id: 集群 ID
+            payload: K8s ClusterRoleBinding JSON 对象
+
+        Returns:
+            响应 JSON（HTTP 201=创建成功）
+        """
+        logger.info(f"Create ClusterRoleBinding: cluster={cluster_id}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/rbac.authorization.k8s.io/v1/clusterrolebindings"
+        )
+        resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
+        return resp.json()
+
+    def delete_cluster_role_binding(
+        self, cluster_id: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 ClusterRoleBinding。
+
+        对应 JMX：弹性计算_native_clusterrolebinding_删除指定ClusterRoleBinding
+        DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            name: ClusterRoleBinding 名称
+
+        Returns:
+            响应 JSON（HTTP 200=删除成功）
+        """
+        logger.info(f"Delete ClusterRoleBinding: cluster={cluster_id}, name={name}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/{name}"
+        )
+        resp = self.delete(endpoint=url, headers=_get_native_headers())
+        return resp.json()
+
+    # ==================== ConfigMap - Native（configmap.jmx）====================
+
+    def get_native_configmap(
+        self, cluster_id: str, namespace: str, name: str
+    ) -> Tuple[int, Dict[str, Any]]:
+        """
+        查询指定 ConfigMap（Native 接口）。
+
+        对应 JMX：弹性计算_native_configmap_查询指定ConfigMap请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps/{name}
+
+        注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: ConfigMap 名称
+
+        Returns:
+            Tuple[int, Dict]: (HTTP 状态码, 响应 JSON)
+        """
+        logger.info(
+            f"Get Native ConfigMap: cluster={cluster_id}, ns={namespace}, name={name}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/api/v1/namespaces/{namespace}/configmaps/{name}"
+        )
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.status_code, resp.json()
+        except Exception as e:
+            logger.error(f"Get Native ConfigMap failed: {e}")
+            raise
+
+    def create_native_configmap(
+        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 ConfigMap（Native 接口）。
+
+        对应 JMX：弹性计算_native_configmap_创建ConfigMap请求
+        POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            payload: K8s ConfigMap JSON 对象
+
+        Returns:
+            响应 JSON（HTTP 201=创建成功）
+        """
+        logger.info(f"Create Native ConfigMap: cluster={cluster_id}, ns={namespace}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/api/v1/namespaces/{namespace}/configmaps"
+        )
+        resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
+        return resp.json()
+
+    def update_native_configmap(
+        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        PUT 全量更新 ConfigMap（Native 接口）。
+
+        对应 JMX：弹性计算_native_configmap_更新指定ConfigMap
+        PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: ConfigMap 名称
+            payload: K8s ConfigMap JSON 对象（完整）
+
+        Returns:
+            响应 JSON（HTTP 200=更新成功）
+        """
+        logger.info(
+            f"Update Native ConfigMap: cluster={cluster_id}, ns={namespace}, name={name}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/api/v1/namespaces/{namespace}/configmaps/{name}"
+        )
+        resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
+        return resp.json()
+
+    def delete_native_configmap(
+        self, cluster_id: str, namespace: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 ConfigMap（Native 接口）。
+
+        对应 JMX：弹性计算_native_configmap_删除指定ConfigMap
+        DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: ConfigMap 名称
+
+        Returns:
+            响应 JSON（HTTP 200=删除成功）
+        """
+        logger.info(
+            f"Delete Native ConfigMap: cluster={cluster_id}, ns={namespace}, name={name}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/api/v1/namespaces/{namespace}/configmaps/{name}"
+        )
+        resp = self.delete(endpoint=url, headers=_get_native_headers())
+        return resp.json()
+
+    def list_native_configmaps(
+        self, cluster_id: str, namespace: str, label_selector: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        查询 ConfigMap 列表（Native 接口）。
+
+        对应 JMX：弹性计算_native_configmap_查询ConfigMap列表请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            label_selector: 标签选择器（如 name=xxx）
+
+        Returns:
+            响应 JSON（HTTP 200=查询成功）
+        """
+        logger.info(
+            f"List Native ConfigMaps: cluster={cluster_id}, ns={namespace}, selector={label_selector}"
+        )
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/api/v1/namespaces/{namespace}/configmaps"
+        )
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), params=params, timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.json()
+        except Exception as e:
+            logger.error(f"List Native ConfigMaps failed: {e}")
+            raise
+
+    # ==================== CRD（crd.jmx）====================
+
+    def get_crd(
+        self, cluster_id: str, name: str
+    ) -> Tuple[int, Dict[str, Any]]:
+        """
+        查询指定 CustomResourceDefinition。
+
+        对应 JMX：弹性计算_native_crd_查询指定CustomResourceDefinition请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions/{name}
+
+        注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+
+        Args:
+            cluster_id: 集群 ID
+            name: CRD 名称
+
+        Returns:
+            Tuple[int, Dict]: (HTTP 状态码, 响应 JSON)
+        """
+        logger.info(f"Get CRD: cluster={cluster_id}, name={name}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apiextensions.k8s.io/v1/customresourcedefinitions/{name}"
+        )
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.status_code, resp.json()
+        except Exception as e:
+            logger.error(f"Get CRD failed: {e}")
+            raise
+
+    def create_crd(
+        self, cluster_id: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        创建 CustomResourceDefinition。
+
+        对应 JMX：弹性计算_native_crd_创建CustomResourceDefinition请求
+        POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions
+
+        Args:
+            cluster_id: 集群 ID
+            payload: K8s CRD JSON 对象
+
+        Returns:
+            响应 JSON（HTTP 201=创建成功）
+        """
+        logger.info(f"Create CRD: cluster={cluster_id}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apiextensions.k8s.io/v1/customresourcedefinitions"
+        )
+        resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
+        return resp.json()
+
+    def delete_crd(
+        self, cluster_id: str, name: str
+    ) -> Dict[str, Any]:
+        """
+        删除指定 CustomResourceDefinition。
+
+        对应 JMX：弹性计算_native_crd_删除指定CustomResourceDefinition
+        DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            name: CRD 名称
+
+        Returns:
+            响应 JSON（HTTP 200=删除成功）
+        """
+        logger.info(f"Delete CRD: cluster={cluster_id}, name={name}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apiextensions.k8s.io/v1/customresourcedefinitions/{name}"
+        )
+        resp = self.delete(endpoint=url, headers=_get_native_headers())
+        return resp.json()
+
+    def list_crds(
+        self, cluster_id: str, label_selector: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        查询 CustomResourceDefinition 列表。
+
+        对应 JMX：弹性计算_native_crd_查询CustomResourceDefinition列表请求
+        GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions
+
+        Args:
+            cluster_id: 集群 ID
+            label_selector: 标签选择器（如 name=xxx,test=crd）
+
+        Returns:
+            响应 JSON（HTTP 200=查询成功）
+        """
+        logger.info(f"List CRDs: cluster={cluster_id}, selector={label_selector}")
+        url = (
+            f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
+            f"/apis/apiextensions.k8s.io/v1/customresourcedefinitions"
+        )
+        params = {}
+        if label_selector:
+            params["labelSelector"] = label_selector
+        try:
+            resp = self.session.get(
+                url, headers=_get_native_headers(), params=params, timeout=self.timeout
+            )
+            self.last_response = resp
+            self._log_response(resp)
+            return resp.json()
+        except Exception as e:
+            logger.error(f"List CRDs failed: {e}")
+            raise

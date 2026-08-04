@@ -49,7 +49,10 @@ class PortalInnerService(BaseService):
         super().__init__(
             base_url=base_url,
             auth_type="api_key",
-            auth_credentials={"api_key": get_env_config().get("apikey")},
+            auth_credentials={
+                "api_key": "67d5da7b76b1030ea6888f7644e05195",
+                "header_name": "apikey"
+            },
         )
         logger.info(f"Initializing PanJi Portal InnerAPI Service with base_url: {self.base_url}")
 

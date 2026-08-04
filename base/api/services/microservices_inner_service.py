@@ -48,7 +48,10 @@ class MicroservicesInnerService(BaseService):
         super().__init__(
             base_url=base_url,
             auth_type="api_key",
-            auth_credentials={"api_key": get_env_config().get("ms_apikey")},
+            auth_credentials={
+                "api_key": get_env_config().get("ms_apikey"),
+                "header_name": "apikey"
+            },
         )
         logger.info(f"Initializing PanJi Microservices InnerAPI Service with base_url: {self.base_url}")
 

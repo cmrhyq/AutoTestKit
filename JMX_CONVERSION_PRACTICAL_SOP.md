@@ -129,6 +129,9 @@ from typing import Any, Dict
 
 from base import BaseService
 from core import DataCache
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 def _get_default_headers() -> Dict[str, str]:
@@ -153,7 +156,7 @@ class ElasticComputeOpenService(BaseService):
             sys_code: 系统编码
             name: PVC 名称
         """
-        self.logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
+        logger.info(f"Get PVC: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc/{name}"
         response = self.get(endpoint=url, headers=_get_default_headers())
         return response.json()
@@ -163,13 +166,13 @@ class ElasticComputeOpenService(BaseService):
 
 - 类命名 `{Domain}{Type}Service`（例 `ElasticComputeOpenService`）。
 - 方法名 `snake_case`，动词前缀：`get_/list_/create_/update_/patch_/delete_`。
-- 每个方法首行 `self.logger.info(...)` 描述业务动作；docstring 必须包含**对应 JMX 名称**和 **HTTP 方法+路径**，方便与源脚本对照。
+- 每个方法首行 `logger.info(...)` 描述业务动作；docstring 必须包含**对应 JMX 名称**和 **HTTP 方法+路径**，方便与源脚本对照。
 - 需要鉴权的接口：`headers=_get_default_headers()`；Native / Inner 接口改用对应的 `_get_default_headers()`（读 `nativeXApiKey` 等）。
 - 返回 `response.json()`，类型标注 `Dict[str, Any]`（响应可能是列表时用 `Any`）。
 - POST/PUT/PATCH 请求体由调用方传入 `payload: Dict[str, Any]`，**不在 Service 中写死**。
 - 路径参数用 f-string 插值：`f"/openapi/.../cells/{cell_code}/..."`。
 - 只新增方法，不修改已有方法签名，避免破坏其他用例。
-- Service 类顶端建议保留 `DEFAULT_BASE_URL` 常量，构造函数签名统一 `(self, base_url: str = None, logger: logging.Logger = None)`。
+- Service 类顶端建议保留 `DEFAULT_BASE_URL` 常量，构造函数签名统一 `(self, base_url: str = None)`。
 
 ### Step 7：处理 POST 请求体
 
@@ -304,11 +307,10 @@ class TestEcOpenapiPvcPv:
         get_token(self.TENANT)
 
     @pytest.fixture(scope="class")
-    def ec_service(self, api_env, api_logger):
+    def ec_service(self, api_env):
         """创建服务实例，base_url 从 yaml 显式传入（camelCase key）。"""
         service = ElasticComputeOpenService(
             base_url=api_env.get("apiBaseUrl"),
-            logger=api_logger,
         )
         yield service
         service.close()
@@ -328,7 +330,6 @@ class TestEcOpenapiPvcPv:
 | Fixture                  | Scope   | 说明                         |
 | ------------------------ | ------- | -------------------------- |
 | `api_env`                | session | 当前环境 yaml 全量字典             |
-| `api_logger`             | session | 项目统一日志器                    |
 | `api_cache`              | session | `DataCache` 单例，跨用例数据传递     |
 | `get_token(tenant_code)` | session | 多租户 token 懒加载工厂，切租户只需再调用一次 |
 
