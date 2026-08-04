@@ -9,7 +9,6 @@ API 测试基础服务类模块
 - 错误处理和自动重试机制
 """
 
-import logging
 import time
 from typing import Any, Optional, Dict, Union
 from urllib.parse import urljoin
@@ -25,8 +24,10 @@ from requests.exceptions import (
 
 from core.config import Settings
 from core.cache.data_cache import DataCache
-from core.log.logger import TestLogger
+from core.log import get_logger
 from utils.internet_utils import get_random_pc_ua
+
+logger = get_logger(__name__)
 
 
 class BaseService:
@@ -49,7 +50,6 @@ class BaseService:
     def __init__(
         self,
         base_url: str = None,
-        logger: logging.Logger = None,
         auth_type: Optional[str] = None,
         auth_credentials: Optional[Dict[str, str]] = None
     ):
@@ -58,12 +58,10 @@ class BaseService:
         
         Args:
             base_url: API 基础 URL，如果为 None 则使用配置文件中的设置
-            logger: 日志记录器，如果为 None 则创建新的日志记录器
             auth_type: 认证类型，可选值：'bearer', 'basic', 'api_key'
             auth_credentials: 认证凭证字典
         """
         self.base_url = base_url or Settings.API_BASE_URL
-        self.logger = logger or TestLogger.get_logger(self.__class__.__name__)
         self.cache = DataCache.get_instance()
         
         # 创建 session 以复用连接
@@ -81,7 +79,7 @@ class BaseService:
         # 设置认证
         self._setup_authentication(auth_type, auth_credentials)
         
-        self.logger.info(f"Initialized BaseService with base_url: {self.base_url}")
+        logger.info(f"Initialized BaseService with base_url: {self.base_url}")
     
     def _setup_authentication(
         self,
@@ -100,7 +98,7 @@ class BaseService:
             token = auth_credentials.get('token')
             if token:
                 self.session.headers.update({'Authorization': f'Bearer {token}'})
-                self.logger.info("Bearer token authentication configured")
+                logger.info("Bearer token authentication configured")
         
         elif auth_type == 'basic':
             # Basic Auth 认证
@@ -109,7 +107,7 @@ class BaseService:
             
             if username and password:
                 self.session.auth = HTTPBasicAuth(username, password)
-                self.logger.info(f"Basic authentication configured for user: {username}")
+                logger.info(f"Basic authentication configured for user: {username}")
         
         elif auth_type == 'api_key':
             # API Key 认证
@@ -118,7 +116,7 @@ class BaseService:
             
             if api_key:
                 self.session.headers.update({header_name: api_key})
-                self.logger.info(f"API Key authentication configured with header: {header_name}")
+                logger.info(f"API Key authentication configured with header: {header_name}")
     
     def _build_url(self, endpoint: str) -> str:
         """
@@ -166,7 +164,7 @@ class BaseService:
         if "headers" in kwargs:
             log_data['headers'] = kwargs['headers']
         
-        self.logger.debug(f"Request Information: {log_data}")
+        logger.debug(f"Request Information: {log_data}")
     
     def _log_response(self, response: requests.Response) -> None:
         """
@@ -188,7 +186,7 @@ class BaseService:
         except Exception:
             log_data['response_body'] = '(non-JSON or empty)'
         
-        self.logger.debug(f"Response Information: {log_data}")
+        logger.debug(f"Response Information: {log_data}")
     
     def _make_request_with_retry(
         self,
@@ -257,7 +255,7 @@ class BaseService:
             except (ConnectionError, Timeout) as e:
                 # 网络错误，可以重试
                 last_exception = e
-                self.logger.warning(
+                logger.warning(
                     f"Network error on attempt {attempt + 1}/{max_retries + 1}: {str(e)}"
                 )
                 
@@ -265,13 +263,13 @@ class BaseService:
                     time.sleep(retry_delay)
                     retry_delay *= 2  # 指数退避
                 else:
-                    self.logger.error(
+                    logger.error(
                         f"Request failed after {max_retries + 1} attempts: {str(e)}"
                     )
             
             except HTTPError as e:
                 # HTTP 错误（4xx, 5xx）
-                self.logger.error(f"HTTP error: {e.response.status_code} - {str(e)}")
+                logger.error(f"HTTP error: {e.response.status_code} - {str(e)}")
                 # 对于 5xx 错误可以重试，4xx 错误不重试
                 if e.response.status_code >= 500 and attempt < max_retries:
                     last_exception = e
@@ -282,7 +280,7 @@ class BaseService:
             
             except RequestException as e:
                 # 其他请求异常
-                self.logger.error(f"Request exception: {str(e)}")
+                logger.error(f"Request exception: {str(e)}")
                 raise
         
         # 如果所有重试都失败，抛出最后一个异常
@@ -383,13 +381,13 @@ class BaseService:
         try:
             response_data = response.json()
         except Exception as e:
-            self.logger.error(f"Failed to parse response as JSON: {str(e)}")
+            logger.error(f"Failed to parse response as JSON: {str(e)}")
             raise ValueError(f"Response is not valid JSON: {str(e)}")
         
         # 如果没有指定路径，缓存整个响应
         if json_path is None:
             self.cache.set(cache_key, response_data)
-            self.logger.info(f"Cached entire response with key: {cache_key}")
+            logger.info(f"Cached entire response with key: {cache_key}")
             return response_data
         
         # 按照路径提取数据
@@ -397,11 +395,11 @@ class BaseService:
         
         if extracted_value is not None:
             self.cache.set(cache_key, extracted_value)
-            self.logger.info(
+            logger.info(
                 f"Extracted and cached value from path '{json_path}' with key: {cache_key}"
             )
         else:
-            self.logger.warning(
+            logger.warning(
                 f"Path '{json_path}' not found in response, cached None"
             )
             self.cache.set(cache_key, None)
@@ -435,12 +433,12 @@ class BaseService:
                 elif isinstance(current, dict):
                     current = current[key]
                 else:
-                    self.logger.warning(
+                    logger.warning(
                         f"Cannot extract key '{key}' from type {type(current)}"
                     )
                     return None
             except (KeyError, IndexError, ValueError, TypeError) as e:
-                self.logger.warning(f"Failed to extract path '{path}': {str(e)}")
+                logger.warning(f"Failed to extract path '{path}': {str(e)}")
                 return None
         
         return current
@@ -457,7 +455,7 @@ class BaseService:
             Any: 缓存的值，如果不存在则返回 default
         """
         value = self.cache.get(cache_key, default)
-        self.logger.debug(f"Retrieved cached value for key: {cache_key}")
+        logger.debug(f"Retrieved cached value for key: {cache_key}")
         return value
     
     def validate_status_code(
@@ -481,11 +479,11 @@ class BaseService:
         is_valid = response.status_code in expected_status
         
         if is_valid:
-            self.logger.info(
+            logger.info(
                 f"Status code {response.status_code} matches expected: {expected_status}"
             )
         else:
-            self.logger.error(
+            logger.error(
                 f"Status code {response.status_code} does not match expected: {expected_status}"
             )
         
@@ -497,7 +495,7 @@ class BaseService:
         """
         if self.session:
             self.session.close()
-            self.logger.info("Session closed")
+            logger.info("Session closed")
     
     def __enter__(self):
         """

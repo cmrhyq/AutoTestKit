@@ -8,7 +8,7 @@ API 测试模块
 
 from base.api.services.base_service import BaseService
 from base.api.fixtures import (
-    api_logger,
+
     api_cache,
     api_env,
     base_service,
@@ -22,7 +22,7 @@ __all__ = [
     'BaseService',
     
     # Fixtures
-    'api_logger',
+
     'api_cache',
     'api_env',
     'base_service',
