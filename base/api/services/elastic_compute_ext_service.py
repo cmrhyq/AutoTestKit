@@ -22,6 +22,16 @@ from typing import Any, Dict, List, Optional
 
 from base import BaseService
 from base.api.entity.elastic_compute import (
+    AppGrantEntity,
+    AppRemoveGrantEntity,
+    CustomResourceCreateEntity,
+    CustomResourceUpdateEntity,
+    HarborBindClusterEntity,
+    HelmBatchUninstallEntity,
+    HelmReleaseEntity,
+    LimitRangeEntity,
+    ResourceQuotaEntity,
+    TenantQuotaBatchEntity,
     WorkloadEntity,
     WorkloadPatchEntity,
     WorkloadServiceEntity,
@@ -166,7 +176,7 @@ class ElasticComputeExtService(BaseService):
 
     # ==================== app-grant 应用授权 ====================
 
-    def grant_app(self, app_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def grant_app(self, app_code: str, grant: AppGrantEntity) -> Dict[str, Any]:
         """
         应用授权，调用 extendapi 进行应用授权。
 
@@ -175,14 +185,20 @@ class ElasticComputeExtService(BaseService):
 
         Args:
             app_code: 应用编码
-            payload: 授权请求体，包含 users 列表和 endTime
+            grant: 授权实体，含用户列表与到期时间（camelCase 转换在方法内完成）
         """
-        logger.info(f"Grant app: appCode={app_code}")
+        logger.info(f"Grant app: appCode={app_code}, users={grant.users}")
         url = f"/elastic-compute/v1/applications/{app_code}/grant"
+        payload: Dict[str, Any] = {
+            "users": list(grant.users),
+            "endTime": grant.end_time,
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def remove_grant_app(self, app_code: str, payload: Any) -> Dict[str, Any]:
+    def remove_grant_app(
+        self, app_code: str, grant: AppRemoveGrantEntity
+    ) -> Dict[str, Any]:
         """
         解除应用授权，调用 extendapi 解除应用授权。
 
@@ -191,10 +207,11 @@ class ElasticComputeExtService(BaseService):
 
         Args:
             app_code: 应用编码
-            payload: 解除授权请求体，用户名列表
+            grant: 解除授权实体，body 序列化为纯 JSON 数组 [user1, user2, ...]（对齐 JMX 行为）
         """
-        logger.info(f"Remove grant app: appCode={app_code}")
+        logger.info(f"Remove grant app: appCode={app_code}, users={grant.users}")
         url = f"/elastic-compute/v1/applications/{app_code}/removeGrant"
+        payload: List[str] = list(grant.users)
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -297,7 +314,7 @@ class ElasticComputeExtService(BaseService):
         version: str,
         namespace: str,
         kind: str,
-        payload: Dict[str, Any],
+        cr: CustomResourceCreateEntity,
     ) -> Any:
         """
         创建 CR 实例。
@@ -307,20 +324,29 @@ class ElasticComputeExtService(BaseService):
 
         Args:
             cluster_id: 集群 ID
-            group: CR group
-            version: CR version
-            namespace: 命名空间
-            kind: CR kind
-            payload: CR 资源定义
+            group: CR group（路径参数）
+            version: CR version（路径参数）
+            namespace: 命名空间（路径参数）
+            kind: CR kind（路径参数）
+            cr: CR 创建实体（body 内 group/version/kind/name 独立指定）
         """
         logger.info(
             f"Create custom resource: cluster={cluster_id}, "
-            f"group={group}, version={version}, ns={namespace}, kind={kind}"
+            f"group={group}, version={version}, ns={namespace}, kind={kind}, name={cr.name}"
         )
         url = (
             f"/elastic-compute/v1/clusters/{cluster_id}/{group}/{version}"
             f"/namespaces/{namespace}/kind/{kind}/customResources"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"{cr.group}/{cr.version}",
+            "kind": cr.kind,
+            "metadata": {"name": cr.name},
+            "spec": {
+                "message": cr.message,
+                "replicas": cr.replicas,
+            },
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.status_code, response.json()
 
@@ -331,7 +357,7 @@ class ElasticComputeExtService(BaseService):
         version: str,
         namespace: str,
         kind: str,
-        payload: Dict[str, Any],
+        cr: CustomResourceUpdateEntity,
     ) -> Any:
         """
         更新 CR 实例。
@@ -341,20 +367,32 @@ class ElasticComputeExtService(BaseService):
 
         Args:
             cluster_id: 集群 ID
-            group: CR group
-            version: CR version
-            namespace: 命名空间
-            kind: CR kind
-            payload: 更新后的 CR 资源定义
+            group: CR group（路径参数）
+            version: CR version（路径参数）
+            namespace: 命名空间（路径参数）
+            kind: CR kind（路径参数）
+            cr: CR 更新实体（body 内 group/version/kind/name/namespace 独立指定）
         """
         logger.info(
             f"Update custom resource: cluster={cluster_id}, "
-            f"group={group}, version={version}, ns={namespace}, kind={kind}"
+            f"group={group}, version={version}, ns={namespace}, kind={kind}, name={cr.name}"
         )
         url = (
             f"/elastic-compute/v1/clusters/{cluster_id}/{group}/{version}"
             f"/namespaces/{namespace}/kind/{kind}/customResources"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"{cr.group}/{cr.version}",
+            "kind": cr.kind,
+            "metadata": {
+                "name": cr.name,
+                "namespace": cr.namespace,
+            },
+            "spec": {
+                "name": cr.display_name,
+                "description": cr.description,
+            },
+        }
         response = self.put(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.status_code, response.json()
 
@@ -426,7 +464,7 @@ class ElasticComputeExtService(BaseService):
 
     # ==================== harbor 仓库绑定 ====================
 
-    def harbor_bind_cluster(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def harbor_bind_cluster(self, bind: HarborBindClusterEntity) -> Dict[str, Any]:
         """
         Harbor 仓库绑定集群。
 
@@ -434,10 +472,16 @@ class ElasticComputeExtService(BaseService):
         POST /elastic-compute/v2/harbor/bindCluster
 
         Args:
-            payload: 绑定请求体，包含 clusterId 和 harborName
+            bind: 绑定实体，包含 cluster_id 和 harbor_name
         """
-        logger.info(f"Harbor bind cluster: {payload}")
+        logger.info(
+            f"Harbor bind cluster: clusterId={bind.cluster_id}, harborName={bind.harbor_name}"
+        )
         url = "/elastic-compute/v2/harbor/bindCluster"
+        payload: Dict[str, Any] = {
+            "clusterId": bind.cluster_id,
+            "harborName": bind.harbor_name,
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -645,30 +689,36 @@ class ElasticComputeExtService(BaseService):
         return response.json()
 
     def update_namespace_quota_scale(
-        self, cluster_id: str, tenant_code: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, tenant_code: str, namespace: str
     ) -> Dict[str, Any]:
         """
         系统资源配额调整(扩容缩容)。
 
         对应 JMX：弹性计算_extentions_namespace-quota_系统资源配额调整(扩容缩容)
         PUT /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/namespaces/{namespace}/quota/scale
+
+        对齐 JMX 行为：body 固定为空对象 {}。
         """
         logger.info(f"Update namespace quota scale: cluster={cluster_id}, tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/namespaces/{namespace}/quota/scale"
+        payload: Dict[str, Any] = {}
         response = self.put(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
     def allocate_namespace_quota(
-        self, cluster_id: str, tenant_code: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, tenant_code: str, namespace: str
     ) -> Dict[str, Any]:
         """
         系统资源配额分配。
 
         对应 JMX：弹性计算_extentions_namespace-quota_系统资源配额分配
         POST /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/namespaces/{namespace}/quota/allocate
+
+        对齐 JMX 行为：body 固定为空对象 {}。
         """
         logger.info(f"Allocate namespace quota: cluster={cluster_id}, tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/namespaces/{namespace}/quota/allocate"
+        payload: Dict[str, Any] = {}
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -756,15 +806,55 @@ class ElasticComputeExtService(BaseService):
         response = self.delete(endpoint=url, params=params, headers=_get_ext_headers())
         return response.json()
 
-    def helm_install(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_install(
+        self, cluster_id: str, namespace: str, release: HelmReleaseEntity
+    ) -> Dict[str, Any]:
         """
         Helm Install 请求。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Install请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/install
         """
-        logger.info(f"Helm install: cluster={cluster_id}, ns={namespace}")
+        logger.info(f"Helm install: cluster={cluster_id}, ns={namespace}, name={release.name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/install"
+        params_body: Dict[str, Any] = {
+            "image.repository": release.image,
+            "image.tag": release.image_tag,
+            "labels.operation-source": "api",
+            "labels.paas-resource-category": "tenant-app",
+            "labels.paas-app-source": "helm",
+            "labels.paas-owner": release.paas_owner,
+            "labels.paas-tenant-code": release.paas_tenant_code,
+            "labels.paas-env-code": release.paas_env_code,
+            "labels.paas-plane-code": release.paas_plane_code,
+            "labels.paas-unit-code": release.cell_code,
+            "labels.paas-cluster-code": release.cluster_id,
+            "labels.paas-system-code": release.namespace,
+            "labels.paas-app-code": release.paas_app_code,
+            "labels.paas-workload-name": release.name,
+            "labels.paas-app-service-version": "v1",
+            "service.labels.operation-source": "api",
+            "service.labels.paas-resource-category": "tenant-app",
+            "service.labels.paas-app-source": "helm",
+            "service.labels.paas-owner": release.paas_owner,
+            "service.labels.paas-tenant-code": release.paas_tenant_code,
+            "service.labels.paas-env-code": release.paas_env_code,
+            "service.labels.paas-plane-code": release.paas_plane_code,
+            "service.labels.paas-unit-code": release.cell_code,
+            "service.labels.paas-cluster-code": release.cluster_id,
+            "service.labels.paas-system-code": release.namespace,
+            "service.labels.paas-app-code": release.paas_app_code,
+            "service.labels.paas-workload-name": release.name,
+        }
+        if release.extra_label_test:
+            params_body["labels.test"] = "update"
+            params_body["service.labels.test"] = "update"
+        payload: Dict[str, Any] = {
+            "name": release.name,
+            "chartName": release.chart_name,
+            "chartVersion": release.chart_version,
+            "params": params_body,
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -804,7 +894,9 @@ class ElasticComputeExtService(BaseService):
         response = self.get(endpoint=url, headers=_get_ext_headers())
         return response.json()
 
-    def helm_upgrade(self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_upgrade(
+        self, cluster_id: str, namespace: str, name: str, release: HelmReleaseEntity
+    ) -> Dict[str, Any]:
         """
         Helm Upgrade 请求。
 
@@ -813,6 +905,44 @@ class ElasticComputeExtService(BaseService):
         """
         logger.info(f"Helm upgrade: cluster={cluster_id}, ns={namespace}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/release/{name}/upgrade"
+        params_body: Dict[str, Any] = {
+            "image.repository": release.image,
+            "image.tag": release.image_tag,
+            "labels.operation-source": "api",
+            "labels.paas-resource-category": "tenant-app",
+            "labels.paas-app-source": "helm",
+            "labels.paas-owner": release.paas_owner,
+            "labels.paas-tenant-code": release.paas_tenant_code,
+            "labels.paas-env-code": release.paas_env_code,
+            "labels.paas-plane-code": release.paas_plane_code,
+            "labels.paas-unit-code": release.cell_code,
+            "labels.paas-cluster-code": release.cluster_id,
+            "labels.paas-system-code": release.namespace,
+            "labels.paas-app-code": release.paas_app_code,
+            "labels.paas-workload-name": release.name,
+            "labels.paas-app-service-version": "v1",
+            "service.labels.operation-source": "api",
+            "service.labels.paas-resource-category": "tenant-app",
+            "service.labels.paas-app-source": "helm",
+            "service.labels.paas-owner": release.paas_owner,
+            "service.labels.paas-tenant-code": release.paas_tenant_code,
+            "service.labels.paas-env-code": release.paas_env_code,
+            "service.labels.paas-plane-code": release.paas_plane_code,
+            "service.labels.paas-unit-code": release.cell_code,
+            "service.labels.paas-cluster-code": release.cluster_id,
+            "service.labels.paas-system-code": release.namespace,
+            "service.labels.paas-app-code": release.paas_app_code,
+            "service.labels.paas-workload-name": release.name,
+        }
+        if release.extra_label_test:
+            params_body["labels.test"] = "update"
+            params_body["service.labels.test"] = "update"
+        payload: Dict[str, Any] = {
+            "name": release.name,
+            "chartName": release.chart_name,
+            "chartVersion": release.chart_version,
+            "params": params_body,
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -866,75 +996,257 @@ class ElasticComputeExtService(BaseService):
             response = self.post(endpoint=url, files=files, headers=_get_ext_headers())
         return response.json()
 
-    def helm_batch_install(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_batch_install(
+        self, cluster_id: str, namespace: str, releases: List[HelmReleaseEntity]
+    ) -> Dict[str, Any]:
         """
         Helm 批量 Install 请求（v1）。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Install请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/install/batch
         """
-        logger.info(f"Helm batch install v1: cluster={cluster_id}, ns={namespace}")
+        logger.info(f"Helm batch install v1: cluster={cluster_id}, ns={namespace}, count={len(releases)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/install/batch"
+        install_list: List[Dict[str, Any]] = []
+        for r in releases:
+            params_body: Dict[str, Any] = {
+                "image.repository": r.image,
+                "image.tag": r.image_tag,
+                "labels.operation-source": "api",
+                "labels.paas-resource-category": "tenant-app",
+                "labels.paas-app-source": "helm",
+                "labels.paas-owner": r.paas_owner,
+                "labels.paas-tenant-code": r.paas_tenant_code,
+                "labels.paas-env-code": r.paas_env_code,
+                "labels.paas-plane-code": r.paas_plane_code,
+                "labels.paas-unit-code": r.cell_code,
+                "labels.paas-cluster-code": r.cluster_id,
+                "labels.paas-system-code": r.namespace,
+                "labels.paas-app-code": r.paas_app_code,
+                "labels.paas-workload-name": r.name,
+                "labels.paas-app-service-version": "v1",
+                "service.labels.operation-source": "api",
+                "service.labels.paas-resource-category": "tenant-app",
+                "service.labels.paas-app-source": "helm",
+                "service.labels.paas-owner": r.paas_owner,
+                "service.labels.paas-tenant-code": r.paas_tenant_code,
+                "service.labels.paas-env-code": r.paas_env_code,
+                "service.labels.paas-plane-code": r.paas_plane_code,
+                "service.labels.paas-unit-code": r.cell_code,
+                "service.labels.paas-cluster-code": r.cluster_id,
+                "service.labels.paas-system-code": r.namespace,
+                "service.labels.paas-app-code": r.paas_app_code,
+                "service.labels.paas-workload-name": r.name,
+            }
+            if r.extra_label_test:
+                params_body["labels.test"] = "update"
+                params_body["service.labels.test"] = "update"
+            install_list.append({
+                "name": r.name,
+                "chartName": r.chart_name,
+                "chartVersion": r.chart_version,
+                "params": params_body,
+            })
+        payload: Dict[str, Any] = {"installList": install_list}
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def helm_batch_uninstall(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_batch_uninstall(
+        self, cluster_id: str, namespace: str, uninstall: HelmBatchUninstallEntity
+    ) -> Dict[str, Any]:
         """
         Helm 批量 Uninstall 请求（v1）。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Uninstall请求
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/uninstall/batch
         """
-        logger.info(f"Helm batch uninstall v1: cluster={cluster_id}, ns={namespace}")
+        logger.info(
+            f"Helm batch uninstall v1: cluster={cluster_id}, ns={namespace}, count={len(uninstall.release_names)}"
+        )
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/uninstall/batch"
+        payload: Dict[str, Any] = {"uninstallList": list(uninstall.release_names)}
         response = self.delete(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def helm_batch_upgrade(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_batch_upgrade(
+        self, cluster_id: str, namespace: str, releases: List[HelmReleaseEntity]
+    ) -> Dict[str, Any]:
         """
         Helm 批量 Upgrade 请求（v1）。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Upgrade请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/upgrade/batch
         """
-        logger.info(f"Helm batch upgrade v1: cluster={cluster_id}, ns={namespace}")
+        logger.info(f"Helm batch upgrade v1: cluster={cluster_id}, ns={namespace}, count={len(releases)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/upgrade/batch"
+        upgrade_list: List[Dict[str, Any]] = []
+        for r in releases:
+            params_body: Dict[str, Any] = {
+                "image.repository": r.image,
+                "image.tag": r.image_tag,
+                "labels.operation-source": "api",
+                "labels.paas-resource-category": "tenant-app",
+                "labels.paas-app-source": "helm",
+                "labels.paas-owner": r.paas_owner,
+                "labels.paas-tenant-code": r.paas_tenant_code,
+                "labels.paas-env-code": r.paas_env_code,
+                "labels.paas-plane-code": r.paas_plane_code,
+                "labels.paas-unit-code": r.cell_code,
+                "labels.paas-cluster-code": r.cluster_id,
+                "labels.paas-system-code": r.namespace,
+                "labels.paas-app-code": r.paas_app_code,
+                "labels.paas-workload-name": r.name,
+                "labels.paas-app-service-version": "v1",
+                "service.labels.operation-source": "api",
+                "service.labels.paas-resource-category": "tenant-app",
+                "service.labels.paas-app-source": "helm",
+                "service.labels.paas-owner": r.paas_owner,
+                "service.labels.paas-tenant-code": r.paas_tenant_code,
+                "service.labels.paas-env-code": r.paas_env_code,
+                "service.labels.paas-plane-code": r.paas_plane_code,
+                "service.labels.paas-unit-code": r.cell_code,
+                "service.labels.paas-cluster-code": r.cluster_id,
+                "service.labels.paas-system-code": r.namespace,
+                "service.labels.paas-app-code": r.paas_app_code,
+                "service.labels.paas-workload-name": r.name,
+            }
+            if r.extra_label_test:
+                params_body["labels.test"] = "update"
+                params_body["service.labels.test"] = "update"
+            upgrade_list.append({
+                "name": r.name,
+                "chartName": r.chart_name,
+                "chartVersion": r.chart_version,
+                "params": params_body,
+            })
+        payload: Dict[str, Any] = {"upgradeList": upgrade_list}
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def helm_batch_install_v2(self, cell_code: str, sys_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_batch_install_v2(
+        self, cell_code: str, sys_code: str, releases: List[HelmReleaseEntity]
+    ) -> Dict[str, Any]:
         """
         Helm 批量 Install 请求（v2）。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Install请求 v2
         POST /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/install/batch
         """
-        logger.info(f"Helm batch install v2: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Helm batch install v2: cell={cell_code}, sys={sys_code}, count={len(releases)}")
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/install/batch"
+        install_list: List[Dict[str, Any]] = []
+        for r in releases:
+            params_body: Dict[str, Any] = {
+                "image.repository": r.image,
+                "image.tag": r.image_tag,
+                "labels.operation-source": "api",
+                "labels.paas-resource-category": "tenant-app",
+                "labels.paas-app-source": "helm",
+                "labels.paas-owner": r.paas_owner,
+                "labels.paas-tenant-code": r.paas_tenant_code,
+                "labels.paas-env-code": r.paas_env_code,
+                "labels.paas-plane-code": r.paas_plane_code,
+                "labels.paas-unit-code": r.cell_code,
+                "labels.paas-cluster-code": r.cluster_id,
+                "labels.paas-system-code": r.namespace,
+                "labels.paas-app-code": r.paas_app_code,
+                "labels.paas-workload-name": r.name,
+                "labels.paas-app-service-version": "v1",
+                "service.labels.operation-source": "api",
+                "service.labels.paas-resource-category": "tenant-app",
+                "service.labels.paas-app-source": "helm",
+                "service.labels.paas-owner": r.paas_owner,
+                "service.labels.paas-tenant-code": r.paas_tenant_code,
+                "service.labels.paas-env-code": r.paas_env_code,
+                "service.labels.paas-plane-code": r.paas_plane_code,
+                "service.labels.paas-unit-code": r.cell_code,
+                "service.labels.paas-cluster-code": r.cluster_id,
+                "service.labels.paas-system-code": r.namespace,
+                "service.labels.paas-app-code": r.paas_app_code,
+                "service.labels.paas-workload-name": r.name,
+            }
+            if r.extra_label_test:
+                params_body["labels.test"] = "update"
+                params_body["service.labels.test"] = "update"
+            install_list.append({
+                "name": r.name,
+                "chartName": r.chart_name,
+                "chartVersion": r.chart_version,
+                "params": params_body,
+            })
+        payload: Dict[str, Any] = {"installList": install_list}
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def helm_batch_uninstall_v2(self, cell_code: str, sys_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_batch_uninstall_v2(
+        self, cell_code: str, sys_code: str, uninstall: HelmBatchUninstallEntity
+    ) -> Dict[str, Any]:
         """
         Helm 批量 Uninstall 请求（v2）。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Uninstall请求 v2
         DELETE /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/uninstall/batch
         """
-        logger.info(f"Helm batch uninstall v2: cell={cell_code}, sys={sys_code}")
+        logger.info(
+            f"Helm batch uninstall v2: cell={cell_code}, sys={sys_code}, count={len(uninstall.release_names)}"
+        )
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/uninstall/batch"
+        payload: Dict[str, Any] = {"uninstallList": list(uninstall.release_names)}
         response = self.delete(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def helm_batch_upgrade_v2(self, cell_code: str, sys_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def helm_batch_upgrade_v2(
+        self, cell_code: str, sys_code: str, releases: List[HelmReleaseEntity]
+    ) -> Dict[str, Any]:
         """
         Helm 批量 Upgrade 请求（v2）。
 
         对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Upgrade请求 v2
         POST /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/upgrade/batch
         """
-        logger.info(f"Helm batch upgrade v2: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Helm batch upgrade v2: cell={cell_code}, sys={sys_code}, count={len(releases)}")
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/upgrade/batch"
+        upgrade_list: List[Dict[str, Any]] = []
+        for r in releases:
+            params_body: Dict[str, Any] = {
+                "image.repository": r.image,
+                "image.tag": r.image_tag,
+                "labels.operation-source": "api",
+                "labels.paas-resource-category": "tenant-app",
+                "labels.paas-app-source": "helm",
+                "labels.paas-owner": r.paas_owner,
+                "labels.paas-tenant-code": r.paas_tenant_code,
+                "labels.paas-env-code": r.paas_env_code,
+                "labels.paas-plane-code": r.paas_plane_code,
+                "labels.paas-unit-code": r.cell_code,
+                "labels.paas-cluster-code": r.cluster_id,
+                "labels.paas-system-code": r.namespace,
+                "labels.paas-app-code": r.paas_app_code,
+                "labels.paas-workload-name": r.name,
+                "labels.paas-app-service-version": "v1",
+                "service.labels.operation-source": "api",
+                "service.labels.paas-resource-category": "tenant-app",
+                "service.labels.paas-app-source": "helm",
+                "service.labels.paas-owner": r.paas_owner,
+                "service.labels.paas-tenant-code": r.paas_tenant_code,
+                "service.labels.paas-env-code": r.paas_env_code,
+                "service.labels.paas-plane-code": r.paas_plane_code,
+                "service.labels.paas-unit-code": r.cell_code,
+                "service.labels.paas-cluster-code": r.cluster_id,
+                "service.labels.paas-system-code": r.namespace,
+                "service.labels.paas-app-code": r.paas_app_code,
+                "service.labels.paas-workload-name": r.name,
+            }
+            if r.extra_label_test:
+                params_body["labels.test"] = "update"
+                params_body["service.labels.test"] = "update"
+            upgrade_list.append({
+                "name": r.name,
+                "chartName": r.chart_name,
+                "chartVersion": r.chart_version,
+                "params": params_body,
+            })
+        payload: Dict[str, Any] = {"upgradeList": upgrade_list}
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -993,7 +1305,9 @@ class ElasticComputeExtService(BaseService):
 
     # ==================== partitions-api ResourceQuota / LimitRange ====================
 
-    def create_resource_quota(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def create_resource_quota(
+        self, cluster_id: str, namespace: str, quota: ResourceQuotaEntity
+    ) -> Dict[str, Any]:
         """
         创建资源配额。
 
@@ -1002,6 +1316,12 @@ class ElasticComputeExtService(BaseService):
         """
         logger.info(f"Create resource quota: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/resourceQuota"
+        payload: Dict[str, Any] = {
+            "limitsCpu": quota.limits_cpu,
+            "limitsMemory": quota.limits_memory,
+            "requestsCpu": quota.requests_cpu,
+            "requestsMemory": quota.requests_memory,
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -1017,15 +1337,31 @@ class ElasticComputeExtService(BaseService):
         response = self.get(endpoint=url, headers=_get_ext_headers())
         return response.json()
 
-    def update_resource_quota(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def update_resource_quota(
+        self, cluster_id: str, namespace: str, quota: Optional[ResourceQuotaEntity] = None
+    ) -> Dict[str, Any]:
         """
         更新资源配额。
 
         对应 JMX：弹性计算_extentions_partitions-api_更新资源配额
         PUT /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/resourceQuota
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            quota: 资源配额实体。None 时发送空 body（对齐 JMX PUT 空 body 场景）
         """
-        logger.info(f"Update resource quota: cluster={cluster_id}, ns={namespace}")
+        logger.info(f"Update resource quota: cluster={cluster_id}, ns={namespace}, has_body={quota is not None}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/resourceQuota"
+        if quota is None:
+            payload: Dict[str, Any] = {}
+        else:
+            payload = {
+                "limitsCpu": quota.limits_cpu,
+                "limitsMemory": quota.limits_memory,
+                "requestsCpu": quota.requests_cpu,
+                "requestsMemory": quota.requests_memory,
+            }
         response = self.put(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -1040,7 +1376,9 @@ class ElasticComputeExtService(BaseService):
         response = self.delete(endpoint=url, headers=_get_ext_headers())
         return response.json()
 
-    def create_limit_range(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def create_limit_range(
+        self, cluster_id: str, namespace: str, limit_range: LimitRangeEntity
+    ) -> Dict[str, Any]:
         """
         创建资源限额。
 
@@ -1049,6 +1387,12 @@ class ElasticComputeExtService(BaseService):
         """
         logger.info(f"Create limit range: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/limitRange"
+        payload: Dict[str, Any] = {
+            "maxCpu": limit_range.max_cpu,
+            "maxMemory": limit_range.max_memory,
+            "minCpu": limit_range.min_cpu,
+            "minMemory": limit_range.min_memory,
+        }
         response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -1064,15 +1408,33 @@ class ElasticComputeExtService(BaseService):
         response = self.get(endpoint=url, headers=_get_ext_headers())
         return response.json()
 
-    def update_limit_range(self, cluster_id: str, namespace: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def update_limit_range(
+        self, cluster_id: str, namespace: str, limit_range: Optional[LimitRangeEntity] = None
+    ) -> Dict[str, Any]:
         """
         更新资源限额。
 
         对应 JMX：弹性计算_extentions_partitions-api_更新资源限额
         PUT /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/limitRange
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            limit_range: LimitRange 实体。None 时发送空 body（对齐 JMX PUT 空 body 场景）
         """
-        logger.info(f"Update limit range: cluster={cluster_id}, ns={namespace}")
+        logger.info(
+            f"Update limit range: cluster={cluster_id}, ns={namespace}, has_body={limit_range is not None}"
+        )
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/limitRange"
+        if limit_range is None:
+            payload: Dict[str, Any] = {}
+        else:
+            payload = {
+                "maxCpu": limit_range.max_cpu,
+                "maxMemory": limit_range.max_memory,
+                "minCpu": limit_range.min_cpu,
+                "minMemory": limit_range.min_memory,
+            }
         response = self.put(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
@@ -1249,34 +1611,42 @@ class ElasticComputeExtService(BaseService):
         return response.json()
 
     def allocate_tenant_quota(
-        self, cluster_id: str, tenant_code: str, payload: Optional[Dict[str, Any]] = None
+        self, cluster_id: str, tenant_code: str
     ) -> Dict[str, Any]:
         """
         租户资源配额分配。
 
         对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额分配
         POST /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota/allocate
+
+        对齐 JMX 行为：body 固定为空对象 {}。
         """
         logger.info(f"Allocate tenant quota: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota/allocate"
-        response = self.post(endpoint=url, json=payload or {}, headers=_get_ext_headers())
+        payload: Dict[str, Any] = {}
+        response = self.post(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
     def update_tenant_quota_scale(
-        self, cluster_id: str, tenant_code: str, payload: Optional[Dict[str, Any]] = None
+        self, cluster_id: str, tenant_code: str
     ) -> Dict[str, Any]:
         """
         租户资源配额调整（扩容缩容）。
 
         对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额调整(扩容缩容)
         PUT /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota/scale
+
+        对齐 JMX 行为：body 固定为空对象 {}。
         """
         logger.info(f"Update tenant quota scale: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota/scale"
-        response = self.put(endpoint=url, json=payload or {}, headers=_get_ext_headers())
+        payload: Dict[str, Any] = {}
+        response = self.put(endpoint=url, json=payload, headers=_get_ext_headers())
         return response.json()
 
-    def batch_query_tenant_quota(self, payload: Dict[str, Any], admin: bool = False) -> Dict[str, Any]:
+    def batch_query_tenant_quota(
+        self, batch: TenantQuotaBatchEntity, admin: bool = False
+    ) -> Dict[str, Any]:
         """
         批量查询租户资源配额概览。
 
@@ -1284,12 +1654,13 @@ class ElasticComputeExtService(BaseService):
         POST /elastic-compute/v1/tenants/quota/batch
 
         Args:
-            payload: 请求体，形如 {"tenantCodeList": ["tenantCode1", ...]}
+            batch: 批量查询实体，包含 tenant_codes 列表
             admin: 是否使用 adminUsername / adminTenantCode 请求（对齐 JMX 中局部 HeaderManager）
         """
-        logger.info(f"Batch query tenant quota: admin={admin}, tenants={payload.get('tenantCodeList')}")
+        logger.info(f"Batch query tenant quota: admin={admin}, tenants={batch.tenant_codes}")
         url = "/elastic-compute/v1/tenants/quota/batch"
         headers = _get_admin_headers() if admin else _get_ext_headers()
+        payload: Dict[str, Any] = {"tenantCodeList": list(batch.tenant_codes)}
         response = self.post(endpoint=url, json=payload, headers=headers)
         return response.json()
 

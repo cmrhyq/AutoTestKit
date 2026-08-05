@@ -19,12 +19,16 @@ Partitions API 接口测试（Extensions - apikey 鉴权）
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    LimitRangeEntity,
+    PartitionsPublicParams,
+    ResourceQuotaEntity,
+)
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
 from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-from tests.api.microservices.test_microservices_ingress import public_params
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -54,40 +58,20 @@ class TestEcExtensionsPartitionsApi:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> PartitionsPublicParams:
         """提取 Partitions API 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-ns"),
-            "is_host_cluster": str(api_env.get("testHostCluster", "0")),
-        }
+        return PartitionsPublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-ns"),
+            is_host_cluster=str(api_env.get("testHostCluster", "0")),
+        )
 
-    # ==================== payload 构造 helper ====================
-
-    @staticmethod
-    def _build_resource_quota_payload() -> dict:
-        """构造 ResourceQuota create/update payload（对齐 JMX 原始 body）。"""
-        return {
-            "limitsCpu": 1,
-            "limitsMemory": 1,
-            "requestsCpu": 1,
-            "requestsMemory": 1,
-        }
-
-    @staticmethod
-    def _build_limit_range_payload() -> dict:
-        """构造 LimitRange create/update payload（对齐 JMX 原始 body）。"""
-        return {
-            "maxCpu": 2,
-            "maxMemory": 1024,
-            "minCpu": 1,
-            "minMemory": 256,
-        }
+    # ==================== skip 辅助 ====================
 
     @staticmethod
     def _skip_if_not_host_cluster(is_host_cluster: str) -> None:
         """当前 env 非托管集群时跳过托管集群分支用例。"""
-        if is_host_cluster != 1:
+        if is_host_cluster != "1":
             pytest.skip("当前 env testHostCluster != 1，跳过托管集群分支用例")
 
     @staticmethod
@@ -104,13 +88,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_resource_quota(self, ec_ext_service, public_params):
         """创建 ResourceQuota（仅托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.create_resource_quota(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                payload=self._build_resource_quota_payload(),
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                quota=ResourceQuotaEntity(),
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"创建 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -122,12 +106,12 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_quota(self, ec_ext_service, public_params):
         """获取 ResourceQuota（仅托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_resource_quota(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -139,13 +123,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota(self, ec_ext_service, public_params):
         """更新 ResourceQuota（托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_resource_quota(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                payload={},
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                quota=None,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -162,13 +146,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_pre_cleanup_limit_range(self, ec_ext_service, public_params):
         """预清理 LimitRange：调用 DELETE 忽略返回码。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             # 忽略 code：可能不存在（首次运行），也可能成功
             ec_ext_service.delete_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
             )
 
     @pytest.mark.order(5)
@@ -177,13 +161,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_limit_range(self, ec_ext_service, public_params):
         """创建 LimitRange（仅托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.create_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                payload=self._build_limit_range_payload(),
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                limit_range=LimitRangeEntity(),
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"创建 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -195,12 +179,12 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_limit_range(self, ec_ext_service, public_params):
         """获取 LimitRange（仅托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -212,13 +196,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range(self, ec_ext_service, public_params):
         """更新 LimitRange（托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                payload=self._build_limit_range_payload(),
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                limit_range=LimitRangeEntity(),
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -230,12 +214,12 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_limit_range(self, ec_ext_service, public_params):
         """删除 LimitRange（托管集群），断言业务码为成功。"""
-        self._skip_if_not_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.delete_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"删除 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -249,12 +233,12 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_quota_standard(self, ec_ext_service, public_params):
         """标准集群 ResourceQuota 查询。"""
-        self._skip_if_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_resource_quota(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群获取 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -266,13 +250,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota_standard(self, ec_ext_service, public_params):
         """标准集群 ResourceQuota 更新（PUT 空 body 对齐 JMX）。"""
-        self._skip_if_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_resource_quota(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                payload={},
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                quota=None,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群更新 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -284,12 +268,12 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_limit_range_standard(self, ec_ext_service, public_params):
         """标准集群 LimitRange 查询。"""
-        self._skip_if_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群获取 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -301,13 +285,13 @@ class TestEcExtensionsPartitionsApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range_standard(self, ec_ext_service, public_params):
         """标准集群 LimitRange 更新（PUT 空 body 对齐 JMX）。"""
-        self._skip_if_host_cluster(public_params["is_host_cluster"])
+        self._skip_if_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_limit_range(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                payload={},
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                limit_range=None,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群更新 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -326,7 +310,7 @@ class TestEcExtensionsPartitionsApi:
         """查询节点信息（admin 头），断言业务码为成功。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_partition_nodes(
-                cluster_id=public_params["cluster_id"],
+                cluster_id=public_params.cluster_id,
                 admin=True,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (

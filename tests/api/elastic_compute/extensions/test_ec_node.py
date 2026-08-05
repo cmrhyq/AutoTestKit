@@ -11,6 +11,7 @@ Node 节点污点查询接口测试（Extensions - apikey 鉴权）
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import NodePublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -40,12 +41,12 @@ class TestEcExtensionsNode:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> NodePublicParams:
         """提取 Node 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "test"),
-            "node_name": api_env.get("nodeIp", "100.10.30.113"),
-        }
+        return NodePublicParams(
+            cell_code=api_env.get("cellCode", "test"),
+            node_name=api_env.get("nodeIp", "100.10.30.113"),
+        )
 
     # ==================== 查询节点污点列表 ====================
 
@@ -58,8 +59,8 @@ class TestEcExtensionsNode:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_node_taints(self, ec_ext_service, public_params):
         """查询节点污点列表，断言业务码为成功。"""
-        cell_code = public_params["cell_code"]
-        node_name = public_params["node_name"]
+        cell_code = public_params.cell_code
+        node_name = public_params.node_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_node_taints(

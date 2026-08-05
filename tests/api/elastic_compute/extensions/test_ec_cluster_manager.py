@@ -8,6 +8,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import ClusterManagerPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,11 +38,11 @@ class TestEcExtensionsClusterManager:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ClusterManagerPublicParams:
         """提取集群管理测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-        }
+        return ClusterManagerPublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+        )
 
     @pytest.mark.dependency(name="cluster_list")
     @pytest.mark.order(1)
@@ -70,7 +71,7 @@ class TestEcExtensionsClusterManager:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_cluster_info(self, ec_ext_service, public_params, api_cache):
         """查询指定集群详情，断言业务码为成功。"""
-        cluster_id = api_cache.get("ext_cluster_id") or public_params["cluster_id"]
+        cluster_id = api_cache.get("ext_cluster_id") or public_params.cluster_id
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_cluster_info(
@@ -88,7 +89,7 @@ class TestEcExtensionsClusterManager:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cluster_status(self, ec_ext_service, public_params, api_cache):
         """查询集群状态，断言业务码为成功。"""
-        cluster_id = api_cache.get("ext_cluster_id") or public_params["cluster_id"]
+        cluster_id = api_cache.get("ext_cluster_id") or public_params.cluster_id
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_cluster_status(

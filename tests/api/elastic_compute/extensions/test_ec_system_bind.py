@@ -14,6 +14,7 @@ System Bind 系统绑定接口测试（Extensions - apikey 鉴权）
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import SystemBindPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -46,13 +47,13 @@ class TestEcExtensionsSystemBind:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> SystemBindPublicParams:
         """提取 System Bind 测试所需的公共参数。"""
-        return {
-            "tenant_code": api_env.get("tenantCode", "monitor-group"),
-            "sys_code": api_env.get("sysCode", "test-sys"),
-            "username": api_env.get("user", "lzm-admin"),
-        }
+        return SystemBindPublicParams(
+            tenant_code=api_env.get("tenantCode", "monitor-group"),
+            sys_code=api_env.get("sysCode", "test-sys"),
+            username=api_env.get("user", "lzm-admin"),
+        )
 
     # ==================== 1) 查询系统是否有配额信息 ====================
 
@@ -65,8 +66,8 @@ class TestEcExtensionsSystemBind:
         """查询系统配额，断言业务码为成功。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.check_system_quota(
-                tenant_code=public_params["tenant_code"],
-                sys_code=public_params["sys_code"],
+                tenant_code=public_params.tenant_code,
+                sys_code=public_params.sys_code,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询系统配额失败, code: {response_json.get('code')}, 响应: {response_json}"
@@ -86,8 +87,8 @@ class TestEcExtensionsSystemBind:
         """用户与系统绑定，断言业务码为成功；bind code 缓存到 api_cache。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.bind_system_user(
-                sys_code=public_params["sys_code"],
-                username=public_params["username"],
+                sys_code=public_params.sys_code,
+                username=public_params.username,
             )
             bind_code = response_json.get("code")
             api_cache.set("system_bind_code", bind_code)
@@ -112,8 +113,8 @@ class TestEcExtensionsSystemBind:
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.unbind_system_user(
-                sys_code=public_params["sys_code"],
-                username=public_params["username"],
+                sys_code=public_params.sys_code,
+                username=public_params.username,
             )
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"解除用户与系统绑定失败, code: {response_json.get('code')}, 响应: {response_json}"

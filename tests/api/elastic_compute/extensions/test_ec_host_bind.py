@@ -8,6 +8,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import HostBindPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,11 +38,11 @@ class TestEcExtensionsHostBind:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> HostBindPublicParams:
         """提取主机绑定测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-        }
+        return HostBindPublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+        )
 
     @pytest.mark.order(1)
     @allure.title("查询集群下主机列表")
@@ -49,7 +50,7 @@ class TestEcExtensionsHostBind:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_hosts(self, ec_ext_service, public_params):
         """查询集群下主机列表，断言业务码为成功。"""
-        cell_code = public_params["cell_code"]
+        cell_code = public_params.cell_code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_hosts(cell_code=cell_code)

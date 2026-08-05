@@ -8,6 +8,10 @@ Harbor 仓库绑定集群接口测试
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    HarborBindClusterEntity,
+    HarborBindPublicParams,
+)
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,20 +41,12 @@ class TestEcExtensionsHarborBindCluster:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> HarborBindPublicParams:
         """提取 Harbor 绑定测试所需的公共参数。"""
-        return {
-            "cluster_id": int(api_env.get("clusterId", 1)),
-            "harbor_name": api_env.get("harborName", "harbor-107"),
-        }
-
-    @staticmethod
-    def _build_bind_payload(cluster_id: int, harbor_name: str) -> dict:
-        """构造 Harbor 绑定集群请求体。"""
-        return {
-            "clusterId": cluster_id,
-            "harborName": harbor_name,
-        }
+        return HarborBindPublicParams(
+            cluster_id=int(api_env.get("clusterId", 1)),
+            harbor_name=api_env.get("harborName", "harbor-107"),
+        )
 
     @pytest.mark.order(1)
     @allure.title("Harbor 仓库绑定集群")
@@ -58,12 +54,12 @@ class TestEcExtensionsHarborBindCluster:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_harbor_bind_cluster(self, ec_ext_service, public_params):
         """Harbor 仓库绑定集群，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        harbor_name = public_params["harbor_name"]
-
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_bind_payload(cluster_id, harbor_name)
-            response_json = ec_ext_service.harbor_bind_cluster(payload=payload)
+            bind = HarborBindClusterEntity(
+                cluster_id=public_params.cluster_id,
+                harbor_name=public_params.harbor_name,
+            )
+            response_json = ec_ext_service.harbor_bind_cluster(bind=bind)
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Harbor 绑定集群失败, code: {response_json.get('code')}, 响应: {response_json}"

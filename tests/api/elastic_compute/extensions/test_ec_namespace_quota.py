@@ -8,6 +8,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import NamespaceQuotaPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,13 +38,13 @@ class TestEcExtensionsNamespaceQuota:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> NamespaceQuotaPublicParams:
         """提取系统配额测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "tenant_code": api_env.get("adminTenantCode", "tenant_admin"),
-            "namespace": api_env.get("namespace", "test"),
-        }
+        return NamespaceQuotaPublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            tenant_code=api_env.get("adminTenantCode", "tenant_admin"),
+            namespace=api_env.get("namespace", "test"),
+        )
 
     @pytest.mark.dependency(name="ns_quota_overview")
     @pytest.mark.order(1)
@@ -52,8 +53,8 @@ class TestEcExtensionsNamespaceQuota:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_quota_overview(self, ec_ext_service, public_params):
         """查询系统资源配额概览，断言业务码为成功。"""
-        tenant_code = public_params["tenant_code"]
-        namespace = public_params["namespace"]
+        tenant_code = public_params.tenant_code
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_namespace_quota_overview(
@@ -72,9 +73,9 @@ class TestEcExtensionsNamespaceQuota:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_quota_detail(self, ec_ext_service, public_params):
         """查询系统资源配额详情，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        tenant_code = public_params["tenant_code"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        tenant_code = public_params.tenant_code
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_namespace_quota_detail(
@@ -94,9 +95,9 @@ class TestEcExtensionsNamespaceQuota:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_quota_scale(self, ec_ext_service, public_params):
         """查询系统可调整资源配额，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        tenant_code = public_params["tenant_code"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        tenant_code = public_params.tenant_code
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_namespace_quota_scale(
@@ -116,16 +117,15 @@ class TestEcExtensionsNamespaceQuota:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_namespace_quota_scale(self, ec_ext_service, public_params):
         """系统资源配额调整，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        tenant_code = public_params["tenant_code"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        tenant_code = public_params.tenant_code
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_namespace_quota_scale(
                 cluster_id=cluster_id,
                 tenant_code=tenant_code,
                 namespace=namespace,
-                payload={},
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -139,16 +139,15 @@ class TestEcExtensionsNamespaceQuota:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_allocate_namespace_quota(self, ec_ext_service, public_params):
         """系统资源配额分配，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        tenant_code = public_params["tenant_code"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        tenant_code = public_params.tenant_code
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.allocate_namespace_quota(
                 cluster_id=cluster_id,
                 tenant_code=tenant_code,
                 namespace=namespace,
-                payload={},
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (

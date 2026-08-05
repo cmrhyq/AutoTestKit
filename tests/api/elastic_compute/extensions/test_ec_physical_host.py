@@ -18,6 +18,7 @@ Physical Host 裸金属主机管理接口测试（Extensions - apikey 鉴权）
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import PhysicalHostPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -50,13 +51,13 @@ class TestEcExtensionsPhysicalHost:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> PhysicalHostPublicParams:
         """提取 Physical Host 测试所需的公共参数。"""
-        return {
-            "fallback_host_id": str(api_env.get("physicalHostId", "1")),
-            "admin_tenant_code": api_env.get("adminTenantCode", "tenant_admin"),
-            "bind_tenant_code": api_env.get("tenantCode", "abc"),
-        }
+        return PhysicalHostPublicParams(
+            fallback_host_id=str(api_env.get("physicalHostId", "1")),
+            admin_tenant_code=api_env.get("adminTenantCode", "tenant_admin"),
+            bind_tenant_code=api_env.get("tenantCode", "abc"),
+        )
 
     # ==================== 1) 获取主机列表（门户）====================
 
@@ -86,7 +87,7 @@ class TestEcExtensionsPhysicalHost:
             if data and isinstance(data, list) and data[0].get("hostId") is not None:
                 host_id = str(data[0].get("hostId"))
             else:
-                host_id = public_params["fallback_host_id"]
+                host_id = public_params.fallback_host_id
             api_cache.set("physical_host_id", host_id)
 
     # ==================== 2) 主机绑定租户（门户）====================
@@ -103,8 +104,8 @@ class TestEcExtensionsPhysicalHost:
         api_cache,
     ):
         """主机绑定租户，断言业务码为成功。"""
-        host_id = api_cache.get("physical_host_id") or public_params["fallback_host_id"]
-        tenant_code = public_params["admin_tenant_code"]
+        host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
+        tenant_code = public_params.admin_tenant_code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.bind_physical_host_tenant(
@@ -141,7 +142,7 @@ class TestEcExtensionsPhysicalHost:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_host_resource(self, ec_ext_service, public_params, api_cache):
         """获取指定主机信息（admin 头），断言业务码为成功。"""
-        host_id = api_cache.get("physical_host_id") or public_params["fallback_host_id"]
+        host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_host_resource(host_id=host_id, admin=True)
@@ -158,7 +159,7 @@ class TestEcExtensionsPhysicalHost:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_host_connect_info(self, ec_ext_service, public_params, api_cache):
         """获取主机连接信息，断言业务码为成功。"""
-        host_id = api_cache.get("physical_host_id") or public_params["fallback_host_id"]
+        host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_host_connect_info(host_id=host_id)
@@ -182,8 +183,8 @@ class TestEcExtensionsPhysicalHost:
         api_cache,
     ):
         """主机解绑租户，断言业务码为成功。"""
-        host_id = api_cache.get("physical_host_id") or public_params["fallback_host_id"]
-        tenant_code = public_params["bind_tenant_code"]
+        host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
+        tenant_code = public_params.bind_tenant_code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.unbind_physical_host_tenant(

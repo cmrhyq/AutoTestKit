@@ -8,6 +8,7 @@ Dashboard 资源面板接口测试
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import DashboardPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,13 +38,13 @@ class TestEcExtensionsDashboard:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> DashboardPublicParams:
         """提取 Dashboard 测试所需的公共参数。"""
-        return {
-            "tenant_code": api_env.get("tenantCode", "tenant_admin"),
-            "start_time": "1715759823000",
-            "end_time": "1715759823000",
-        }
+        return DashboardPublicParams(
+            tenant_code=api_env.get("tenantCode", "tenant_admin"),
+            start_time="1715759823000",
+            end_time="1715759823000",
+        )
 
     @pytest.mark.dependency(name="dashboard_resource")
     @pytest.mark.order(1)
@@ -52,7 +53,7 @@ class TestEcExtensionsDashboard:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_dashboard(self, ec_ext_service, public_params):
         """查询资源信息统计接口，断言业务码为成功。"""
-        tenant_code = public_params["tenant_code"]
+        tenant_code = public_params.tenant_code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_resource_dashboard(
@@ -70,9 +71,9 @@ class TestEcExtensionsDashboard:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_app_dashboard(self, ec_ext_service, public_params):
         """查询工作负载和应用服务统计接口，断言业务码为成功。"""
-        tenant_code = public_params["tenant_code"]
-        start_time = public_params["start_time"]
-        end_time = public_params["end_time"]
+        tenant_code = public_params.tenant_code
+        start_time = public_params.start_time
+        end_time = public_params.end_time
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_app_dashboard(

@@ -8,6 +8,7 @@ Endpoints 管理接口测试
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import EndpointsPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,11 +38,11 @@ class TestEcExtensionsEndpoints:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> EndpointsPublicParams:
         """提取 Endpoints 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "TEST"),
-        }
+        return EndpointsPublicParams(
+            cell_code=api_env.get("cellCode", "TEST"),
+        )
 
     @pytest.mark.order(1)
     @allure.title("查询全集群 Endpoints 列表")
@@ -49,7 +50,7 @@ class TestEcExtensionsEndpoints:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_endpoints(self, ec_ext_service, public_params):
         """查询全集群 Endpoints 列表，断言业务码为成功。"""
-        cell_code = public_params["cell_code"]
+        cell_code = public_params.cell_code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_endpoints(cell_code=cell_code)

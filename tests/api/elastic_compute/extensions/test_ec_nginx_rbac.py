@@ -16,6 +16,7 @@ Nginx RBAC 模板管理接口测试（Extensions - apikey 鉴权）
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import NginxRbacPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -50,13 +51,13 @@ class TestEcExtensionsNginxRbac:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> NginxRbacPublicParams:
         """提取 Nginx RBAC 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-ns"),
-            "code": "test-rbac",
-        }
+        return NginxRbacPublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-ns"),
+            code="test-rbac",
+        )
 
     # ==================== 1) 前置清理：若已存在则删除 ====================
 
@@ -70,9 +71,9 @@ class TestEcExtensionsNginxRbac:
     @allure.severity(allure.severity_level.NORMAL)
     def test_00_pre_cleanup_nginx_rbac(self, ec_ext_service, public_params):
         """前置清理：GET 查询，若存在则 DELETE，否则 skip 清理动作。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        code = public_params["code"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        code = public_params.code
 
         with AllureHelper.api_test(ec_ext_service):
             get_resp = ec_ext_service.get_nginx_rbac(
@@ -105,9 +106,9 @@ class TestEcExtensionsNginxRbac:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_nginx_rbac(self, ec_ext_service, public_params):
         """创建 Nginx RBAC，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        code = public_params["code"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        code = public_params.code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.create_nginx_rbac(
@@ -129,9 +130,9 @@ class TestEcExtensionsNginxRbac:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_nginx_rbac(self, ec_ext_service, public_params):
         """删除 Nginx RBAC，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        code = public_params["code"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        code = public_params.code
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.delete_nginx_rbac(

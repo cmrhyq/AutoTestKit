@@ -8,6 +8,11 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    AppGrantEntity,
+    AppGrantPublicParams,
+    AppRemoveGrantEntity,
+)
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,26 +42,13 @@ class TestEcExtensionsAppGrant:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> AppGrantPublicParams:
         """提取应用授权测试所需的公共参数。"""
-        return {
-            "app_code": api_env.get("grantAppCode", "test-probe-deploy"),
-            "grant_user": api_env.get("grantUser", "monitor-admin"),
-            "end_time": "2035-12-31 23:59:59",
-        }
-
-    @staticmethod
-    def _build_grant_payload(grant_user: str, end_time: str) -> dict:
-        """构造应用授权请求体。"""
-        return {
-            "users": [grant_user],
-            "endTime": end_time,
-        }
-
-    @staticmethod
-    def _build_remove_grant_payload(grant_user: str) -> list:
-        """构造解除授权请求体。"""
-        return [grant_user]
+        return AppGrantPublicParams(
+            app_code=api_env.get("grantAppCode", "test-probe-deploy"),
+            grant_user=api_env.get("grantUser", "monitor-admin"),
+            end_time="2035-12-31 23:59:59",
+        )
 
     @pytest.mark.dependency(name="app_grant")
     @pytest.mark.order(1)
@@ -65,15 +57,14 @@ class TestEcExtensionsAppGrant:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_grant_app(self, ec_ext_service, public_params):
         """应用授权，断言业务码为成功。"""
-        app_code = public_params["app_code"]
-        grant_user = public_params["grant_user"]
-        end_time = public_params["end_time"]
-
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_grant_payload(grant_user, end_time)
+            grant = AppGrantEntity(
+                users=[public_params.grant_user],
+                end_time=public_params.end_time,
+            )
             response_json = ec_ext_service.grant_app(
-                app_code=app_code,
-                payload=payload,
+                app_code=public_params.app_code,
+                grant=grant,
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -87,14 +78,11 @@ class TestEcExtensionsAppGrant:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_remove_grant_app(self, ec_ext_service, public_params):
         """解除应用授权，断言业务码为成功。"""
-        app_code = public_params["app_code"]
-        grant_user = public_params["grant_user"]
-
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_remove_grant_payload(grant_user)
+            remove = AppRemoveGrantEntity(users=[public_params.grant_user])
             response_json = ec_ext_service.remove_grant_app(
-                app_code=app_code,
-                payload=payload,
+                app_code=public_params.app_code,
+                grant=remove,
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (

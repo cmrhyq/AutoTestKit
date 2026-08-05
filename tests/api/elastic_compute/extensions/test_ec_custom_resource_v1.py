@@ -10,6 +10,11 @@ import json
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    CustomResourceCreateEntity,
+    CustomResourcePublicParams,
+    CustomResourceUpdateEntity,
+)
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -40,45 +45,16 @@ class TestEcExtensionsCustomResourceV1:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> CustomResourcePublicParams:
         """提取 CustomResource 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "group": "test.example.com",
-            "version": "v1",
-            "namespace": api_env.get("namespace", "probe"),
-            "kind": "Banana",
-            "name": "test-banana-001",
-        }
-
-    @staticmethod
-    def _build_cr_create_payload(group: str, version: str, kind: str, name: str) -> dict:
-        """构造 CR 创建请求体。"""
-        return {
-            "apiVersion": f"{group}/{version}",
-            "kind": kind,
-            "metadata": {"name": name},
-            "spec": {
-                "message": "I have an apple!",
-                "replicas": 1,
-            },
-        }
-
-    @staticmethod
-    def _build_cr_update_payload(group: str, version: str, kind: str, name: str, namespace: str) -> dict:
-        """构造 CR 更新请求体。"""
-        return {
-            "apiVersion": f"{group}/{version}",
-            "kind": kind,
-            "metadata": {
-                "name": name,
-                "namespace": namespace,
-            },
-            "spec": {
-                "name": "Test Resource 001",
-                "description": "Updated description for test resource.",
-            },
-        }
+        return CustomResourcePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            group="test.example.com",
+            version="v1",
+            namespace=api_env.get("namespace", "probe"),
+            kind="Banana",
+            name="test-banana-001",
+        )
 
     @pytest.mark.dependency(name="cr_query_and_cleanup")
     @pytest.mark.order(1)
@@ -87,12 +63,12 @@ class TestEcExtensionsCustomResourceV1:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_cr_and_cleanup(self, ec_ext_service, public_params, api_cache):
         """查询 CR 资源，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        group = public_params["group"]
-        version = public_params["version"]
-        namespace = public_params["namespace"]
-        kind = public_params["kind"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        group = public_params.group
+        version = public_params.version
+        namespace = public_params.namespace
+        kind = public_params.kind
+        name = public_params.name
 
         with AllureHelper.api_test(ec_ext_service):
             status_code, _ = ec_ext_service.get_custom_resource(
@@ -128,22 +104,22 @@ class TestEcExtensionsCustomResourceV1:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_custom_resource(self, ec_ext_service, public_params, api_cache):
         """创建 CR 实例，断言 HTTP status 为 200。"""
-        cluster_id = public_params["cluster_id"]
-        group = public_params["group"]
-        version = public_params["version"]
-        namespace = public_params["namespace"]
-        kind = public_params["kind"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        group = public_params.group
+        version = public_params.version
+        namespace = public_params.namespace
+        kind = public_params.kind
+        name = public_params.name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_cr_create_payload(group, version, kind, name)
+            cr = CustomResourceCreateEntity.from_public_params(public_params)
             status_code, response_json = ec_ext_service.create_custom_resource(
                 cluster_id=cluster_id,
                 group=group,
                 version=version,
                 namespace=namespace,
                 kind=kind,
-                payload=payload,
+                cr=cr,
             )
 
             assert status_code == HttpStatus.OK, f"创建 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
@@ -157,12 +133,12 @@ class TestEcExtensionsCustomResourceV1:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_custom_resources(self, ec_ext_service, public_params):
         """查询 CR 列表，断言包含目标 CR 名称。"""
-        cluster_id = public_params["cluster_id"]
-        group = public_params["group"]
-        version = public_params["version"]
-        namespace = public_params["namespace"]
-        kind = public_params["kind"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        group = public_params.group
+        version = public_params.version
+        namespace = public_params.namespace
+        kind = public_params.kind
+        name = public_params.name
 
         with AllureHelper.api_test(ec_ext_service):
             status_code, response_json = ec_ext_service.list_custom_resources(
@@ -186,22 +162,22 @@ class TestEcExtensionsCustomResourceV1:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_custom_resource(self, ec_ext_service, public_params):
         """更新 CR 实例，断言 HTTP status 为 200。"""
-        cluster_id = public_params["cluster_id"]
-        group = public_params["group"]
-        version = public_params["version"]
-        namespace = public_params["namespace"]
-        kind = public_params["kind"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        group = public_params.group
+        version = public_params.version
+        namespace = public_params.namespace
+        kind = public_params.kind
+        name = public_params.name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_cr_update_payload(group, version, kind, name, namespace)
+            cr = CustomResourceUpdateEntity.from_public_params(public_params)
             status_code, response_json = ec_ext_service.update_custom_resource(
                 cluster_id=cluster_id,
                 group=group,
                 version=version,
                 namespace=namespace,
                 kind=kind,
-                payload=payload,
+                cr=cr,
             )
 
             assert status_code == HttpStatus.OK, f"更新 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
@@ -213,12 +189,12 @@ class TestEcExtensionsCustomResourceV1:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_custom_resource(self, ec_ext_service, public_params, api_cache):
         """删除 CR 实例，断言 HTTP status 为 200。"""
-        cluster_id = public_params["cluster_id"]
-        group = public_params["group"]
-        version = public_params["version"]
-        namespace = public_params["namespace"]
-        kind = public_params["kind"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        group = public_params.group
+        version = public_params.version
+        namespace = public_params.namespace
+        kind = public_params.kind
+        name = public_params.name
 
         with AllureHelper.api_test(ec_ext_service):
             status_code, response_json = ec_ext_service.delete_custom_resource(
@@ -241,12 +217,12 @@ class TestEcExtensionsCustomResourceV1:
     @allure.severity(allure.severity_level.NORMAL)
     def test_verify_cr_deleted(self, ec_ext_service, public_params):
         """删除后验证 CR 已不存在。"""
-        cluster_id = public_params["cluster_id"]
-        group = public_params["group"]
-        version = public_params["version"]
-        namespace = public_params["namespace"]
-        kind = public_params["kind"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        group = public_params.group
+        version = public_params.version
+        namespace = public_params.namespace
+        kind = public_params.kind
+        name = public_params.name
 
         with AllureHelper.api_test(ec_ext_service):
             status_code, _ = ec_ext_service.get_custom_resource(

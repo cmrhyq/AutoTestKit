@@ -8,6 +8,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import ImageApiPublicParams
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -37,12 +38,12 @@ class TestEcExtensionsImageApi:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ImageApiPublicParams:
         """提取镜像接口测试所需的公共参数。"""
-        return {
-            "repo_name": api_env.get("nginxRepoName", "kube_system/nfs/provisioner/v1"),
-            "project_name": api_env.get("nginxProjectName", "kube_system"),
-        }
+        return ImageApiPublicParams(
+            repo_name=api_env.get("nginxRepoName", "kube_system/nfs/provisioner/v1"),
+            project_name=api_env.get("nginxProjectName", "kube_system"),
+        )
 
     @pytest.mark.order(1)
     @allure.title("获取镜像 Tag 列表")
@@ -50,8 +51,8 @@ class TestEcExtensionsImageApi:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_image_tags(self, ec_ext_service, public_params):
         """获取镜像 tag 列表，断言业务码为成功。"""
-        repo_name = public_params["repo_name"]
-        project_name = public_params["project_name"]
+        repo_name = public_params.repo_name
+        project_name = public_params.project_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_image_tags(

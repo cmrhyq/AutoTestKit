@@ -23,6 +23,11 @@ import os
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    HelmBatchUninstallEntity,
+    HelmChartPublicParams,
+    HelmReleaseEntity,
+)
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
@@ -61,97 +66,24 @@ class TestEcExtensionsHelmChart:
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> HelmChartPublicParams:
         """提取 Helm/Chart 测试所需的公共参数（对齐 JMX 用户参数默认值）。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "cell_code": api_env.get("cellCode", "TEST"),
-            "sys_code": api_env.get("sysCode", "test-admin"),
-            "chart_name": "nginx",
-            "chart_version": "0.1.0",
-            "release_name": "inner-test-nginx-demo",
-            "image": api_env.get("nginxImageRepo", "192.168.18.3:1121/hpe_containers/nginx"),
-            "image_tag": api_env.get("nginxImageTag", "latest"),
-            "paas_app_code": api_env.get("appCodeDeploy", "test-app"),
-            "paas_owner": api_env.get("user", "test-admin"),
-            "paas_tenant_code": api_env.get("tenantCode", "tenant-001"),
-            "paas_env_code": api_env.get("paasEnvCode", "ENV1"),
-            "paas_plane_code": api_env.get("paasPlaneCode", "PLANE1"),
-        }
-
-    # ==================== payload 构造 helper（对齐 JMX 原始 body）====================
-
-    @staticmethod
-    def _build_helm_params(params: dict, *, extra_label_test: bool = False) -> dict:
-        """构造 Helm install/upgrade 的 params 字典（键为带点的路径字符串）。
-
-        对齐 JMX 中的原始 body 结构：包含 image.* 与 labels.* / service.labels.* 系列。
-        当 ``extra_label_test`` 为 True 时，额外追加 ``labels.test=update`` 与
-        ``service.labels.test=update``，对齐 upgrade / upgrade-batch 的 JMX 差异。
-        """
-        cluster_id = params["cluster_id"]
-        namespace = params["namespace"]
-        cell_code = params["cell_code"]
-        name = params["release_name"]
-        base = {
-            "image.repository": params["image"],
-            "image.tag": params["image_tag"],
-            "labels.operation-source": "api",
-            "labels.paas-resource-category": "tenant-app",
-            "labels.paas-app-source": "helm",
-            "labels.paas-owner": params["paas_owner"],
-            "labels.paas-tenant-code": params["paas_tenant_code"],
-            "labels.paas-env-code": params["paas_env_code"],
-            "labels.paas-plane-code": params["paas_plane_code"],
-            "labels.paas-unit-code": cell_code,
-            "labels.paas-cluster-code": cluster_id,
-            "labels.paas-system-code": namespace,
-            "labels.paas-app-code": params["paas_app_code"],
-            "labels.paas-workload-name": name,
-            "labels.paas-app-service-version": "v1",
-            "service.labels.operation-source": "api",
-            "service.labels.paas-resource-category": "tenant-app",
-            "service.labels.paas-app-source": "helm",
-            "service.labels.paas-owner": params["paas_owner"],
-            "service.labels.paas-tenant-code": params["paas_tenant_code"],
-            "service.labels.paas-env-code": params["paas_env_code"],
-            "service.labels.paas-plane-code": params["paas_plane_code"],
-            "service.labels.paas-unit-code": cell_code,
-            "service.labels.paas-cluster-code": cluster_id,
-            "service.labels.paas-system-code": namespace,
-            "service.labels.paas-app-code": params["paas_app_code"],
-            "service.labels.paas-workload-name": name,
-        }
-        if extra_label_test:
-            base["labels.test"] = "update"
-            base["service.labels.test"] = "update"
-        return base
-
-    @classmethod
-    def _build_helm_install_payload(cls, params: dict) -> dict:
-        """构造 Helm Install / Batch install 单条 payload（对齐 JMX install body）。"""
-        return {
-            "name": params["release_name"],
-            "chartName": params["chart_name"],
-            "chartVersion": params["chart_version"],
-            "params": cls._build_helm_params(params, extra_label_test=False),
-        }
-
-    @classmethod
-    def _build_helm_upgrade_payload(cls, params: dict) -> dict:
-        """构造 Helm Upgrade / Batch upgrade 单条 payload（对齐 JMX upgrade body，含 labels.test=update）。"""
-        return {
-            "name": params["release_name"],
-            "chartName": params["chart_name"],
-            "chartVersion": params["chart_version"],
-            "params": cls._build_helm_params(params, extra_label_test=True),
-        }
-
-    @staticmethod
-    def _build_batch_uninstall_payload(release_name: str) -> dict:
-        """构造批量卸载 payload。"""
-        return {"uninstallList": [release_name]}
+        return HelmChartPublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            cell_code=api_env.get("cellCode", "TEST"),
+            sys_code=api_env.get("sysCode", "test-admin"),
+            chart_name="nginx",
+            chart_version="0.1.0",
+            release_name="inner-test-nginx-demo",
+            image=api_env.get("nginxImageRepo", "192.168.18.3:1121/hpe_containers/nginx"),
+            image_tag=api_env.get("nginxImageTag", "latest"),
+            paas_app_code=api_env.get("appCodeDeploy", "test-app"),
+            paas_owner=api_env.get("user", "test-admin"),
+            paas_tenant_code=api_env.get("tenantCode", "tenant-001"),
+            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
+            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+        )
 
     # ==================== 1) 上传 Chart ====================
 
@@ -162,7 +94,7 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_upload_helm_chart(self, ec_ext_service, public_params, api_env):
         """上传 Chart 包（对应 JMX 第一步），若文件缺失则 skip 后续全部依赖用例。"""
-        cluster_id = public_params["cluster_id"]
+        cluster_id = public_params.cluster_id
         chart_file_path = api_env.get("helmChartFilePath", "")
 
         if not chart_file_path or not os.path.exists(chart_file_path):
@@ -187,9 +119,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_helm_charts(self, ec_ext_service, public_params):
         """查询 Chart 列表，断言业务码为成功且响应包含 chartName / chartVersion。"""
-        cluster_id = public_params["cluster_id"]
-        chart_name = public_params["chart_name"]
-        chart_version = public_params["chart_version"]
+        cluster_id = public_params.cluster_id
+        chart_name = public_params.chart_name
+        chart_version = public_params.chart_version
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_helm_charts(
@@ -217,9 +149,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.NORMAL)
     def test_download_helm_chart(self, ec_ext_service, public_params):
         """下载 Chart 包，断言 HTTP 200 且响应内容非空。"""
-        cluster_id = public_params["cluster_id"]
-        chart_name = public_params["chart_name"]
-        chart_version = public_params["chart_version"]
+        cluster_id = public_params.cluster_id
+        chart_name = public_params.chart_name
+        chart_version = public_params.chart_version
 
         with AllureHelper.api_test(ec_ext_service):
             status_code, content = ec_ext_service.download_helm_chart(
@@ -240,16 +172,16 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_install(self, ec_ext_service, public_params, api_cache):
         """Helm Install，若 4009 冲突则先 uninstall 再 install，确保最终 code==2000。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_helm_install_payload(public_params)
+            release = HelmReleaseEntity.from_public_params(public_params, extra_label_test=False)
             response_json = ec_ext_service.helm_install(
                 cluster_id=cluster_id,
                 namespace=namespace,
-                payload=payload,
+                release=release,
             )
             install_code = response_json.get("code")
 
@@ -262,7 +194,7 @@ class TestEcExtensionsHelmChart:
                     f"冲突场景下预卸载失败, 响应: {uninstall_resp}"
                 )
                 response_json = ec_ext_service.helm_install(
-                    cluster_id=cluster_id, namespace=namespace, payload=payload,
+                    cluster_id=cluster_id, namespace=namespace, release=release,
                 )
                 install_code = response_json.get("code")
 
@@ -280,9 +212,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.NORMAL)
     def test_helm_manifest(self, ec_ext_service, public_params):
         """查询 Helm Manifest，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.helm_manifest(
@@ -304,9 +236,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.NORMAL)
     def test_helm_list_releases(self, ec_ext_service, public_params):
         """查询 Helm Release 列表，断言业务码为成功且包含目标 release name。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.helm_list_releases(
@@ -331,17 +263,17 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_upgrade(self, ec_ext_service, public_params):
         """Helm Upgrade，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_helm_upgrade_payload(public_params)
+            release = HelmReleaseEntity.from_public_params(public_params, extra_label_test=True)
             response_json = ec_ext_service.helm_upgrade(
                 cluster_id=cluster_id,
                 namespace=namespace,
                 name=release_name,
-                payload=payload,
+                release=release,
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -357,9 +289,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.NORMAL)
     def test_helm_history(self, ec_ext_service, public_params):
         """查询 Helm History，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.helm_history(
@@ -381,9 +313,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_rollback(self, ec_ext_service, public_params):
         """Helm Rollback，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.helm_rollback(
@@ -406,9 +338,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_uninstall(self, ec_ext_service, public_params, api_cache):
         """Helm Uninstall，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.helm_uninstall(
@@ -431,14 +363,14 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_install_v1(self, ec_ext_service, public_params):
         """Helm Batch Install v1：断言 code==2000 且 data[0].isSuccess=true，若冲突先卸载再重装。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = {"installList": [self._build_helm_install_payload(public_params)]}
+            release = HelmReleaseEntity.from_public_params(public_params, extra_label_test=False)
             response_json = ec_ext_service.helm_batch_install(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, releases=[release],
             )
 
             code = response_json.get("code")
@@ -448,15 +380,15 @@ class TestEcExtensionsHelmChart:
 
             # 冲突场景：批量卸载后重新批量创建（对齐 JMX "IF 控制器 批量创建 fail" 分支）
             if code == ApiCode.SUCCESS and is_success is False and HelmConst.RESOURCE_CONFLICT_MSG in error_msg:
-                uninstall_payload = self._build_batch_uninstall_payload(release_name)
+                uninstall = HelmBatchUninstallEntity(release_names=[release_name])
                 uninstall_resp = ec_ext_service.helm_batch_uninstall(
-                    cluster_id=cluster_id, namespace=namespace, payload=uninstall_payload,
+                    cluster_id=cluster_id, namespace=namespace, uninstall=uninstall,
                 )
                 assert uninstall_resp.get("code") == ApiCode.SUCCESS, (
                     f"冲突场景下批量卸载失败, 响应: {uninstall_resp}"
                 )
                 response_json = ec_ext_service.helm_batch_install(
-                    cluster_id=cluster_id, namespace=namespace, payload=payload,
+                    cluster_id=cluster_id, namespace=namespace, releases=[release],
                 )
                 code = response_json.get("code")
                 data = response_json.get("data") or [{}]
@@ -476,13 +408,13 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_upgrade_v1(self, ec_ext_service, public_params):
         """Helm Batch Upgrade v1，断言业务码为成功且第一个条目升级成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = {"upgradeList": [self._build_helm_upgrade_payload(public_params)]}
+            release = HelmReleaseEntity.from_public_params(public_params, extra_label_test=True)
             response_json = ec_ext_service.helm_batch_upgrade(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, releases=[release],
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -500,14 +432,14 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_uninstall_v1(self, ec_ext_service, public_params):
         """Helm Batch Uninstall v1，断言业务码为成功且第一个条目卸载成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        release_name = public_params["release_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_batch_uninstall_payload(release_name)
+            uninstall = HelmBatchUninstallEntity(release_names=[release_name])
             response_json = ec_ext_service.helm_batch_uninstall(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, uninstall=uninstall,
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -527,14 +459,14 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_install_v2(self, ec_ext_service, public_params):
         """Helm Batch Install v2：断言 code==2000 且 data[0].isSuccess=true，若冲突先卸载再重装。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
+        cell_code = public_params.cell_code
+        sys_code = public_params.sys_code
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = {"installList": [self._build_helm_install_payload(public_params)]}
+            release = HelmReleaseEntity.from_public_params(public_params, extra_label_test=False)
             response_json = ec_ext_service.helm_batch_install_v2(
-                cell_code=cell_code, sys_code=sys_code, payload=payload,
+                cell_code=cell_code, sys_code=sys_code, releases=[release],
             )
 
             code = response_json.get("code")
@@ -543,15 +475,15 @@ class TestEcExtensionsHelmChart:
             error_msg = data[0].get("errorMessage") or ""
 
             if code == ApiCode.SUCCESS and is_success is False and HelmConst.RESOURCE_CONFLICT_MSG in error_msg:
-                uninstall_payload = self._build_batch_uninstall_payload(release_name)
+                uninstall = HelmBatchUninstallEntity(release_names=[release_name])
                 uninstall_resp = ec_ext_service.helm_batch_uninstall_v2(
-                    cell_code=cell_code, sys_code=sys_code, payload=uninstall_payload,
+                    cell_code=cell_code, sys_code=sys_code, uninstall=uninstall,
                 )
                 assert uninstall_resp.get("code") == ApiCode.SUCCESS, (
                     f"冲突场景下 v2 批量卸载失败, 响应: {uninstall_resp}"
                 )
                 response_json = ec_ext_service.helm_batch_install_v2(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=cell_code, sys_code=sys_code, releases=[release],
                 )
                 code = response_json.get("code")
                 data = response_json.get("data") or [{}]
@@ -571,13 +503,13 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_upgrade_v2(self, ec_ext_service, public_params):
         """Helm Batch Upgrade v2，断言业务码为成功且第一个条目升级成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
+        cell_code = public_params.cell_code
+        sys_code = public_params.sys_code
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = {"upgradeList": [self._build_helm_upgrade_payload(public_params)]}
+            release = HelmReleaseEntity.from_public_params(public_params, extra_label_test=True)
             response_json = ec_ext_service.helm_batch_upgrade_v2(
-                cell_code=cell_code, sys_code=sys_code, payload=payload,
+                cell_code=cell_code, sys_code=sys_code, releases=[release],
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -595,14 +527,14 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_uninstall_v2(self, ec_ext_service, public_params):
         """Helm Batch Uninstall v2，断言业务码为成功且第一个条目卸载成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
+        cell_code = public_params.cell_code
+        sys_code = public_params.sys_code
+        release_name = public_params.release_name
 
         with AllureHelper.api_test(ec_ext_service):
-            payload = self._build_batch_uninstall_payload(release_name)
+            uninstall = HelmBatchUninstallEntity(release_names=[release_name])
             response_json = ec_ext_service.helm_batch_uninstall_v2(
-                cell_code=cell_code, sys_code=sys_code, payload=payload,
+                cell_code=cell_code, sys_code=sys_code, uninstall=uninstall,
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -622,9 +554,9 @@ class TestEcExtensionsHelmChart:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_helm_chart(self, ec_ext_service, public_params):
         """删除 Chart，断言业务码为成功。"""
-        cluster_id = public_params["cluster_id"]
-        chart_name = public_params["chart_name"]
-        chart_version = public_params["chart_version"]
+        cluster_id = public_params.cluster_id
+        chart_name = public_params.chart_name
+        chart_version = public_params.chart_version
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.delete_helm_chart(
