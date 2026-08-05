@@ -13,44 +13,27 @@ from typing import Dict
 import allure
 import pytest
 
-from base.api.services.microservices_open_service import (
+from base.api.entity.microservices import (
     Ingress,
     IngressConfig,
     IngressIns,
-    MicroservicesOpenService,
+    IngressPublicParams,
     NginxParam,
     NginxParamStatus,
+)
+from base.api.services.microservices_open_service import (
+    MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
 
 @pytest.fixture(scope="module")
-def public_params(api_env):
+def public_params(api_env) -> IngressPublicParams:
     """提取 Ingress 测试所需的公共参数。"""
-    return {
-        "mesh_gateway_name": api_env.get("meshGatewayName"),
-        "sys_code": api_env.get("sysCode"),
-        "unit_code": api_env.get("unitCode"),
-        "plane_code": api_env.get("planeCode"),
-    }
-
-def _build_ingress(public_params) -> Ingress:
-    return Ingress(
-        name=public_params["mesh_gateway_name"],
-        code=public_params["mesh_gateway_name"],
-        sysCode=public_params["sys_code"],
-        unitCode=public_params["unit_code"],
-        planeCode=public_params["plane_code"],
-    )
-
-def _build_ingress_config(public_params, soft_load_code: str = None) -> IngressConfig:
-    return IngressConfig(
-        name=public_params["mesh_gateway_name"],
-        code=public_params["mesh_gateway_name"],
-        sysCode=public_params["sys_code"],
-        unitCode=public_params["unit_code"],
-        planeCode=public_params["plane_code"],
-        serviceName=public_params["mesh_gateway_name"],
-        softLoadCode=soft_load_code or public_params["mesh_gateway_name"],
+    return IngressPublicParams(
+        mesh_gateway_name=api_env.get("meshGatewayName"),
+        sys_code=api_env.get("sysCode"),
+        unit_code=api_env.get("unitCode"),
+        plane_code=api_env.get("planeCode"),
     )
 
 # =============================================================================
@@ -153,7 +136,9 @@ class TestMsIngressGateway:
     def test_add_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
-                response_json = ingress_service.add_ingress_instance(_build_ingress(public_params))
+                response_json = ingress_service.add_ingress_instance(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -162,7 +147,9 @@ class TestMsIngressGateway:
     def test_get_ingress_instance_by_code(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):
-                response_json = ingress_service.get_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.get_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -173,9 +160,9 @@ class TestMsIngressGateway:
             with AllureHelper.step("发送 POST 请求分页查询 ingress 网关实例"):
                 data = IngressIns(
                     keyword="",
-                    systemCode=public_params["sys_code"],
-                    unitCode=public_params["unit_code"],
-                    planeCode=public_params["plane_code"],
+                    systemCode=public_params.sys_code,
+                    unitCode=public_params.unit_code,
+                    planeCode=public_params.plane_code,
                     page=1,
                     rows=10,
                 )
@@ -188,15 +175,9 @@ class TestMsIngressGateway:
     def test_update_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求修改 ingress 网关实例"):
-                data = {
-                    "name": public_params["mesh_gateway_name"],
-                    "code": public_params["mesh_gateway_name"],
-                    "sysCode": public_params["sys_code"],
-                    "unitCode": public_params["unit_code"],
-                    "planeCode": public_params["plane_code"],
-                    "remark": "updated by autotest",
-                }
-                response_json = ingress_service.update_ingress_instance(data)
+                response_json = ingress_service.update_ingress_instance(
+                    Ingress.from_public_params(public_params, remark="updated by autotest")
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -205,7 +186,9 @@ class TestMsIngressGateway:
     def test_delete_ingress_instance_by_code(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关实例"):
-                response_json = ingress_service.delete_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.delete_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -231,7 +214,9 @@ class TestMsIngressNginx:
     def test_add_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
-                response_json = ingress_service.add_ingress_instance(_build_ingress(public_params))
+                response_json = ingress_service.add_ingress_instance(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -240,7 +225,9 @@ class TestMsIngressNginx:
     def test_get_ingress_instance_by_code(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):
-                response_json = ingress_service.get_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.get_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -249,7 +236,9 @@ class TestMsIngressNginx:
     def test_add_ingress_config(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关配置"):
-                response_json = ingress_service.add_ingress_config(_build_ingress_config(public_params))
+                response_json = ingress_service.add_ingress_config(
+                    IngressConfig.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -258,7 +247,9 @@ class TestMsIngressNginx:
     def test_list_ingress_config(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求查询 ingress 网关配置列表"):
-                response_json = ingress_service.list_ingress_config(_build_ingress_config(public_params))
+                response_json = ingress_service.list_ingress_config(
+                    IngressConfig.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -267,7 +258,9 @@ class TestMsIngressNginx:
     def test_update_ingress_config(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求更新 ingress 网关配置"):
-                response_json = ingress_service.update_ingress_config(_build_ingress_config(public_params))
+                response_json = ingress_service.update_ingress_config(
+                    IngressConfig.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -276,7 +269,9 @@ class TestMsIngressNginx:
     def test_get_ingress_config_detail(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关配置详情"):
-                response_json = ingress_service.get_ingress_config_detail(_build_ingress_config(public_params))
+                response_json = ingress_service.get_ingress_config_detail(
+                    IngressConfig.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -285,7 +280,9 @@ class TestMsIngressNginx:
     def test_get_ingress_by_service_name(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求通过 service 获取网关配置详情"):
-                response_json = ingress_service.get_ingress_by_service_name(_build_ingress_config(public_params))
+                response_json = ingress_service.get_ingress_by_service_name(
+                    IngressConfig.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -294,7 +291,9 @@ class TestMsIngressNginx:
     def test_delete_ingress_config_by_code(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关配置"):
-                response_json = ingress_service.delete_ingress_config_by_code(_build_ingress_config(public_params))
+                response_json = ingress_service.delete_ingress_config_by_code(
+                    IngressConfig.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -303,7 +302,9 @@ class TestMsIngressNginx:
     def test_delete_ingress_instance_by_code(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关实例"):
-                response_json = ingress_service.delete_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.delete_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -330,7 +331,9 @@ class TestIngressScaling:
     def test_add_ingress_instance(self, ingress_service, public_params, api_cache):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
-                response_json = ingress_service.add_ingress_instance(_build_ingress(public_params))
+                response_json = ingress_service.add_ingress_instance(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应并缓存 instance_id（若有）"):
                 assert "code" in response_json
                 if response_json.get("code") == 0 and isinstance(response_json.get("data"), Dict):
@@ -343,7 +346,9 @@ class TestIngressScaling:
     def test_get_ingress_instance_first(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):
-                response_json = ingress_service.get_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.get_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -352,7 +357,9 @@ class TestIngressScaling:
     def test_get_ingress_instance_second(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求再次查询 ingress 网关实例详情"):
-                response_json = ingress_service.get_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.get_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -361,7 +368,9 @@ class TestIngressScaling:
     def test_start_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求启动 ingress 网关实例"):
-                response_json = ingress_service.start_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.start_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -384,7 +393,9 @@ class TestIngressScaling:
     def test_stop_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求停止 ingress 网关实例"):
-                response_json = ingress_service.stop_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.stop_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -393,6 +404,8 @@ class TestIngressScaling:
     def test_delete_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 DELETE 请求删除 ingress 网关实例"):
-                response_json = ingress_service.delete_ingress_instance_by_code(_build_ingress(public_params))
+                response_json = ingress_service.delete_ingress_instance_by_code(
+                    Ingress.from_public_params(public_params)
+                )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json

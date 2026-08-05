@@ -13,6 +13,14 @@ from typing import Dict
 import allure
 import pytest
 
+from base.api.entity.microservices import (
+    BatchStrategyStatusEntity,
+    ClusterInfoEntity,
+    StrategyEntity,
+    StrategyRuleEntity,
+    StrategyStatusEntity,
+    UbmPublicParams,
+)
 from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
@@ -38,16 +46,16 @@ class TestMicroservicesUbm:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> UbmPublicParams:
         """提取 UBM 测试所需的公共参数。"""
-        return {
-            "control_plane_code": api_env.get("controlPlaneCode"),
-            "belong_code": api_env.get("belongCode"),
-            "plane_code": api_env.get("planeCode"),
-            "plane_name": api_env.get("planeName"),
-            "cell_code": api_env.get("cellCode"),
-            "cell_name": api_env.get("cellName"),
-        }
+        return UbmPublicParams(
+            control_plane_code=api_env.get("controlPlaneCode"),
+            belong_code=api_env.get("belongCode"),
+            plane_code=api_env.get("planeCode"),
+            plane_name=api_env.get("planeName"),
+            cell_code=api_env.get("cellCode"),
+            cell_name=api_env.get("cellName"),
+        )
 
     # ==================== UBM 查询接口 ====================
 
@@ -83,37 +91,37 @@ class TestMicroservicesUbm:
     def test_batch_add_strategy(self, ubm_service, public_params):
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略数据并发送 POST 请求"):
-                control_plane_code = public_params["control_plane_code"]
-                belong_code = public_params["belong_code"]
                 strategies = [
-                    {
-                        "strategyCode": "CUSTOM-demoA",
-                        "belongCode": belong_code,
-                        "scope": "Application",
-                        "kind": "ROUTE",
-                        "strategy": {
-                            "type": "CUSTOM",
-                            "paramKey": "route-key",
-                            "paramType": "B",
-                            "paramValue": "cust",
-                            "targetValue": "cluestA",
-                        },
-                    },
-                    {
-                        "strategyCode": "CUSTOM-demoB",
-                        "belongCode": belong_code,
-                        "scope": "Application",
-                        "kind": "ROUTE",
-                        "strategy": {
-                            "type": "CUSTOM",
-                            "paramKey": "route-key",
-                            "paramType": "D",
-                            "paramValue": "cust",
-                            "targetValue": "cluestB",
-                        },
-                    },
+                    StrategyEntity(
+                        strategy_code="CUSTOM-demoA",
+                        belong_code=public_params.belong_code,
+                        scope="Application",
+                        kind="ROUTE",
+                        strategy=StrategyRuleEntity(
+                            type="CUSTOM",
+                            param_key="route-key",
+                            param_type="B",
+                            param_value="cust",
+                            target_value="cluestA",
+                        ),
+                    ),
+                    StrategyEntity(
+                        strategy_code="CUSTOM-demoB",
+                        belong_code=public_params.belong_code,
+                        scope="Application",
+                        kind="ROUTE",
+                        strategy=StrategyRuleEntity(
+                            type="CUSTOM",
+                            param_key="route-key",
+                            param_type="D",
+                            param_value="cust",
+                            target_value="cluestB",
+                        ),
+                    ),
                 ]
-                response_json = ubm_service.batch_add_strategy(control_plane_code, strategies)
+                response_json = ubm_service.batch_add_strategy(
+                    public_params.control_plane_code, strategies
+                )
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
@@ -125,24 +133,32 @@ class TestMicroservicesUbm:
     def test_batch_update_strategy_status(self, ubm_service, public_params, api_cache):
         with AllureHelper.api_test(ubm_service):
             with AllureHelper.step("构造策略状态数据并发送 PUT 请求"):
-                data = {
-                    "controlPlaneCode": public_params["control_plane_code"],
-                    "scope": "Application",
-                    "kind": "ROUTE",
-                    "strategyInfos": [
-                        {"strategyCode": "CUSTOM-demoA", "belongCode": public_params["belong_code"], "status": "UP"},
-                        {"strategyCode": "CUSTOM-demoB", "belongCode": public_params["belong_code"], "status": "UP"},
+                entity = BatchStrategyStatusEntity(
+                    control_plane_code=public_params.control_plane_code,
+                    scope="Application",
+                    kind="ROUTE",
+                    strategy_infos=[
+                        StrategyStatusEntity(
+                            strategy_code="CUSTOM-demoA",
+                            belong_code=public_params.belong_code,
+                            status="UP",
+                        ),
+                        StrategyStatusEntity(
+                            strategy_code="CUSTOM-demoB",
+                            belong_code=public_params.belong_code,
+                            status="UP",
+                        ),
                     ],
-                    "clusterInfos": [
-                        {
-                            "planeCode": public_params["plane_code"],
-                            "planeName": public_params["plane_name"],
-                            "cellCode": public_params["cell_code"],
-                            "cellName": public_params["cell_name"],
-                        }
+                    cluster_infos=[
+                        ClusterInfoEntity(
+                            plane_code=public_params.plane_code,
+                            plane_name=public_params.plane_name,
+                            cell_code=public_params.cell_code,
+                            cell_name=public_params.cell_name,
+                        )
                     ],
-                }
-                response_json = ubm_service.batch_update_strategy_status(data)
+                )
+                response_json = ubm_service.batch_update_strategy_status(entity)
 
             with AllureHelper.step("验证响应并缓存 batchCode"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"

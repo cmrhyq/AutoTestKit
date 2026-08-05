@@ -6,11 +6,16 @@
 - 降级配置 CRUD（新增/详情/修改/上下线/删除）
 - 熔断配置 CRUD（新增/详情/修改/上下线/删除）
 """
-from typing import Dict
-
 import allure
 import pytest
 
+from base.api.entity.microservices import (
+    CmfCircuitBreakingEntity,
+    CmfDegradeEntity,
+    CmfPublicParams,
+    CmfServiceMeta,
+    FuncserEntity,
+)
 from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
@@ -34,29 +39,19 @@ class TestMicroservicesCmf:
     def cmf_service(self, service_factory):
         with service_factory(MicroservicesOpenService, self.TENANT) as svc:
             yield svc
-    @pytest.fixture(scope="class")
-    def public_params(self, api_env):
-        """提取 CMF 测试所需的公共参数。"""
-        return {
-            "control_plane_name": api_env.get("controlPlaneName"),
-            "control_plane_code": api_env.get("controlPlaneCode"),
-            "env_code": api_env.get("envCode"),
-            "application_code": api_env.get("applicationCode"),
-            "function_class_name": api_env.get("functionClassName"),
-            "func_ser_name": api_env.get("funcSerName"),
-            "func_ser_code": api_env.get("funcserCode"),
-        }
 
-    def _degrade_payload(self, public_params) -> Dict:
-        return {
-            "controlPlaneName": public_params["control_plane_name"],
-            "controlPlaneCode": public_params["control_plane_code"],
-            "envCode": public_params["env_code"],
-            "applicationCode": public_params["application_code"],
-            "functionClassName": public_params["function_class_name"],
-            "funcSerName": public_params["func_ser_name"],
-            "funcSerCode": public_params["func_ser_code"],
-        }
+    @pytest.fixture(scope="class")
+    def public_params(self, api_env) -> CmfPublicParams:
+        """提取 CMF 测试所需的公共参数。"""
+        return CmfPublicParams(
+            control_plane_name=api_env.get("controlPlaneName"),
+            control_plane_code=api_env.get("controlPlaneCode"),
+            env_code=api_env.get("envCode"),
+            application_code=api_env.get("applicationCode"),
+            function_class_name=api_env.get("functionClassName"),
+            func_ser_name=api_env.get("funcSerName"),
+            func_ser_code=api_env.get("funcserCode"),
+        )
 
     # ==================== 服务信息 ====================
 
@@ -67,16 +62,16 @@ class TestMicroservicesCmf:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("构造 funcsers 列表并发送 POST"):
                 funcsers = [
-                    {
-                        "applicationCode": public_params["application_code"],
-                        "functionClassName": public_params["function_class_name"],
-                        "funcSerCode": public_params["func_ser_code"],
-                        "funcSerName": public_params["func_ser_name"],
-                        "type": "SINGLE",
-                    }
+                    FuncserEntity(
+                        application_code=public_params.application_code,
+                        function_class_name=public_params.function_class_name,
+                        func_ser_code=public_params.func_ser_code,
+                        func_ser_name=public_params.func_ser_name,
+                        type="SINGLE",
+                    )
                 ]
                 response_json = cmf_service.batch_add_funcser(
-                    public_params["control_plane_name"], funcsers
+                    public_params.control_plane_name, funcsers
                 )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
@@ -88,9 +83,9 @@ class TestMicroservicesCmf:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 GET 请求批量查询服务信息"):
                 response_json = cmf_service.batch_get_funcser(
-                    control_plane_code=public_params["control_plane_code"],
-                    application_code=public_params["application_code"],
-                    funcser_codes=[public_params["func_ser_code"]],
+                    control_plane_code=public_params.control_plane_code,
+                    application_code=public_params.application_code,
+                    funcser_codes=[public_params.func_ser_code],
                 )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
@@ -103,9 +98,11 @@ class TestMicroservicesCmf:
     def test_add_cmf_degrade(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求新增降级"):
-                payload = self._degrade_payload(public_params)
-                payload["degradeRule"] = {"type": "DEFAULT"}
-                response_json = cmf_service.add_cmf_degrade(payload)
+                entity = CmfDegradeEntity(
+                    meta=CmfServiceMeta.from_public_params(public_params),
+                    degrade_rule={"type": "DEFAULT"},
+                )
+                response_json = cmf_service.add_cmf_degrade(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -116,9 +113,9 @@ class TestMicroservicesCmf:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求获取降级详情"):
                 response_json = cmf_service.get_cmf_degrade_detail(
-                    control_plane_name=public_params["control_plane_name"],
-                    env_code=public_params["env_code"],
-                    func_ser_name=public_params["func_ser_name"],
+                    control_plane_name=public_params.control_plane_name,
+                    env_code=public_params.env_code,
+                    func_ser_name=public_params.func_ser_name,
                 )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
@@ -129,9 +126,11 @@ class TestMicroservicesCmf:
     def test_update_cmf_degrade(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求修改降级"):
-                payload = self._degrade_payload(public_params)
-                payload["degradeRule"] = {"type": "DEFAULT", "updated": True}
-                response_json = cmf_service.update_cmf_degrade(payload)
+                entity = CmfDegradeEntity(
+                    meta=CmfServiceMeta.from_public_params(public_params),
+                    degrade_rule={"type": "DEFAULT", "updated": True},
+                )
+                response_json = cmf_service.update_cmf_degrade(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -141,9 +140,11 @@ class TestMicroservicesCmf:
     def test_update_cmf_degrade_state(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求上下线降级"):
-                payload = self._degrade_payload(public_params)
-                payload["state"] = "UP"
-                response_json = cmf_service.update_cmf_degrade_state(payload)
+                entity = CmfDegradeEntity(
+                    meta=CmfServiceMeta.from_public_params(public_params),
+                    state="UP",
+                )
+                response_json = cmf_service.update_cmf_degrade_state(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -153,8 +154,8 @@ class TestMicroservicesCmf:
     def test_delete_cmf_degrade(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求删除降级"):
-                payload = self._degrade_payload(public_params)
-                response_json = cmf_service.delete_cmf_degrade(payload)
+                entity = CmfDegradeEntity(meta=CmfServiceMeta.from_public_params(public_params))
+                response_json = cmf_service.delete_cmf_degrade(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -166,9 +167,11 @@ class TestMicroservicesCmf:
     def test_add_cmf_circuit_breaking(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求新增熔断"):
-                payload = self._degrade_payload(public_params)
-                payload["circuitBreakingRule"] = {"type": "DEFAULT"}
-                response_json = cmf_service.add_cmf_circuit_breaking(payload)
+                entity = CmfCircuitBreakingEntity(
+                    meta=CmfServiceMeta.from_public_params(public_params),
+                    circuit_breaking_rule={"type": "DEFAULT"},
+                )
+                response_json = cmf_service.add_cmf_circuit_breaking(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -179,9 +182,9 @@ class TestMicroservicesCmf:
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求获取熔断详情"):
                 response_json = cmf_service.get_cmf_circuit_breaking_detail(
-                    control_plane_name=public_params["control_plane_name"],
-                    env_code=public_params["env_code"],
-                    func_ser_name=public_params["func_ser_name"],
+                    control_plane_name=public_params.control_plane_name,
+                    env_code=public_params.env_code,
+                    func_ser_name=public_params.func_ser_name,
                 )
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
@@ -192,9 +195,11 @@ class TestMicroservicesCmf:
     def test_update_cmf_circuit_breaking(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求修改熔断"):
-                payload = self._degrade_payload(public_params)
-                payload["circuitBreakingRule"] = {"type": "DEFAULT", "updated": True}
-                response_json = cmf_service.update_cmf_circuit_breaking(payload)
+                entity = CmfCircuitBreakingEntity(
+                    meta=CmfServiceMeta.from_public_params(public_params),
+                    circuit_breaking_rule={"type": "DEFAULT", "updated": True},
+                )
+                response_json = cmf_service.update_cmf_circuit_breaking(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -204,9 +209,11 @@ class TestMicroservicesCmf:
     def test_update_cmf_circuit_breaking_state(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求上下线熔断"):
-                payload = self._degrade_payload(public_params)
-                payload["state"] = "UP"
-                response_json = cmf_service.update_cmf_circuit_breaking_state(payload)
+                entity = CmfCircuitBreakingEntity(
+                    meta=CmfServiceMeta.from_public_params(public_params),
+                    state="UP",
+                )
+                response_json = cmf_service.update_cmf_circuit_breaking_state(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -216,7 +223,7 @@ class TestMicroservicesCmf:
     def test_delete_cmf_circuit_breaking(self, cmf_service, public_params):
         with AllureHelper.api_test(cmf_service):
             with AllureHelper.step("发送 POST 请求删除熔断"):
-                payload = self._degrade_payload(public_params)
-                response_json = cmf_service.delete_cmf_circuit_breaking(payload)
+                entity = CmfCircuitBreakingEntity(meta=CmfServiceMeta.from_public_params(public_params))
+                response_json = cmf_service.delete_cmf_circuit_breaking(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json

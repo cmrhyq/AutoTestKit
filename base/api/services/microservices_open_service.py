@@ -1,14 +1,22 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 
 from base import BaseService
 
 from base.api.entity.microservices import (
+    BatchStrategyStatusEntity,
+    CmfCircuitBreakingEntity,
+    CmfDegradeEntity,
+    FuncserEntity,
+    GatewayInstance,
+    GatewayInstanceQuery,
+    GatewayRuleEntity,
     Ingress,
     IngressConfig,
+    IngressIns,
     NginxParam,
     NginxParamStatus,
-    IngressIns,
-    GatewayInstance,
+    StrategyEntity,
+    VirtualServiceEntity,
 )
 from core import get_logger
 
@@ -386,15 +394,24 @@ class MicroservicesOpenService(BaseService):
         response = self.post(endpoint=url, json=body)
         return response.json()
 
-    def update_ingress_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_ingress_instance(self, data: Ingress) -> Dict[str, Any]:
         """
         修改ingress网关实例
         Args:
-            data: Dict 更新数据
+            data: Ingress 网关数据类，需填 name/code/sysCode/unitCode/planeCode，可选 remark
         """
         logger.info("Update ingress instance")
         url = "/openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/update"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "name": data.name,
+            "code": data.code,
+            "sysCode": data.sysCode,
+            "unitCode": data.unitCode,
+            "planeCode": data.planeCode,
+        }
+        if data.remark is not None:
+            payload["remark"] = data.remark
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     # ==================== msingressksr Ingress网关实例启停扩缩容接口 ====================
@@ -483,106 +500,183 @@ class MicroservicesOpenService(BaseService):
         response = self.post(endpoint=url, json=body)
         return response.json()
 
-    def get_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         精确入口网关实例信息
         Args:
-            data: Dict 查询参数
+            data: GatewayInstanceQuery，需要 meta.system_code/cell_code/plane_code 与 name
         """
         logger.info("Get gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/getGatewayInstance"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "name": data.name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def list_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         查询入口网关实例信息，分页展示
         Args:
-            data: Dict 分页查询参数
+            data: GatewayInstanceQuery，需要 meta + page/rows + type
         """
         logger.info("List gateway instances")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/list"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "page": data.page,
+            "rows": data.rows,
+            "type": data.type,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         更新入口网关实例
         Args:
-            data: Dict 更新数据
+            data: GatewayInstanceQuery，需要 meta + name + type + 可选 remark
         """
         logger.info("Update gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/update"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "name": data.name,
+            "type": data.type,
+        }
+        if data.remark is not None:
+            payload["remark"] = data.remark
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def list_ingress_egress_gateway(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_ingress_egress_gateway(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         查询网关实例信息，分页展示包含入口和出口网关
         Args:
-            data: Dict 分页查询参数
+            data: GatewayInstanceQuery，需要 meta + page/rows
         """
         logger.info("List ingress and egress gateway instances")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/ingressEgressList"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "page": data.page,
+            "rows": data.rows,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def add_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         新增网关规则
         Args:
-            data: Dict 网关规则数据
+            data: GatewayRuleEntity，需要 meta + gateway_name + rule_name + port + protocol
         """
         logger.info("Add gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/add"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+            "port": data.port,
+            "protocol": data.protocol,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def list_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         查询网关规则信息，分页展示
         Args:
-            data: Dict 分页查询参数
+            data: GatewayRuleEntity，需要 meta + gateway_name + page/rows
         """
         logger.info("List gateway rules")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/list"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "page": data.page,
+            "rows": data.rows,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def get_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         精确查询网关配置信息
         Args:
-            data: Dict 查询参数
+            data: GatewayRuleEntity，需要 meta + gateway_name + rule_name
         """
         logger.info("Get gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/getGateway"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         更新网关规则
         Args:
-            data: Dict 更新数据
+            data: GatewayRuleEntity，需要 meta + gateway_name + rule_name + port + protocol + 可选 remark
         """
         logger.info("Update gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/update"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+            "port": data.port,
+            "protocol": data.protocol,
+        }
+        if data.remark is not None:
+            payload["remark"] = data.remark
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     # ==================== mscmf CMF服务相关接口 ====================
 
-    def batch_add_funcser(self, control_plane_code: str, funcsers: list) -> Dict[str, Any]:
+    def batch_add_funcser(self, control_plane_code: str, funcsers: List[FuncserEntity]) -> Dict[str, Any]:
         """
         批量新增单体服务SINGLE
         Args:
             control_plane_code: str 控制面编码
-            funcsers: list 服务列表
+            funcsers: List[FuncserEntity] 服务定义列表
         """
         logger.info("Batch add funcser")
         url = "/openapi/ms-ubm/microservice-ubm/v2/funcser/batch"
-        payload = {"controlPlaneCode": control_plane_code, "funcsers": funcsers}
+        payload: Dict[str, Any] = {
+            "controlPlaneCode": control_plane_code,
+            "funcsers": [
+                {
+                    "applicationCode": f.application_code,
+                    "functionClassName": f.function_class_name,
+                    "funcSerCode": f.func_ser_code,
+                    "funcSerName": f.func_ser_name,
+                    "type": f.type,
+                }
+                for f in funcsers
+            ],
+        }
         response = self.post(endpoint=url, json=payload)
         return response.json()
 
@@ -604,15 +698,28 @@ class MicroservicesOpenService(BaseService):
         response = self.get(endpoint=url, params=params)
         return response.json()
 
-    def add_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_cmf_degrade(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF新增降级配置
         Args:
-            data: Dict 降级配置数据
+            data: CmfDegradeEntity 需要 meta + degrade_rule
         """
         logger.info("Add CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        if data.degrade_rule is not None:
+            payload["degradeRule"] = data.degrade_rule
+        if data.state is not None:
+            payload["state"] = data.state
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def get_cmf_degrade_detail(self, control_plane_name: str, env_code: str, func_ser_name: str) -> Dict[str, Any]:
@@ -629,48 +736,94 @@ class MicroservicesOpenService(BaseService):
         response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_cmf_degrade(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF修改降级配置
         Args:
-            data: Dict 更新数据
+            data: CmfDegradeEntity 需要 meta + degrade_rule
         """
         logger.info("Update CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/update"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        if data.degrade_rule is not None:
+            payload["degradeRule"] = data.degrade_rule
+        if data.state is not None:
+            payload["state"] = data.state
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_cmf_degrade_state(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_cmf_degrade_state(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF熔断配置上线或者下线
         Args:
-            data: Dict 状态更新数据
+            data: CmfDegradeEntity 需要 meta + state
         """
         logger.info("Update CMF degrade state")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/updateState"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        if data.state is not None:
+            payload["state"] = data.state
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def delete_cmf_degrade(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def delete_cmf_degrade(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF删除降级配置
         Args:
-            data: Dict 删除参数
+            data: CmfDegradeEntity 需要 meta
         """
         logger.info("Delete CMF degrade config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/delete"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def add_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_cmf_circuit_breaking(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF新增熔断配置
         Args:
-            data: Dict 熔断配置数据
+            data: CmfCircuitBreakingEntity 需要 meta + circuit_breaking_rule
         """
         logger.info("Add CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        if data.circuit_breaking_rule is not None:
+            payload["circuitBreakingRule"] = data.circuit_breaking_rule
+        if data.state is not None:
+            payload["state"] = data.state
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     def get_cmf_circuit_breaking_detail(self, control_plane_name: str, env_code: str, func_ser_name: str) -> Dict[str, Any]:
@@ -687,125 +840,215 @@ class MicroservicesOpenService(BaseService):
         response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_cmf_circuit_breaking(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF修改熔断配置
         Args:
-            data: Dict 更新数据
+            data: CmfCircuitBreakingEntity 需要 meta + circuit_breaking_rule
         """
         logger.info("Update CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/update"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        if data.circuit_breaking_rule is not None:
+            payload["circuitBreakingRule"] = data.circuit_breaking_rule
+        if data.state is not None:
+            payload["state"] = data.state
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_cmf_circuit_breaking_state(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_cmf_circuit_breaking_state(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF熔断配置上线或者下线
         Args:
-            data: Dict 状态更新数据
+            data: CmfCircuitBreakingEntity 需要 meta + state
         """
         logger.info("Update CMF circuit breaking state")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/updateState"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        if data.state is not None:
+            payload["state"] = data.state
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def delete_cmf_circuit_breaking(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def delete_cmf_circuit_breaking(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF删除熔断配置
         Args:
-            data: Dict 删除参数
+            data: CmfCircuitBreakingEntity 需要 meta
         """
         logger.info("Delete CMF circuit breaking config")
         url = "/openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/delete"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneName": data.meta.control_plane_name,
+            "controlPlaneCode": data.meta.control_plane_code,
+            "envCode": data.meta.env_code,
+            "applicationCode": data.meta.application_code,
+            "functionClassName": data.meta.function_class_name,
+            "funcSerName": data.meta.func_ser_name,
+            "funcSerCode": data.meta.func_ser_code,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def list_virtualservice_by_gateway_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_virtualservice_by_gateway_config(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         根据网关规则查询虚拟服务列表
         Args:
-            data: Dict 查询参数
+            data: VirtualServiceEntity，需要 meta + gateway_name + rule_name
         """
         logger.info("List virtualservice by gateway config")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/listByGatewayConfig"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def add_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         新增虚拟服务
         Args:
-            data: Dict 虚拟服务数据
+            data: VirtualServiceEntity，需要 meta + gateway_name + rule_name + vs_name
         """
         logger.info("Add virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/add"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+            "vsName": data.vs_name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def get_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         精确查询虚拟服务信息
         Args:
-            data: Dict 查询参数
+            data: VirtualServiceEntity，需要 meta + vs_name
         """
         logger.info("Get virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/getVirtualService"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "vsName": data.vs_name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def update_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         更新虚拟服务
         Args:
-            data: Dict 更新数据
+            data: VirtualServiceEntity，需要 meta + vs_name + gateway_name + rule_name + 可选 remark
         """
         logger.info("Update virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/update"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "vsName": data.vs_name,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+        }
+        if data.remark is not None:
+            payload["remark"] = data.remark
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def list_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def list_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         查询虚拟服务列表
         Args:
-            data: Dict 分页查询参数
+            data: VirtualServiceEntity，需要 meta + page/rows
         """
         logger.info("List virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/list"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "page": data.page,
+            "rows": data.rows,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def delete_virtual_service(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def delete_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         删除虚拟服务
         Args:
-            data: Dict 删除参数
+            data: VirtualServiceEntity，需要 meta + vs_name
         """
         logger.info("Delete virtual service (openapi)")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/delete"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "vsName": data.vs_name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def delete_gateway_rule(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def delete_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         删除网关规则
         Args:
-            data: Dict 删除参数
+            data: GatewayRuleEntity，需要 meta + gateway_name + rule_name
         """
         logger.info("Delete gateway rule")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/delete"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "gatewayName": data.gateway_name,
+            "ruleName": data.rule_name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def delete_gateway_instance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def delete_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         删除入口网关实例
         Args:
-            data: Dict 删除参数
+            data: GatewayInstanceQuery，需要 meta + name
         """
         logger.info("Delete gateway instance")
         url = "/openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/delete"
-        response = self.post(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "systemCode": data.meta.system_code,
+            "cellCode": data.meta.cell_code,
+            "planeCode": data.meta.plane_code,
+            "name": data.name,
+        }
+        response = self.post(endpoint=url, json=payload)
         return response.json()
 
     # ==================== msubm UBM相关接口 ====================
@@ -828,28 +1071,70 @@ class MicroservicesOpenService(BaseService):
         response = self.get(endpoint=url)
         return response.json()
 
-    def batch_add_strategy(self, control_plane_code: str, strategies: list) -> Dict[str, Any]:
+    def batch_add_strategy(self, control_plane_code: str, strategies: List[StrategyEntity]) -> Dict[str, Any]:
         """
         批量新增策略
         Args:
             control_plane_code: str 控制面编码
-            strategies: list 策略列表
+            strategies: List[StrategyEntity] 策略列表
         """
         logger.info("Batch add strategy")
         url = "/openapi/ms-ubm/microservice-ubm/v2/strategy/batch"
-        payload = {"controlPlaneCode": control_plane_code, "strategies": strategies}
+        payload: Dict[str, Any] = {
+            "controlPlaneCode": control_plane_code,
+            "strategies": [
+                {
+                    "strategyCode": s.strategy_code,
+                    "belongCode": s.belong_code,
+                    "scope": s.scope,
+                    "kind": s.kind,
+                    "strategy": None
+                    if s.strategy is None
+                    else {
+                        "type": s.strategy.type,
+                        "paramKey": s.strategy.param_key,
+                        "paramType": s.strategy.param_type,
+                        "paramValue": s.strategy.param_value,
+                        "targetValue": s.strategy.target_value,
+                    },
+                }
+                for s in strategies
+            ],
+        }
         response = self.post(endpoint=url, json=payload)
         return response.json()
 
-    def batch_update_strategy_status(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def batch_update_strategy_status(self, data: BatchStrategyStatusEntity) -> Dict[str, Any]:
         """
         批量更新策略状态
         Args:
-            data: Dict 状态更新数据
+            data: BatchStrategyStatusEntity 状态更新数据
         """
         logger.info("Batch update strategy status")
         url = "/openapi/ms-ubm/microservice-ubm/v2/strategy/clusterstatus"
-        response = self.put(endpoint=url, json=data)
+        payload: Dict[str, Any] = {
+            "controlPlaneCode": data.control_plane_code,
+            "scope": data.scope,
+            "kind": data.kind,
+            "strategyInfos": [
+                {
+                    "strategyCode": si.strategy_code,
+                    "belongCode": si.belong_code,
+                    "status": si.status,
+                }
+                for si in data.strategy_infos
+            ],
+            "clusterInfos": [
+                {
+                    "planeCode": ci.plane_code,
+                    "planeName": ci.plane_name,
+                    "cellCode": ci.cell_code,
+                    "cellName": ci.cell_name,
+                }
+                for ci in data.cluster_infos
+            ],
+        }
+        response = self.put(endpoint=url, json=payload)
         return response.json()
 
     def get_strategy_batch_detail(self, batch_code: str) -> Dict[str, Any]:

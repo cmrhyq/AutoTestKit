@@ -18,6 +18,7 @@ Elastic Compute（弹性计算）Native K8s 资源实体模型。
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, List, Optional
 
+
 # ==================== 基础复用组件 ====================
 
 
@@ -463,6 +464,134 @@ class WorkloadPayload(object):
             "spec": spec,
         }
 
+@dataclass
+class WorkloadPublicParams(object):
+    """
+    Workload 生命周期测试的公共参数集合（对齐 workload.jmx 中的默认变量）。
+
+    集中承载 cluster / namespace / kind / name / image / labels 等常用字段，
+    供测试用例传给 service 层构造具体 Entity。字段名与 JMX 变量一一对应。
+
+    Attributes:
+        cluster_id: 集群 ID
+        namespace: K8s Namespace
+        cell_code: PaaS Cell 编码（查询接口用）
+        sys_code: PaaS System 编码（查询接口用）
+        name: Workload 名称
+        kind: Workload 类型（Deployment / StatefulSet / CloneSet / DaemonSet / CronJob / Job）
+        image: 容器镜像
+        replicas: 初始副本数
+        app_code: 应用编码
+        paas_env_code / paas_plane_code / paas_tenant_code / paas_owner / paas_unit_code:
+            PaaS 标签集所需字段
+    """
+
+    cluster_id: str
+    namespace: str
+    cell_code: str
+    sys_code: str
+    name: str
+    kind: str
+    image: str
+    replicas: int = 1
+    app_code: str = "test-app"
+    paas_env_code: str = "PROD"
+    paas_plane_code: str = "test"
+    paas_tenant_code: str = "monitor-group"
+    paas_owner: str = "panji_probe"
+    paas_unit_code: str = "test"
+
+
+@dataclass
+class WorkloadEntity(object):
+    """
+    Workload create / update / batch payload 的实体表示（对应 workload.jmx create body）。
+
+    字段命名使用 snake_case（Python 侧），service 层负责映射到 API 契约的字段名
+    （name / kind / replicas / image / appCode / labels）。
+
+    Attributes:
+        name: Workload 名称
+        kind: Workload 类型
+        image: 容器镜像
+        app_code: 应用编码
+        replicas: 副本数（Deployment / StatefulSet 用；DaemonSet / Job 可为 None 由 service 决定是否携带）
+        labels: 完整 labels 字典（key 使用 K8s kebab-case）
+    """
+
+    name: str
+    kind: str
+    image: str
+    app_code: str
+    replicas: Optional[int] = 1
+    labels: Dict[str, str] = field(default_factory=dict)
+
+    @classmethod
+    def from_public_params(cls, params: "WorkloadPublicParams") -> "WorkloadEntity":
+        """
+        从 WorkloadPublicParams 快捷构造 WorkloadEntity，并附加对齐 JMX 的 12 项 PaaS 标签。
+        """
+        labels = PaasLabels(
+            paas_owner=params.paas_owner,
+            paas_cluster_code=params.cluster_id,
+            paas_app_code=params.app_code,
+            paas_env_code=params.paas_env_code,
+            paas_plane_code=params.paas_plane_code,
+            paas_tenant_code=params.paas_tenant_code,
+            paas_unit_code=params.paas_unit_code,
+            paas_system_code=params.namespace,
+            paas_workload_name=params.name,
+            paas_app_source="workload",
+        ).to_dict()
+        labels["paas-workload-kind"] = params.kind
+        return cls(
+            name=params.name,
+            kind=params.kind,
+            image=params.image,
+            app_code=params.app_code,
+            replicas=params.replicas,
+            labels=labels,
+        )
+
+
+@dataclass
+class WorkloadServicePortEntity(object):
+    """K8s Service 端口定义（Workload 关联 Service 的 ports[] 单项）。"""
+
+    port: int = 80
+    target_port: int = 80
+    protocol: str = "TCP"
+
+
+@dataclass
+class WorkloadServiceEntity(object):
+    """
+    Workload 关联的 Service payload 单项（对应 workload.jmx update-services body）。
+
+    Attributes:
+        name: Service 名称（一般等于 Workload 名称）
+        type: Service 类型，默认 ClusterIP
+        ports: 端口列表
+    """
+
+    name: str
+    type: str = "ClusterIP"
+    ports: List[WorkloadServicePortEntity] = field(
+        default_factory=lambda: [WorkloadServicePortEntity()]
+    )
+
+
+@dataclass
+class WorkloadPatchEntity(object):
+    """
+    Workload PATCH（增量更新）payload 实体（对应 workload.jmx patch body）。
+
+    PATCH 场景为局部字段更新，目前 JMX 场景只使用 labels 字段。
+    如后续需要 patch 其他字段，可在此扩展。
+    """
+
+    labels: Dict[str, str] = field(default_factory=dict)
+
 
 __all__ = [
     "PaasLabels",
@@ -484,4 +613,9 @@ __all__ = [
     "HpaPayload",
     "PodPayload",
     "WorkloadPayload",
+    "WorkloadPublicParams",
+    "WorkloadEntity",
+    "WorkloadServicePortEntity",
+    "WorkloadServiceEntity",
+    "WorkloadPatchEntity",
 ]

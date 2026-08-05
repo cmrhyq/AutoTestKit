@@ -81,8 +81,40 @@ class QueryModelConf(object):
     with_confs_count: bool = True
 
 
+@dataclass
+class ObservableLogPublicParams(object):
+    """
+    可观测日志接口测试的公共参数集合。
+
+    对齐 observable-log.jmx 中的默认变量：包含四元组（namespace/cluster/pod/container）、
+    时间戳范围、日志上下文参数（log id / timestamp / offset / file_path / host_ip）等。
+
+    Attributes:
+        obs_namespace / obs_cluster_name / obs_pod_name / obs_container_name: 日志四元组
+        obs_start_time / obs_end_time: 查询时间范围（ms 时间戳）
+        obs_id / obs_timestamp / obs_offset: 上下文查询定位参数
+        obs_log_file_path / obs_host_ip: 上下文查询的物理定位参数
+        obs_component_type: 组件类型（默认 "app"）
+        obs_size: 单次返回条数
+    """
+    obs_namespace: str
+    obs_cluster_name: str
+    obs_pod_name: str
+    obs_container_name: str
+    obs_start_time: int
+    obs_end_time: int
+    obs_id: str
+    obs_timestamp: int
+    obs_offset: int
+    obs_log_file_path: str
+    obs_host_ip: str
+    obs_component_type: str = "app"
+    obs_size: int = 1
+
+
 __all__ = [
     "Log",
     "LogContext",
     "QueryModelConf",
+    "ObservableLogPublicParams",
 ]

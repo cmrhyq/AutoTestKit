@@ -7,11 +7,17 @@
 - 虚拟服务 CRUD
 - 网关配置查询
 """
-from typing import Dict
-
 import allure
 import pytest
 
+from base.api.entity.microservices import (
+    GatewayInstance,
+    GatewayInstanceQuery,
+    GatewayMeta,
+    GatewayRuleEntity,
+    IstioPublicParams,
+    VirtualServiceEntity,
+)
 from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
@@ -37,23 +43,16 @@ class TestMicroservicesIstio:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> IstioPublicParams:
         """提取 Istio Gateway 测试所需的公共参数。"""
-        return {
-            "sys_code": api_env.get("sysCode"),
-            "cell_code": api_env.get("cellCode"),
-            "plane_code": api_env.get("planeCode"),
-            "mesh_gateway_name": api_env.get("meshGatewayName"),
-            "rule_name": api_env.get("ruleName"),
-            "mesh_vs_name": api_env.get("meshVsName"),
-        }
-
-    def _base_meta(self, public_params) -> Dict:
-        return {
-            "systemCode": public_params["sys_code"],
-            "cellCode": public_params["cell_code"],
-            "planeCode": public_params["plane_code"],
-        }
+        return IstioPublicParams(
+            sys_code=api_env.get("sysCode"),
+            cell_code=api_env.get("cellCode"),
+            plane_code=api_env.get("planeCode"),
+            mesh_gateway_name=api_env.get("meshGatewayName"),
+            rule_name=api_env.get("ruleName"),
+            mesh_vs_name=api_env.get("meshVsName"),
+        )
 
     # ==================== 入口网关实例 ====================
 
@@ -63,12 +62,13 @@ class TestMicroservicesIstio:
     def test_add_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求新增网关实例"):
-                data = {
-                    **self._base_meta(public_params),
-                    "name": public_params["mesh_gateway_name"],
-                    "type": "INGRESS",
-                }
-                response_json = istio_service.add_gateway_instance(data)
+                entity = GatewayInstance(
+                    name=public_params.mesh_gateway_name,
+                    sysCode=public_params.sys_code,
+                    cellCode=public_params.cell_code,
+                    planeCode=public_params.plane_code,
+                )
+                response_json = istio_service.add_gateway_instance(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -78,11 +78,11 @@ class TestMicroservicesIstio:
     def test_get_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求精确查询网关实例"):
-                data = {
-                    **self._base_meta(public_params),
-                    "name": public_params["mesh_gateway_name"],
-                }
-                response_json = istio_service.get_gateway_instance(data)
+                entity = GatewayInstanceQuery(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    name=public_params.mesh_gateway_name,
+                )
+                response_json = istio_service.get_gateway_instance(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -92,13 +92,13 @@ class TestMicroservicesIstio:
     def test_list_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求分页查询网关实例"):
-                data = {
-                    **self._base_meta(public_params),
-                    "page": 1,
-                    "rows": 10,
-                    "type": "INGRESS",
-                }
-                response_json = istio_service.list_gateway_instance(data)
+                entity = GatewayInstanceQuery(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    page=1,
+                    rows=10,
+                    type="INGRESS",
+                )
+                response_json = istio_service.list_gateway_instance(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -108,13 +108,13 @@ class TestMicroservicesIstio:
     def test_update_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求更新网关实例"):
-                data = {
-                    **self._base_meta(public_params),
-                    "name": public_params["mesh_gateway_name"],
-                    "type": "INGRESS",
-                    "remark": "updated by autotest",
-                }
-                response_json = istio_service.update_gateway_instance(data)
+                entity = GatewayInstanceQuery(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    name=public_params.mesh_gateway_name,
+                    type="INGRESS",
+                    remark="updated by autotest",
+                )
+                response_json = istio_service.update_gateway_instance(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -124,8 +124,12 @@ class TestMicroservicesIstio:
     def test_list_ingress_egress_gateway(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求分页查询入口/出口网关"):
-                data = {**self._base_meta(public_params), "page": 1, "rows": 10}
-                response_json = istio_service.list_ingress_egress_gateway(data)
+                entity = GatewayInstanceQuery(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    page=1,
+                    rows=10,
+                )
+                response_json = istio_service.list_ingress_egress_gateway(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -137,14 +141,14 @@ class TestMicroservicesIstio:
     def test_add_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求新增网关规则"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                    "port": 80,
-                    "protocol": "HTTP",
-                }
-                response_json = istio_service.add_gateway_rule(data)
+                entity = GatewayRuleEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                    port=80,
+                    protocol="HTTP",
+                )
+                response_json = istio_service.add_gateway_rule(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -154,13 +158,13 @@ class TestMicroservicesIstio:
     def test_list_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求分页查询网关规则"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "page": 1,
-                    "rows": 10,
-                }
-                response_json = istio_service.list_gateway_rule(data)
+                entity = GatewayRuleEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    page=1,
+                    rows=10,
+                )
+                response_json = istio_service.list_gateway_rule(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -170,12 +174,12 @@ class TestMicroservicesIstio:
     def test_get_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求精确查询网关配置"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                }
-                response_json = istio_service.get_gateway_rule(data)
+                entity = GatewayRuleEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                )
+                response_json = istio_service.get_gateway_rule(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -185,15 +189,15 @@ class TestMicroservicesIstio:
     def test_update_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求更新网关规则"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                    "port": 80,
-                    "protocol": "HTTP",
-                    "remark": "updated by autotest",
-                }
-                response_json = istio_service.update_gateway_rule(data)
+                entity = GatewayRuleEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                    port=80,
+                    protocol="HTTP",
+                    remark="updated by autotest",
+                )
+                response_json = istio_service.update_gateway_rule(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -205,13 +209,13 @@ class TestMicroservicesIstio:
     def test_add_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求新增虚拟服务"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                    "vsName": public_params["mesh_vs_name"],
-                }
-                response_json = istio_service.add_virtual_service(data)
+                entity = VirtualServiceEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                    vs_name=public_params.mesh_vs_name,
+                )
+                response_json = istio_service.add_virtual_service(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -221,12 +225,12 @@ class TestMicroservicesIstio:
     def test_list_virtualservice_by_gateway_config(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求按网关规则查询虚拟服务列表"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                }
-                response_json = istio_service.list_virtualservice_by_gateway_config(data)
+                entity = VirtualServiceEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                )
+                response_json = istio_service.list_virtualservice_by_gateway_config(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -236,11 +240,11 @@ class TestMicroservicesIstio:
     def test_get_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求精确查询虚拟服务"):
-                data = {
-                    **self._base_meta(public_params),
-                    "vsName": public_params["mesh_vs_name"],
-                }
-                response_json = istio_service.get_virtual_service(data)
+                entity = VirtualServiceEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    vs_name=public_params.mesh_vs_name,
+                )
+                response_json = istio_service.get_virtual_service(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -250,14 +254,14 @@ class TestMicroservicesIstio:
     def test_update_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求更新虚拟服务"):
-                data = {
-                    **self._base_meta(public_params),
-                    "vsName": public_params["mesh_vs_name"],
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                    "remark": "updated by autotest",
-                }
-                response_json = istio_service.update_virtual_service(data)
+                entity = VirtualServiceEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    vs_name=public_params.mesh_vs_name,
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                    remark="updated by autotest",
+                )
+                response_json = istio_service.update_virtual_service(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -267,8 +271,12 @@ class TestMicroservicesIstio:
     def test_list_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求分页查询虚拟服务列表"):
-                data = {**self._base_meta(public_params), "page": 1, "rows": 10}
-                response_json = istio_service.list_virtual_service(data)
+                entity = VirtualServiceEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    page=1,
+                    rows=10,
+                )
+                response_json = istio_service.list_virtual_service(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -280,11 +288,11 @@ class TestMicroservicesIstio:
     def test_delete_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求删除虚拟服务"):
-                data = {
-                    **self._base_meta(public_params),
-                    "vsName": public_params["mesh_vs_name"],
-                }
-                response_json = istio_service.delete_virtual_service(data)
+                entity = VirtualServiceEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    vs_name=public_params.mesh_vs_name,
+                )
+                response_json = istio_service.delete_virtual_service(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -294,12 +302,12 @@ class TestMicroservicesIstio:
     def test_delete_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求删除网关规则"):
-                data = {
-                    **self._base_meta(public_params),
-                    "gatewayName": public_params["mesh_gateway_name"],
-                    "ruleName": public_params["rule_name"],
-                }
-                response_json = istio_service.delete_gateway_rule(data)
+                entity = GatewayRuleEntity(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    gateway_name=public_params.mesh_gateway_name,
+                    rule_name=public_params.rule_name,
+                )
+                response_json = istio_service.delete_gateway_rule(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json
 
@@ -309,10 +317,10 @@ class TestMicroservicesIstio:
     def test_delete_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
             with AllureHelper.step("发送 POST 请求删除网关实例"):
-                data = {
-                    **self._base_meta(public_params),
-                    "name": public_params["mesh_gateway_name"],
-                }
-                response_json = istio_service.delete_gateway_instance(data)
+                entity = GatewayInstanceQuery(
+                    meta=GatewayMeta.from_public_params(public_params),
+                    name=public_params.mesh_gateway_name,
+                )
+                response_json = istio_service.delete_gateway_instance(entity)
             with AllureHelper.step("验证响应"):
                 assert "code" in response_json

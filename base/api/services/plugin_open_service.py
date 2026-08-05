@@ -1,7 +1,6 @@
 from typing import Dict, Any, Optional
 
 from base import BaseService
-from base.api.entity.plugin import McpValidatePayload
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -53,33 +52,33 @@ class PluginOpenService(BaseService):
         response = self.get(endpoint=url)
         return response.json()
 
-    def verify_task_config(self, payload: McpValidatePayload = None):
+    def verify_task_config(self):
         """
         验证任务配置
-
-        Args:
-            payload: MCP 校验请求实体，默认使用 McpValidatePayload.default_task()
         """
         logger.info(f"Verifying Task Config")
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/task"
-        entity = payload or McpValidatePayload.default_task()
+        entity = {
+            "type": "kubernetes",
+            "content": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: example-config\ndata:\n  config.yaml: |\n    key: value"
+        }
         response = self.post(
-            endpoint=url, body=entity.to_payload()
+            endpoint=url, body=entity
         )
         return response.json()
 
-    def verify_task_feature(self, payload: McpValidatePayload = None):
+    def verify_task_feature(self):
         """
         验证任务feature
-
-        Args:
-            payload: MCP 校验请求实体，默认使用 McpValidatePayload.default_feature()
         """
         logger.info(f"Verifying Task Feature")
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/feature"
-        entity = payload or McpValidatePayload.default_feature()
+        entity = {
+            "type": "feature",
+            "content": "name: example-feature\ndescription: 示例特性\ntype: menu\nposition: /admin/plugins"
+        }
         response = self.post(
-            endpoint=url, body=entity.to_payload()
+            endpoint=url, body=entity
         )
         return response.json()
 

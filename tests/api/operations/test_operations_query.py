@@ -12,7 +12,9 @@ from typing import Dict, Any
 
 import allure
 import pytest
+from pygments.lexers import promql
 
+from base.api.entity import MetricQuery
 from base.api.services.operation_open_service import OperationOpenService
 from core.reporting.allure_helper import AllureHelper
 
@@ -78,12 +80,14 @@ class TestOperationsQuery:
     def test_batch_query_metrics(self, operation_service, api_cache):
         with AllureHelper.api_test(operation_service):
             metrics = [
-                {
-                    "promql": "up{job='kube_svc_redis-exporter'}[30m]",
-                    "range": "0-1",
-                    "startTime": "",
-                    "endTime": ""
-                }
+                MetricQuery(
+                    promql="up{job='kube_svc_redis-exporter'}",
+                    range="0-1",
+                ),
+                MetricQuery(
+                    promql="up{job='kube_svc_redis-exporter'}",
+                    range="0-2",
+                )
             ]
 
             with AllureHelper.step("发送 POST 请求批量查询指标"):
