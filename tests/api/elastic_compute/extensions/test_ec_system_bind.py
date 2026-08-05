@@ -17,10 +17,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -70,7 +68,7 @@ class TestEcExtensionsSystemBind:
                 tenant_code=public_params["tenant_code"],
                 sys_code=public_params["sys_code"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询系统配额失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -94,7 +92,7 @@ class TestEcExtensionsSystemBind:
             bind_code = response_json.get("code")
             api_cache.set("system_bind_code", bind_code)
 
-            assert bind_code == BUSINESS_SUCCESS_CODE, f"用户与系统绑定失败, code: {bind_code}, 响应: {response_json}"
+            assert bind_code == ApiCode.SUCCESS, f"用户与系统绑定失败, code: {bind_code}, 响应: {response_json}"
 
     # ==================== 3) 解除用户与系统绑定 ====================
 
@@ -109,7 +107,7 @@ class TestEcExtensionsSystemBind:
     def test_unbind_system_user(self, ec_ext_service, public_params, api_cache):
         """解除用户与系统绑定；仅在 bind 成功时执行。"""
         bind_code = api_cache.get("system_bind_code")
-        if bind_code != BUSINESS_SUCCESS_CODE:
+        if bind_code != ApiCode.SUCCESS:
             pytest.skip(f"上一步 bind 未成功 (code={bind_code})，跳过 unbind")
 
         with AllureHelper.api_test(ec_ext_service):
@@ -117,6 +115,6 @@ class TestEcExtensionsSystemBind:
                 sys_code=public_params["sys_code"],
                 username=public_params["username"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"解除用户与系统绑定失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

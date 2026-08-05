@@ -15,16 +15,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, SecretConst, Tenant, Timing
 from core.reporting.allure_helper import AllureHelper
 
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-
-# JMX 中的 ConstantTimer 3000ms
-IMAGEPULLSECRET_WAIT_SECONDS = 3
-# JSONPostProcessor 中的默认 secretName（当响应未包含时用作兜底）
-DEFAULT_SECRET_NAME = "container-image-registry-auto-test-probe"
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -42,7 +35,7 @@ class TestEcOpenapiImagePullSecret:
       3) 删除 Secret
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -74,7 +67,7 @@ class TestEcOpenapiImagePullSecret:
             resp = ec_service.create_image_pull_secret(
                 cell_code=cell_code, sys_code=sys_code,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 ImagePullSecret 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -83,12 +76,12 @@ class TestEcOpenapiImagePullSecret:
                 resp.get("secretName")
                 or data.get("secretName")
                 or data.get("secret_name")
-                or DEFAULT_SECRET_NAME
+                or SecretConst.DEFAULT_IMAGE_PULL_SECRET_NAME
             )
             api_cache.set("ec_image_pull_secret_name", secret_name)
 
             # JMX ConstantTimer 3000ms
-            time.sleep(IMAGEPULLSECRET_WAIT_SECONDS)
+            time.sleep(Timing.IMAGEPULLSECRET_WAIT_SECONDS)
 
     @allure.title("删除 ImagePullSecret 对应 Secret")
     @allure.description("使用创建阶段缓存的 secretName 删除 Secret，验证业务码为成功")
@@ -99,13 +92,13 @@ class TestEcOpenapiImagePullSecret:
         """删除 Secret。"""
         cell_code = public_params["cell_code"]
         sys_code = public_params["sys_code"]
-        secret_name = api_cache.get("ec_image_pull_secret_name") or DEFAULT_SECRET_NAME
+        secret_name = api_cache.get("ec_image_pull_secret_name") or SecretConst.DEFAULT_IMAGE_PULL_SECRET_NAME
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.delete_secret_by_name(
                 cell_code=cell_code, sys_code=sys_code, secret_name=secret_name,
             )
             code = resp.get("code")
-            assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"删除 Secret 返回异常 code: {code}, 响应: {resp}"
             )

@@ -14,9 +14,7 @@ from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
 from core.reporting.allure_helper import AllureHelper
-
-HTTP_OK = 200
-HTTP_NOT_FOUND = 404
+from core.constants import HttpStatus
 
 
 @pytest.mark.api
@@ -107,10 +105,10 @@ class TestEcExtensionsCustomResourceV1:
             )
 
             # 断言：接口返回正常（200=存在，404=不存在，两者均为正常）
-            assert status_code in (HTTP_OK, HTTP_NOT_FOUND), f"查询 CR 返回异常 HTTP status: {status_code}"
+            assert status_code in (HttpStatus.OK, HttpStatus.NOT_FOUND), f"查询 CR 返回异常 HTTP status: {status_code}"
 
             # 若已存在，先删除以保证幂等
-            if status_code == HTTP_OK:
+            if status_code == HttpStatus.OK:
                 del_status, _ = ec_ext_service.delete_custom_resource(
                     cluster_id=cluster_id,
                     group=group,
@@ -119,7 +117,7 @@ class TestEcExtensionsCustomResourceV1:
                     kind=kind,
                     name=name,
                 )
-                assert del_status == HTTP_OK, f"删除已存在的 CR 失败, HTTP status: {del_status}"
+                assert del_status == HttpStatus.OK, f"删除已存在的 CR 失败, HTTP status: {del_status}"
 
             api_cache.set("cr_created", False)
 
@@ -148,7 +146,7 @@ class TestEcExtensionsCustomResourceV1:
                 payload=payload,
             )
 
-            assert status_code == HTTP_OK, f"创建 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
+            assert status_code == HttpStatus.OK, f"创建 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
 
             api_cache.set("cr_created", True)
 
@@ -175,7 +173,7 @@ class TestEcExtensionsCustomResourceV1:
                 kind=kind,
             )
 
-            assert status_code == HTTP_OK, f"查询 CR 列表失败, HTTP status: {status_code}, 响应: {response_json}"
+            assert status_code == HttpStatus.OK, f"查询 CR 列表失败, HTTP status: {status_code}, 响应: {response_json}"
 
             # 断言：列表中包含目标 CR 名称
             resp_str = json.dumps(response_json, ensure_ascii=False)
@@ -206,7 +204,7 @@ class TestEcExtensionsCustomResourceV1:
                 payload=payload,
             )
 
-            assert status_code == HTTP_OK, f"更新 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
+            assert status_code == HttpStatus.OK, f"更新 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
 
     @pytest.mark.dependency(name="cr_delete", depends=["cr_update"])
     @pytest.mark.order(5)
@@ -232,7 +230,7 @@ class TestEcExtensionsCustomResourceV1:
                 name=name,
             )
 
-            assert status_code == HTTP_OK, f"删除 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
+            assert status_code == HttpStatus.OK, f"删除 CR 失败, HTTP status: {status_code}, 响应: {response_json}"
 
             api_cache.set("cr_created", False)
 
@@ -260,4 +258,4 @@ class TestEcExtensionsCustomResourceV1:
                 name=name,
             )
 
-            assert status_code == HTTP_NOT_FOUND, f"CR 删除后仍能查询到, HTTP status: {status_code}"
+            assert status_code == HttpStatus.NOT_FOUND, f"CR 删除后仍能查询到, HTTP status: {status_code}"

@@ -11,10 +11,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -61,7 +59,7 @@ class TestEcExtensionsDashboard:
                 tenant_code=tenant_code,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询资源统计失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -83,6 +81,6 @@ class TestEcExtensionsDashboard:
                 end_time=end_time,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询工作负载统计失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

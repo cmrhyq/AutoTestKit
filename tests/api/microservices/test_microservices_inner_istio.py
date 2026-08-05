@@ -24,6 +24,7 @@ from base.api.services.microservices_inner_service import (
 )
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 logger = get_logger(__name__)
 
@@ -39,7 +40,7 @@ class TestMicroservicesInnerIstio:
     数据流：统一校验 → 统一创建 → 查询/精确 → 删除虚拟服务 → 新增虚拟服务 → 统一删除
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def inner_service(self, api_env):

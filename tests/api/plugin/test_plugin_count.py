@@ -12,6 +12,7 @@ import pytest
 from base.api.services.plugin_inner_service import PluginInnerService
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 logger = get_logger(__name__)
 
@@ -22,7 +23,7 @@ logger = get_logger(__name__)
 @allure.story("Plugin Count 接口")
 class TestPluginCount:
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def plugin_inner_service(self, api_env):

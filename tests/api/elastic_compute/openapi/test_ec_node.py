@@ -13,6 +13,7 @@ from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -24,7 +25,7 @@ class TestEcOpenapiNode:
     Elastic Compute Node OpenAPI 测试（Bearer 鉴权）
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):

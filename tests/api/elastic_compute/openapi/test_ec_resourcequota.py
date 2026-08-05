@@ -11,11 +11,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -31,7 +28,7 @@ class TestEcOpenapiResourceQuota:
     执行顺序：查询命名空间列表 → 查询全集群列表 → PUT 更新 → PATCH 更新
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -95,7 +92,7 @@ class TestEcOpenapiResourceQuota:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询命名空间 ResourceQuota 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -113,7 +110,7 @@ class TestEcOpenapiResourceQuota:
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_resource_quotas_by_cell(cell_code=cell_code)
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 ResourceQuota 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -135,7 +132,7 @@ class TestEcOpenapiResourceQuota:
                 cell_code=cell_code, sys_code=sys_code, payload=put_payload,
             )
 
-            assert put_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 ResourceQuota 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
 
@@ -157,6 +154,6 @@ class TestEcOpenapiResourceQuota:
                 cell_code=cell_code, sys_code=sys_code, payload=patch_payload,
             )
 
-            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 更新 ResourceQuota 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )

@@ -14,11 +14,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,7 +31,7 @@ class TestEcOpenapiConfigmap:
     执行顺序：查询 → 清理已存在 → 创建 → 列表查询 → 全集群列表查询 → PUT更新 → PATCH更新 → 删除清理
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -127,16 +124,16 @@ class TestEcOpenapiConfigmap:
             ec_get_code = get_resp.get("code")
 
             # 断言：接口返回正常（code 为 2000 表示存在，4004 表示不存在，两者均为正常）
-            assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 ConfigMap 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
             # 若已存在，先删除以保证幂等
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_configmap(
                     cell_code=cell_code, sys_code=sys_code, name=cm_name,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 ConfigMap 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
 
@@ -160,7 +157,7 @@ class TestEcOpenapiConfigmap:
             )
 
             # 断言：业务码为成功
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 ConfigMap 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
             # 断言：返回数据中包含 ConfigMap 名称
@@ -188,7 +185,7 @@ class TestEcOpenapiConfigmap:
             )
 
             # 断言：业务码为成功
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Namespace ConfigMap 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             # 断言：列表中包含目标 ConfigMap
@@ -211,7 +208,7 @@ class TestEcOpenapiConfigmap:
             all_list_resp = ec_service.list_configmaps_by_cell(cell_code=cell_code)
 
             # 断言：业务码为成功
-            assert all_list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert all_list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 ConfigMap 列表失败, code: {all_list_resp.get('code')}, 响应: {all_list_resp}"
             )
             # 断言：列表中包含目标 ConfigMap
@@ -239,7 +236,7 @@ class TestEcOpenapiConfigmap:
             )
 
             # 断言：业务码为成功
-            assert put_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 ConfigMap 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
             # 断言：响应中包含更新后的数据值
@@ -267,7 +264,7 @@ class TestEcOpenapiConfigmap:
             )
 
             # 断言：业务码为成功
-            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 ConfigMap 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
             # 断言：响应中包含增量更新后的数据值
@@ -293,7 +290,7 @@ class TestEcOpenapiConfigmap:
             )
 
             # 断言：业务码为成功
-            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 ConfigMap 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
 
@@ -316,6 +313,6 @@ class TestEcOpenapiConfigmap:
             )
 
             # 断言：业务码为资源不存在
-            assert get_resp.get("code") == RESOURCE_NOT_FOUND_CODE, (
+            assert get_resp.get("code") == ApiCode.NOT_FOUND, (
                 f"ConfigMap 删除后仍能查询到, code: {get_resp.get('code')}, 响应: {get_resp}"
             )

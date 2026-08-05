@@ -13,11 +13,10 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 # 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -30,7 +29,7 @@ class TestEcOpenapiPriorityClasses:
     线程组: PriorityClass
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -104,15 +103,15 @@ class TestEcOpenapiPriorityClasses:
             )
             ec_get_code = get_resp.get("code")
 
-            assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 PriorityClass 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_priority_class(
                     cell_code=cell_code, name=pc_name,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 PriorityClass 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
 
@@ -134,7 +133,7 @@ class TestEcOpenapiPriorityClasses:
                 cell_code=cell_code, payload=create_payload,
             )
 
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 PriorityClass 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
 
@@ -153,7 +152,7 @@ class TestEcOpenapiPriorityClasses:
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_priority_classes(cell_code=cell_code)
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 PriorityClass 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -178,7 +177,7 @@ class TestEcOpenapiPriorityClasses:
                 cell_code=cell_code, name=pc_name, payload=put_payload,
             )
 
-            assert put_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 PriorityClass 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
 
@@ -203,7 +202,7 @@ class TestEcOpenapiPriorityClasses:
                 cell_code=cell_code, name=pc_name, payload=patch_payload,
             )
 
-            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 PriorityClass 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
 
@@ -227,7 +226,7 @@ class TestEcOpenapiPriorityClasses:
                 cell_code=cell_code, name=pc_name,
             )
 
-            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 PriorityClass 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
 

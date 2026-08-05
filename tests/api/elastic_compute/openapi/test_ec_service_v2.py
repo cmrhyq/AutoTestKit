@@ -14,11 +14,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,7 +31,7 @@ class TestEcOpenapiServiceV2:
     执行顺序：查询 → 清理已存在 → 创建 → 列表查询 → 全集群列表查询 → PUT更新 → PATCH更新 → 删除清理
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -131,15 +128,15 @@ class TestEcOpenapiServiceV2:
             )
             ec_get_code = get_resp.get("code")
 
-            assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 Service 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_service(
                     cell_code=cell_code, sys_code=sys_code, name=svc_name,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Service 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
 
@@ -162,7 +159,7 @@ class TestEcOpenapiServiceV2:
                 cell_code=cell_code, sys_code=sys_code, payload=create_payload,
             )
 
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 Service 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
             resp_str = json.dumps(create_resp, ensure_ascii=False)
@@ -188,7 +185,7 @@ class TestEcOpenapiServiceV2:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Namespace Service 列表失败, code: {list_resp.get('code')}, "
                 f"响应: {list_resp}"
             )
@@ -210,7 +207,7 @@ class TestEcOpenapiServiceV2:
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_services_by_cell(cell_code=cell_code)
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 Service 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
@@ -236,7 +233,7 @@ class TestEcOpenapiServiceV2:
                 payload=put_payload,
             )
 
-            assert put_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 Service 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
 
@@ -258,7 +255,7 @@ class TestEcOpenapiServiceV2:
                 payload=patch_payload,
             )
 
-            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 Service 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
 
@@ -278,7 +275,7 @@ class TestEcOpenapiServiceV2:
                 cell_code=cell_code, sys_code=sys_code, name=svc_name,
             )
 
-            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 Service 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
 

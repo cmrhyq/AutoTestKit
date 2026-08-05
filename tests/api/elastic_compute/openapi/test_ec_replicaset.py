@@ -11,11 +11,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -31,7 +28,7 @@ class TestEcOpenapiReplicaSet:
     执行顺序：全集群列表 → 命名空间列表（提取 name） → 查询指定 ReplicaSet
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -59,7 +56,7 @@ class TestEcOpenapiReplicaSet:
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_replica_sets_by_cell(cell_code=cell_code)
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 ReplicaSet 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -80,7 +77,7 @@ class TestEcOpenapiReplicaSet:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询命名空间 ReplicaSet 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -117,6 +114,6 @@ class TestEcOpenapiReplicaSet:
                 cell_code=cell_code, sys_code=sys_code, name=rs_name,
             )
 
-            assert get_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert get_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 ReplicaSet 失败, code: {get_resp.get('code')}, 响应: {get_resp}"
             )

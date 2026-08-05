@@ -20,6 +20,7 @@ from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.microservice
@@ -33,7 +34,7 @@ class TestMicroservicesCmf:
     数据流：新增服务 → 查询服务 → 降级 CRUD → 熔断 CRUD
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def cmf_service(self, service_factory):

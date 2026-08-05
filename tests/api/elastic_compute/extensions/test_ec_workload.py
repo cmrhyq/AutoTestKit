@@ -25,11 +25,8 @@ from base.api.entity.elastic_compute import (
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-WORKLOAD_NOT_FOUND_CODE = 4004
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -94,18 +91,18 @@ class TestEcExtensionsWorkload:
             )
             get_code = get_resp.get("code")
 
-            if get_code == BUSINESS_SUCCESS_CODE:
+            if get_code == ApiCode.SUCCESS:
                 delete_resp = ec_ext_service.delete_workload(
                     cluster_id=public_params.cluster_id,
                     namespace=public_params.namespace,
                     kind=public_params.kind,
                     name=public_params.name,
                 )
-                assert delete_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert delete_resp.get("code") == ApiCode.SUCCESS, (
                     f"预清理阶段删除 Workload 失败, 响应: {delete_resp}"
                 )
-            elif get_code == WORKLOAD_NOT_FOUND_CODE:
-                pytest.skip(f"目标 Workload 不存在 (code={WORKLOAD_NOT_FOUND_CODE})，无需预清理")
+            elif get_code == ApiCode.NOT_FOUND:
+                pytest.skip(f"目标 Workload 不存在 (code={ApiCode.NOT_FOUND})，无需预清理")
             else:
                 pytest.fail(f"查询 Workload 状态返回未知业务码 code={get_code}, 响应: {get_resp}")
 
@@ -125,7 +122,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 workload=workload,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"创建 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -144,7 +141,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Workload 状态失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -163,7 +160,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Pod 列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             data = response_json.get("data") or []
@@ -192,7 +189,7 @@ class TestEcExtensionsWorkload:
                 name=public_params.name,
                 pod_name=pod_name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Pod 事件失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -216,7 +213,7 @@ class TestEcExtensionsWorkload:
                 name=public_params.name,
                 pod_name=pod_name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Pod 日志失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -237,7 +234,7 @@ class TestEcExtensionsWorkload:
                 name=public_params.name,
                 workload=workload,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -256,7 +253,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询挂载存储列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -275,7 +272,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 HPA 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -296,7 +293,7 @@ class TestEcExtensionsWorkload:
                 name=public_params.name,
                 replicas=new_replicas,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新副本数失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -315,7 +312,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"再次查询 HPA 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -336,7 +333,7 @@ class TestEcExtensionsWorkload:
                 name=public_params.name,
                 patch=patch,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"增量更新 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -355,7 +352,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"停止 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -374,7 +371,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"启动 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -393,7 +390,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"重启 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -412,7 +409,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Workload 关联 Service 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -433,7 +430,7 @@ class TestEcExtensionsWorkload:
                 name=public_params.name,
                 services=services,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新 Workload 关联 Service 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -451,7 +448,7 @@ class TestEcExtensionsWorkload:
                 namespace=public_params.namespace,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"通过 Service 反查 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -470,7 +467,7 @@ class TestEcExtensionsWorkload:
                 kind=public_params.kind,
                 name=public_params.name,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"删除 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -489,7 +486,7 @@ class TestEcExtensionsWorkload:
                 namespace=public_params.namespace,
                 workloads=workloads,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"批量创建 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -506,7 +503,7 @@ class TestEcExtensionsWorkload:
                 namespace=public_params.namespace,
                 workloads=workloads,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"批量更新 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -523,7 +520,7 @@ class TestEcExtensionsWorkload:
                 namespace=public_params.namespace,
                 workloads=workloads,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"批量停止 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -540,7 +537,7 @@ class TestEcExtensionsWorkload:
                 namespace=public_params.namespace,
                 workloads=workloads,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"批量启动 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -557,6 +554,6 @@ class TestEcExtensionsWorkload:
                 namespace=public_params.namespace,
                 workloads=workloads,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"批量删除 Workload 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

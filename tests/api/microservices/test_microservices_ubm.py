@@ -25,6 +25,7 @@ from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.microservice
@@ -38,7 +39,7 @@ class TestMicroservicesUbm:
     数据流：批量新增策略 → 批量更新策略状态（返回 batchCode）→ 批量查询状态进度
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def ubm_service(self, service_factory):

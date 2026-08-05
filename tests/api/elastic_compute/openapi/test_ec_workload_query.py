@@ -11,10 +11,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -29,7 +27,7 @@ class TestEcOpenapiWorkloadQuery:
     拆分为独立接口测试函数，覆盖 18 个工作负载查询维度接口。
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -64,7 +62,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code, kind=kind,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 NS+Kind 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -83,7 +81,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 NS 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -102,7 +100,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, kind=kind,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Cell+Kind 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -121,7 +119,7 @@ class TestEcOpenapiWorkloadQuery:
                 sys_code=sys_code, kind=kind,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Sys+Kind 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -137,7 +135,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_cell(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Cell 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -153,7 +151,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_sys(sys_code=sys_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Sys 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -169,7 +167,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_kind(kind=kind)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Kind 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -183,7 +181,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_all_workloads()
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询所有工作负载失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -205,7 +203,7 @@ class TestEcOpenapiWorkloadQuery:
                 app_code=app_code, name=name,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询工作负载拓扑(含app)失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -225,7 +223,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code, name=name,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询工作负载拓扑失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -245,7 +243,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code, app_code=app_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询命名空间拓扑(含app)失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -264,7 +262,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询命名空间拓扑失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -283,7 +281,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 NS Deployment 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -299,7 +297,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_deployments_by_cell(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cell Deployment 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -318,7 +316,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 NS StatefulSet 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -334,7 +332,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_statefulsets_by_cell(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cell StatefulSet 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -353,7 +351,7 @@ class TestEcOpenapiWorkloadQuery:
                 cell_code=cell_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 NS DaemonSet 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -369,7 +367,7 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_daemonsets_by_cell(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cell DaemonSet 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -385,6 +383,6 @@ class TestEcOpenapiWorkloadQuery:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workload_events(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询工作负载事件失败, code: {resp.get('code')}, 响应: {resp}"
             )

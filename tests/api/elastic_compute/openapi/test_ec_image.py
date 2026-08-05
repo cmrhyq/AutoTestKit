@@ -13,10 +13,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,7 +32,7 @@ class TestEcOpenapiImage:
          镜像已部署应用服务列表
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -60,7 +58,7 @@ class TestEcOpenapiImage:
         """查询镜像列表。"""
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_images()
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"获取镜像列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -82,6 +80,6 @@ class TestEcOpenapiImage:
                 image_name=public_params["image_name"],
                 version=public_params["image_version"],
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"获取镜像已部署应用服务列表失败, code: {resp.get('code')}, 响应: {resp}"
             )

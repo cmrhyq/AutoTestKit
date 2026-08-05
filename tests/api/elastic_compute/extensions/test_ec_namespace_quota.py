@@ -11,10 +11,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -63,7 +61,7 @@ class TestEcExtensionsNamespaceQuota:
                 namespace=namespace,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询配额概览失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -85,7 +83,7 @@ class TestEcExtensionsNamespaceQuota:
                 namespace=namespace,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询配额详情失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -107,7 +105,7 @@ class TestEcExtensionsNamespaceQuota:
                 namespace=namespace,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询可调整配额失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -130,7 +128,7 @@ class TestEcExtensionsNamespaceQuota:
                 payload={},
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"配额调整失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -153,6 +151,6 @@ class TestEcExtensionsNamespaceQuota:
                 payload={},
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"配额分配失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

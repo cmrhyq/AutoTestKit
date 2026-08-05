@@ -316,7 +316,7 @@ class TestEcExtensionsXxx:
                 namespace=public_params.namespace,
                 xxx=xxx,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE
+            assert response_json.get("code") == ApiCode.SUCCESS
 ```
 
 **禁止**：

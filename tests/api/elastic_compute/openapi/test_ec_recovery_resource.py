@@ -14,11 +14,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,7 +31,7 @@ class TestEcOpenapiRecoveryResource:
     执行顺序：查询+清理 → 创建 → 查询验证 → Apply
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -132,18 +129,18 @@ class TestEcOpenapiRecoveryResource:
             )
             ec_code = list_resp.get("code")
 
-            assert ec_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询容灾组件资源返回异常 code: {ec_code}, 响应: {list_resp}"
             )
 
             # 若目标资源存在，先删除
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            if ec_code == BUSINESS_SUCCESS_CODE and resource_name in resp_str:
+            if ec_code == ApiCode.SUCCESS and resource_name in resp_str:
                 del_payload = self._build_delete_payload(resource_name)
                 del_resp = ec_service.delete_recovery_resources(
                     cell_code=cell_code, sys_code=sys_code, payload=del_payload,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的容灾资源失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
 
@@ -165,7 +162,7 @@ class TestEcOpenapiRecoveryResource:
                 cell_code=cell_code, sys_code=sys_code, payload=create_payload,
             )
 
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建容灾组件资源失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
 
@@ -187,7 +184,7 @@ class TestEcOpenapiRecoveryResource:
                 sys_code=sys_code, cell_code=cell_code,
             )
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询容灾组件资源列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
@@ -213,6 +210,6 @@ class TestEcOpenapiRecoveryResource:
                 cell_code=cell_code, sys_code=sys_code, payload=apply_payload,
             )
 
-            assert apply_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert apply_resp.get("code") == ApiCode.SUCCESS, (
                 f"Apply 容灾组件资源失败, code: {apply_resp.get('code')}, 响应: {apply_resp}"
             )

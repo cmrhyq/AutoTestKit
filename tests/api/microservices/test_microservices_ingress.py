@@ -25,6 +25,7 @@ from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.fixture(scope="module")
 def public_params(api_env) -> IngressPublicParams:
@@ -46,7 +47,7 @@ def public_params(api_env) -> IngressPublicParams:
 @allure.story("Ingress Gateway OpenAPI 接口")
 class TestMsIngressGateway:
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ingress_service(self, service_factory):
@@ -202,7 +203,7 @@ class TestMsIngressGateway:
 @allure.story("Ingress Nginx OpenAPI 接口")
 class TestMsIngressNginx:
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ingress_service(self, service_factory):
@@ -319,7 +320,7 @@ class TestMsIngressNginx:
 class TestIngressScaling:
     """msingressksr.jmx 转换（7 用例）"""
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def ingress_service(self, service_factory):

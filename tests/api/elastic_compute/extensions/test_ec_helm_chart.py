@@ -26,13 +26,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants import ApiCode, HelmConst, HttpStatus
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_CONFLICT_CODE = 4009
-RESOURCE_CONFLICT_MSG = "RESOURCE CONFLICT"
-HTTP_OK = 200
-DEFAULT_ROLLBACK_REVISION = 1
 
 
 @pytest.mark.api
@@ -179,7 +174,7 @@ class TestEcExtensionsHelmChart:
                 file_path=chart_file_path,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"上传 Chart 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -202,7 +197,7 @@ class TestEcExtensionsHelmChart:
                 keyword=chart_name,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Chart 列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             resp_str = json.dumps(response_json, ensure_ascii=False)
@@ -233,7 +228,7 @@ class TestEcExtensionsHelmChart:
                 chart_version=chart_version,
             )
 
-            assert status_code == HTTP_OK, f"下载 Chart 失败, HTTP status: {status_code}"
+            assert status_code == HttpStatus.OK, f"下载 Chart 失败, HTTP status: {status_code}"
             assert content and len(content) > 0, "下载的 Chart 包内容为空"
 
     # ==================== 4) Helm Install（幂等：4009=冲突先 uninstall，然后重新 install）====================
@@ -259,11 +254,11 @@ class TestEcExtensionsHelmChart:
             install_code = response_json.get("code")
 
             # 若发生资源冲突（4009），对齐 JMX：先卸载再重装
-            if install_code == RESOURCE_CONFLICT_CODE:
+            if install_code == ApiCode.CONFLICT:
                 uninstall_resp = ec_ext_service.helm_uninstall(
                     cluster_id=cluster_id, namespace=namespace, name=release_name,
                 )
-                assert uninstall_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert uninstall_resp.get("code") == ApiCode.SUCCESS, (
                     f"冲突场景下预卸载失败, 响应: {uninstall_resp}"
                 )
                 response_json = ec_ext_service.helm_install(
@@ -271,7 +266,7 @@ class TestEcExtensionsHelmChart:
                 )
                 install_code = response_json.get("code")
 
-            assert install_code == BUSINESS_SUCCESS_CODE, (
+            assert install_code == ApiCode.SUCCESS, (
                 f"Helm Install 失败, code: {install_code}, 响应: {response_json}"
             )
             api_cache.set("helm_installed", True)
@@ -296,7 +291,7 @@ class TestEcExtensionsHelmChart:
                 name=release_name,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Manifest 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -319,7 +314,7 @@ class TestEcExtensionsHelmChart:
                 namespace=namespace,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Release 列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             resp_str = json.dumps(response_json, ensure_ascii=False)
@@ -349,7 +344,7 @@ class TestEcExtensionsHelmChart:
                 payload=payload,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Upgrade 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -373,7 +368,7 @@ class TestEcExtensionsHelmChart:
                 name=release_name,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm History 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -395,10 +390,10 @@ class TestEcExtensionsHelmChart:
                 cluster_id=cluster_id,
                 namespace=namespace,
                 name=release_name,
-                revision=DEFAULT_ROLLBACK_REVISION,
+                revision=HelmConst.DEFAULT_ROLLBACK_REVISION,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Rollback 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -422,7 +417,7 @@ class TestEcExtensionsHelmChart:
                 name=release_name,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Uninstall 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             api_cache.set("helm_installed", False)
@@ -452,12 +447,12 @@ class TestEcExtensionsHelmChart:
             error_msg = data[0].get("errorMessage") or ""
 
             # 冲突场景：批量卸载后重新批量创建（对齐 JMX "IF 控制器 批量创建 fail" 分支）
-            if code == BUSINESS_SUCCESS_CODE and is_success is False and RESOURCE_CONFLICT_MSG in error_msg:
+            if code == ApiCode.SUCCESS and is_success is False and HelmConst.RESOURCE_CONFLICT_MSG in error_msg:
                 uninstall_payload = self._build_batch_uninstall_payload(release_name)
                 uninstall_resp = ec_ext_service.helm_batch_uninstall(
                     cluster_id=cluster_id, namespace=namespace, payload=uninstall_payload,
                 )
-                assert uninstall_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert uninstall_resp.get("code") == ApiCode.SUCCESS, (
                     f"冲突场景下批量卸载失败, 响应: {uninstall_resp}"
                 )
                 response_json = ec_ext_service.helm_batch_install(
@@ -467,7 +462,7 @@ class TestEcExtensionsHelmChart:
                 data = response_json.get("data") or [{}]
                 is_success = data[0].get("isSuccess")
 
-            assert code == BUSINESS_SUCCESS_CODE, (
+            assert code == ApiCode.SUCCESS, (
                 f"Helm Batch Install v1 失败, code: {code}, 响应: {response_json}"
             )
             assert is_success is True, (
@@ -490,7 +485,7 @@ class TestEcExtensionsHelmChart:
                 cluster_id=cluster_id, namespace=namespace, payload=payload,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Batch Upgrade v1 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             data = response_json.get("data") or [{}]
@@ -515,7 +510,7 @@ class TestEcExtensionsHelmChart:
                 cluster_id=cluster_id, namespace=namespace, payload=payload,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Batch Uninstall v1 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             data = response_json.get("data") or [{}]
@@ -547,12 +542,12 @@ class TestEcExtensionsHelmChart:
             is_success = data[0].get("isSuccess")
             error_msg = data[0].get("errorMessage") or ""
 
-            if code == BUSINESS_SUCCESS_CODE and is_success is False and RESOURCE_CONFLICT_MSG in error_msg:
+            if code == ApiCode.SUCCESS and is_success is False and HelmConst.RESOURCE_CONFLICT_MSG in error_msg:
                 uninstall_payload = self._build_batch_uninstall_payload(release_name)
                 uninstall_resp = ec_ext_service.helm_batch_uninstall_v2(
                     cell_code=cell_code, sys_code=sys_code, payload=uninstall_payload,
                 )
-                assert uninstall_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert uninstall_resp.get("code") == ApiCode.SUCCESS, (
                     f"冲突场景下 v2 批量卸载失败, 响应: {uninstall_resp}"
                 )
                 response_json = ec_ext_service.helm_batch_install_v2(
@@ -562,7 +557,7 @@ class TestEcExtensionsHelmChart:
                 data = response_json.get("data") or [{}]
                 is_success = data[0].get("isSuccess")
 
-            assert code == BUSINESS_SUCCESS_CODE, (
+            assert code == ApiCode.SUCCESS, (
                 f"Helm Batch Install v2 失败, code: {code}, 响应: {response_json}"
             )
             assert is_success is True, (
@@ -585,7 +580,7 @@ class TestEcExtensionsHelmChart:
                 cell_code=cell_code, sys_code=sys_code, payload=payload,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Batch Upgrade v2 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             data = response_json.get("data") or [{}]
@@ -610,7 +605,7 @@ class TestEcExtensionsHelmChart:
                 cell_code=cell_code, sys_code=sys_code, payload=payload,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"Helm Batch Uninstall v2 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
             data = response_json.get("data") or [{}]
@@ -638,6 +633,6 @@ class TestEcExtensionsHelmChart:
                 chart_version=chart_version,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"删除 Chart 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

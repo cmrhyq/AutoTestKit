@@ -13,10 +13,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码常量
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -32,7 +30,7 @@ class TestEcOpenapiEndpointsV2:
     通过 pytest-dependency 保证执行顺序。
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -64,7 +62,7 @@ class TestEcOpenapiEndpointsV2:
             )
 
             # 断言：业务码为成功
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Endpoints 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             # 断言：返回数据不为空
@@ -97,7 +95,7 @@ class TestEcOpenapiEndpointsV2:
             )
 
             # 断言：业务码为成功
-            assert get_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert get_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 Endpoints 失败, code: {get_resp.get('code')}, 响应: {get_resp}"
             )
             # 断言：响应中包含目标 name

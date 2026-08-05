@@ -18,17 +18,13 @@ from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import HarborConst, Tenant
 
 # 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
 BUSINESS_SUCCESS_CODE = 2000
 RESOURCE_NOT_FOUND_CODE = 4004
 RESOURCE_ALREADY_EXISTS_CODE = 4009
 
-# 复制策略 speed 参数（-1 表示不限速，源自 JMX 请求体）
-HARBOR_REPLICATION_SPEED_UNLIMITED = -1
-# harbor 分页参数
-HARBOR_DEFAULT_PAGE = 1
-HARBOR_DEFAULT_PAGE_SIZE = 10
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -51,7 +47,7 @@ class TestEcOpenapiHarbor:
       8) 收尾清理：删除复制策略 → 删除项目
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -215,8 +211,8 @@ class TestEcOpenapiHarbor:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_harbor_projects_by_id(
                 harbor_id=harbor_id,
-                page=HARBOR_DEFAULT_PAGE,
-                page_size=HARBOR_DEFAULT_PAGE_SIZE,
+                page=HarborConst.DEFAULT_PAGE,
+                page_size=HarborConst.DEFAULT_PAGE_SIZE,
             )
             assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
                 f"查询 harbor 项目列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -360,8 +356,8 @@ class TestEcOpenapiHarbor:
             resp = ec_service.list_harbor_replication_policies(
                 harbor_id=harbor_id,
                 name=policy_name,
-                page=HARBOR_DEFAULT_PAGE,
-                page_size=HARBOR_DEFAULT_PAGE_SIZE,
+                page=HarborConst.DEFAULT_PAGE,
+                page_size=HarborConst.DEFAULT_PAGE_SIZE,
             )
             assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
                 f"查询复制策略列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -481,8 +477,8 @@ class TestEcOpenapiHarbor:
             resp = ec_service.list_harbor_replication_executions(
                 harbor_id=harbor_id,
                 policy_id=policy_id,
-                page=HARBOR_DEFAULT_PAGE,
-                page_size=HARBOR_DEFAULT_PAGE_SIZE,
+                page=HarborConst.DEFAULT_PAGE,
+                page_size=HarborConst.DEFAULT_PAGE_SIZE,
             )
             assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
                 f"查询 harbor 策略执行列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -567,8 +563,8 @@ class TestEcOpenapiHarbor:
             resp = ec_service.list_harbor_repositories_by_id(
                 harbor_id=harbor_id,
                 project_name=project_name,
-                page=HARBOR_DEFAULT_PAGE,
-                page_size=HARBOR_DEFAULT_PAGE_SIZE,
+                page=HarborConst.DEFAULT_PAGE,
+                page_size=HarborConst.DEFAULT_PAGE_SIZE,
             )
             assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
                 f"查询 harbor 镜像仓库列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -594,8 +590,8 @@ class TestEcOpenapiHarbor:
                 harbor_id=harbor_id,
                 project_name=project_name,
                 rep_name=rep_name,
-                page=HARBOR_DEFAULT_PAGE,
-                page_size=HARBOR_DEFAULT_PAGE_SIZE,
+                page=HarborConst.DEFAULT_PAGE,
+                page_size=HarborConst.DEFAULT_PAGE_SIZE,
             )
             code = resp.get("code")
             assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
@@ -670,4 +666,3 @@ class TestEcOpenapiHarbor:
                 f"删除 harbor 项目返回异常 code: {code}, 响应: {resp}"
             )
             api_cache.set("ec_harbor_project_created", False)
-

@@ -10,10 +10,10 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 # 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -26,7 +26,7 @@ class TestEcOpenapiRbac:
     线程组: RBAC管理
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -55,7 +55,7 @@ class TestEcOpenapiRbac:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_rbac_roles(cell_code=cell_code, sys_code=sys_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Role 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -80,7 +80,7 @@ class TestEcOpenapiRbac:
                 cell_code=cell_code, sys_code=sys_code, name=role_name,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 Role 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -97,7 +97,7 @@ class TestEcOpenapiRbac:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_rbac_role_bindings(cell_code=cell_code, sys_code=sys_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 RoleBinding 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -122,6 +122,6 @@ class TestEcOpenapiRbac:
                 cell_code=cell_code, sys_code=sys_code, name=role_binding_name,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 RoleBinding 失败, code: {resp.get('code')}, 响应: {resp}"
             )

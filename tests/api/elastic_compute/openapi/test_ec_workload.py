@@ -19,15 +19,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant, Timing
 from core.reporting.allure_helper import AllureHelper
 
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-# JMX ConstantTimer: 10s
-WORKLOAD_WAIT_SECONDS = 10
-# JMX ConstantTimer: 20s (Pod 查询前等待)
-POD_WAIT_SECONDS = 20
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -43,7 +37,7 @@ class TestEcOpenapiWorkload:
     以 Deployment 为主要测试路径，覆盖完整生命周期。
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -356,16 +350,16 @@ class TestEcOpenapiWorkload:
                 ec_get_code = get_resp.get("code")
 
             with AllureHelper.step("验证响应"):
-                assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+                assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                     f"查询 Workload 返回异常 code: {ec_get_code}, 响应: {get_resp}"
                 )
 
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 with AllureHelper.step("删除已存在的 Workload"):
                     del_resp = ec_service.delete_workload(
                         cell_code=cell_code, sys_code=sys_code, kind=kind, name=name,
                     )
-                    assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                    assert del_resp.get("code") == ApiCode.SUCCESS, (
                         f"删除已存在的 Workload 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                     )
 
@@ -395,7 +389,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"创建 Workload 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -421,7 +415,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量查询 Workload 状态失败, code: {resp.get('code')}, 响应: {resp}"
                 )
                 resp_str = json.dumps(resp, ensure_ascii=False)
@@ -452,7 +446,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"PUT 更新 Workload 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -476,7 +470,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"撤销更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -500,7 +494,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"暂停更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -526,7 +520,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"PATCH 增量更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -550,7 +544,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"恢复更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -574,10 +568,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"滚动重启失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_stop", depends=["workload_rolling_restart"])
     @pytest.mark.order(10)
@@ -598,10 +592,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"停止 Workload 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_start", depends=["workload_stop"])
     @pytest.mark.order(11)
@@ -622,10 +616,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"启动 Workload 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_restart", depends=["workload_start"])
     @pytest.mark.order(12)
@@ -646,10 +640,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"重启 Workload 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_batch_pause", depends=["workload_restart"])
     @pytest.mark.order(13)
@@ -672,7 +666,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量暂停更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -696,7 +690,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量增量更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -721,7 +715,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量恢复更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -746,10 +740,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量撤销更新失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_batch_rolling_restart", depends=["workload_batch_undo"])
     @pytest.mark.order(17)
@@ -772,10 +766,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量滚动重启失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_batch_stop", depends=["workload_batch_rolling_restart"])
     @pytest.mark.order(18)
@@ -797,10 +791,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量停止失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_batch_start", depends=["workload_batch_stop"])
     @pytest.mark.order(19)
@@ -822,10 +816,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量启动失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_batch_restart", depends=["workload_batch_start"])
     @pytest.mark.order(20)
@@ -847,10 +841,10 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量重启失败, code: {resp.get('code')}, 响应: {resp}"
                 )
-        time.sleep(WORKLOAD_WAIT_SECONDS)
+        time.sleep(Timing.WORKLOAD_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="workload_query_pods", depends=["workload_batch_restart"])
     @pytest.mark.order(21)
@@ -864,7 +858,7 @@ class TestEcOpenapiWorkload:
         kind = public_params["kind"]
         name = public_params["name"]
 
-        time.sleep(POD_WAIT_SECONDS)
+        time.sleep(Timing.POD_WAIT_SECONDS)
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询 Pod 列表"):
@@ -875,7 +869,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应并提取 podName"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"查询 Pod 列表失败, code: {resp.get('code')}, 响应: {resp}"
                 )
                 # 提取第一个 Pod 名称
@@ -910,7 +904,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"Pod exec 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -967,7 +961,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量删除应用服务 Pod 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -983,7 +977,7 @@ class TestEcOpenapiWorkload:
         kind = public_params["kind"]
         name = public_params["name"]
 
-        time.sleep(POD_WAIT_SECONDS)
+        time.sleep(Timing.POD_WAIT_SECONDS)
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询 Pod 列表"):
@@ -994,7 +988,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应并提取 podName"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"查询 Pod 列表失败, code: {resp.get('code')}, 响应: {resp}"
                 )
                 items = resp.get("data", {}).get("items", [])
@@ -1027,7 +1021,7 @@ class TestEcOpenapiWorkload:
                 resp = ec_service.batch_delete_app_pods(payload=payload)
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"批量删除 Pod 实例失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 
@@ -1052,7 +1046,7 @@ class TestEcOpenapiWorkload:
                 )
 
             with AllureHelper.step("验证响应"):
-                assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert resp.get("code") == ApiCode.SUCCESS, (
                     f"按标签删除 Workload 失败, code: {resp.get('code')}, 响应: {resp}"
                 )
 

@@ -16,6 +16,7 @@ import pytest
 
 from base.api.services.plugin_open_service import PluginOpenService
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.plugin
@@ -24,7 +25,7 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Plugin Info 插件信息接口")
 class TestPluginInfo:
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def plugin_open_service(self, service_factory):

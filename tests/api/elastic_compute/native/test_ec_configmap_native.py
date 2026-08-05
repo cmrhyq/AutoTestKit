@@ -15,13 +15,10 @@ from base.api.services.elastic_compute_native_service import (
 )
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+from core.constants import HttpStatus, Tenant
 
 logger = get_logger(__name__)
 
-# Native K8s API 使用 HTTP 状态码，非业务 code
-HTTP_OK = 200
-HTTP_CREATED = 201
-HTTP_NOT_FOUND = 404
 
 
 @pytest.mark.api
@@ -35,7 +32,7 @@ class TestEcNativeConfigmap:
     线程组: Thread Group - ConfigMap
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def native_service(self, service_factory):
@@ -128,15 +125,15 @@ class TestEcNativeConfigmap:
                 cluster_id=cluster_id, namespace=namespace, name=name,
             )
 
-            assert get_http_code in (HTTP_OK, HTTP_NOT_FOUND), (
+            assert get_http_code in (HttpStatus.OK, HttpStatus.NOT_FOUND), (
                 f"查询 ConfigMap 返回异常, 期望200或404, 实际: {get_http_code}"
             )
 
-            if get_http_code == HTTP_OK:
+            if get_http_code == HttpStatus.OK:
                 native_service.delete_native_configmap(
                     cluster_id=cluster_id, namespace=namespace, name=name,
                 )
-                assert native_service.last_response.status_code == HTTP_OK, (
+                assert native_service.last_response.status_code == HttpStatus.OK, (
                     f"删除已存在的 ConfigMap 失败, status={native_service.last_response.status_code}"
                 )
 
@@ -159,7 +156,7 @@ class TestEcNativeConfigmap:
             )
             create_http_code = native_service.last_response.status_code
 
-            assert create_http_code == HTTP_CREATED, (
+            assert create_http_code == HttpStatus.CREATED, (
                 f"创建 ConfigMap 失败, 期望201, 实际: {create_http_code}, 响应: {create_resp}"
             )
 
@@ -183,7 +180,7 @@ class TestEcNativeConfigmap:
                 label_selector=f"name={name}",
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询 ConfigMap 列表失败, status={native_service.last_response.status_code}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
@@ -208,7 +205,7 @@ class TestEcNativeConfigmap:
                 cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"更新 ConfigMap 失败, status={native_service.last_response.status_code}"
             )
 
@@ -228,7 +225,7 @@ class TestEcNativeConfigmap:
                 cluster_id=cluster_id, namespace=namespace, name=name,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"删除 ConfigMap 失败, status={native_service.last_response.status_code}"
             )
 

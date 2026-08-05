@@ -13,12 +13,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
-# 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-CR_CREATE_WAIT_SECONDS = 10
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -31,7 +28,7 @@ class TestEcOpenapiCrCluster:
     线程组: Thread Group - cluster custom resource
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -133,12 +130,12 @@ class TestEcOpenapiCrCluster:
             ec_get_code = get_resp.get("code")
 
             # 断言：接口返回正常（2000=存在，4004=不存在，两者均为正常）
-            assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 Cluster CR 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
             # 若已存在，先删除以保证幂等
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_cluster_custom_resource(
                     cell_code=cell_code,
                     group=cr_group,
@@ -146,7 +143,7 @@ class TestEcOpenapiCrCluster:
                     kind=cr_kind,
                     name=cr_name,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Cluster CR 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
 
@@ -178,7 +175,7 @@ class TestEcOpenapiCrCluster:
             )
 
             # 断言：业务码为成功
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 Cluster CR 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
 
@@ -208,7 +205,7 @@ class TestEcOpenapiCrCluster:
             )
 
             # 断言：业务码为成功
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cluster CR 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             # 断言：列表中包含目标 CR 名称
@@ -244,7 +241,7 @@ class TestEcOpenapiCrCluster:
             )
 
             # 断言：业务码为成功
-            assert put_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 Cluster CR 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
 
@@ -273,7 +270,7 @@ class TestEcOpenapiCrCluster:
             )
 
             # 断言：业务码为成功
-            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 Cluster CR 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
 
@@ -300,7 +297,7 @@ class TestEcOpenapiCrCluster:
             )
 
             # 断言：业务码为成功
-            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 Cluster CR 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
 
@@ -329,6 +326,6 @@ class TestEcOpenapiCrCluster:
             )
 
             # 断言：业务码为资源不存在
-            assert get_resp.get("code") == RESOURCE_NOT_FOUND_CODE, (
+            assert get_resp.get("code") == ApiCode.NOT_FOUND, (
                 f"Cluster CR 删除后仍能查询到, code: {get_resp.get('code')}, 响应: {get_resp}"
             )

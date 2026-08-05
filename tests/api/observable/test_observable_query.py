@@ -17,6 +17,7 @@ from base.api.services.observable_open_service import (
     QueryModelConf,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.observable
@@ -29,7 +30,7 @@ class TestObservableQuery:
     线程组: 可观测接口调用
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def observable_service(self, service_factory):

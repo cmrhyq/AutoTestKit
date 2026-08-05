@@ -14,12 +14,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant, Timing
 from core.reporting.allure_helper import AllureHelper
 
-# 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-PVC_CREATE_WAIT_SECONDS = 3
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -32,7 +29,7 @@ class TestEcOpenapiPvcPv:
     线程组: Thread Group - pvc
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -84,15 +81,15 @@ class TestEcOpenapiPvcPv:
             )
             ec_get_code = get_resp.get("code")
 
-            assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 PVC 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_pvc(
                     cell_code=cell_code, sys_code=sys_code, name=pvc_name,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 PVC 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
 
@@ -116,12 +113,12 @@ class TestEcOpenapiPvcPv:
                 cell_code=cell_code, sys_code=sys_code, payload=payload,
             )
 
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 PVC 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
 
             api_cache.set("ec_pvc_created", True)
-            time.sleep(PVC_CREATE_WAIT_SECONDS)
+            time.sleep(Timing.PVC_CREATE_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="pvc_list_ns", depends=["pvc_create"])
     @pytest.mark.order(3)
@@ -137,7 +134,7 @@ class TestEcOpenapiPvcPv:
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_pvc(cell_code=cell_code, sys_code=sys_code)
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 PVC 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -159,7 +156,7 @@ class TestEcOpenapiPvcPv:
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_all_cluster_pvc(cell_code=cell_code)
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 PVC 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -184,7 +181,7 @@ class TestEcOpenapiPvcPv:
                 cell_code=cell_code, sys_code=sys_code, name=pvc_name,
             )
 
-            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 PVC 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
 
@@ -202,7 +199,7 @@ class TestEcOpenapiPvcPv:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_pv(cell_code=cell_code, pv_name=pv_name)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 PV 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -220,6 +217,6 @@ class TestEcOpenapiPvcPv:
                 cell_code=cell_code, storage_class_name=storage_class_name,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 StorageClass 失败, code: {resp.get('code')}, 响应: {resp}"
             )

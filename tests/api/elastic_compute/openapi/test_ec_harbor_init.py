@@ -11,10 +11,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -29,7 +27,7 @@ class TestEcOpenapiHarborInit:
     单接口：更新 harbor 版本信息（refreshHarborVersion），需 admin 权限。
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -53,6 +51,6 @@ class TestEcOpenapiHarborInit:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.refresh_harbor_version(harbor_id=harbor_id)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"刷新 Harbor 版本信息失败, code: {resp.get('code')}, 响应: {resp}"
             )

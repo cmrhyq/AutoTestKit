@@ -16,13 +16,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, HttpStatus, Tenant
 from core.reporting.allure_helper import AllureHelper
 
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-
-HTTP_STATUS_OK = 200
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -45,7 +41,7 @@ class TestEcOpenapiHelmChart:
       8) 删除 Chart
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -122,7 +118,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.upload_helm_chart(
                 cell_code=cell_code, chart_file_path=chart_path,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"上传 Chart 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -140,7 +136,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.list_helm_charts(
                 cell_code=cell_code, keyword=chart_name,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Chart 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
             resp_str = json.dumps(resp, ensure_ascii=False)
@@ -164,7 +160,7 @@ class TestEcOpenapiHelmChart:
                 cell_code=cell_code, chart_name=chart_name,
                 chart_version=chart_version,
             )
-            assert resp.status_code == HTTP_STATUS_OK, (
+            assert resp.status_code == HttpStatus.OK, (
                 f"下载 Chart 状态码异常: {resp.status_code}"
             )
             assert resp.content, "下载 Chart 响应体为空"
@@ -190,7 +186,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.helm_install(
                 cell_code=cell_code, sys_code=sys_code, payload=payload,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Install 失败, code: {resp.get('code')}, 响应: {resp}"
             )
             time.sleep(public_params["interval_seconds"])
@@ -210,7 +206,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.get_helm_manifest(
                 cell_code=cell_code, sys_code=sys_code, name=release_name,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Manifest 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -229,7 +225,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.list_helm_releases(
                 cell_code=cell_code, sys_code=sys_code,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Release 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
             resp_str = json.dumps(resp, ensure_ascii=False)
@@ -252,7 +248,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.list_helm_release_apps(
                 cell_code=cell_code, sys_code=sys_code, name=release_name,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Release Apps 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -278,7 +274,7 @@ class TestEcOpenapiHelmChart:
                 cell_code=cell_code, sys_code=sys_code,
                 name=release_name, payload=payload,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Upgrade 失败, code: {resp.get('code')}, 响应: {resp}"
             )
             time.sleep(public_params["interval_seconds"])
@@ -298,7 +294,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.list_helm_history(
                 cell_code=cell_code, sys_code=sys_code, name=release_name,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm History 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -318,7 +314,7 @@ class TestEcOpenapiHelmChart:
                 cell_code=cell_code, sys_code=sys_code,
                 name=release_name, revision=1,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Rollback 失败, code: {resp.get('code')}, 响应: {resp}"
             )
             time.sleep(public_params["interval_seconds"])
@@ -338,7 +334,7 @@ class TestEcOpenapiHelmChart:
             resp = ec_service.helm_uninstall(
                 cell_code=cell_code, sys_code=sys_code, name=release_name,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Uninstall 失败, code: {resp.get('code')}, 响应: {resp}"
             )
             time.sleep(public_params["interval_seconds"])
@@ -359,7 +355,6 @@ class TestEcOpenapiHelmChart:
                 cell_code=cell_code, chart_name=chart_name, version=chart_version,
             )
             code = resp.get("code")
-            assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"删除 Chart 返回异常 code: {code}, 响应: {resp}"
             )
-

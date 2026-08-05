@@ -10,7 +10,7 @@ API 测试模块的公共 conftest。
 用法示例：
 
     class TestFoo:
-        TENANT = "monitor-group"
+        TENANT = Tenant.MONITOR_GROUP
 
         @pytest.fixture(scope="class")
         def ec_service(self, service_factory):
@@ -31,6 +31,7 @@ import pytest
 from base.api.services.portal_open_service import PortalOpenService, PortalUserEntity
 from core.auth import TokenManager
 from core.log import get_logger
+from core.constants import ApiCode, Tenant
 
 logger = get_logger(__name__)
 
@@ -59,7 +60,7 @@ def _login_fn(api_env):
             tenant_code=tenant,
         ))
         assert isinstance(resp, dict), f"[{tenant}] 登录响应非 dict: {resp!r}"
-        assert resp.get("code") == 200, f"[{tenant}] 登录失败: {resp}"
+        assert resp.get("code") == ApiCode.LOGIN_SUCCESS, f"[{tenant}] 登录失败: {resp}"
         assert resp.get("data"), f"[{tenant}] 登录响应缺少 data: {resp}"
         logger.info(f"[Login] {tenant} success")
         return resp["data"]

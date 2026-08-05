@@ -12,10 +12,10 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 # 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -28,7 +28,7 @@ class TestEcOpenapiPortNodePort:
     线程组: Thread Group - Port和NodePort
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -69,7 +69,7 @@ class TestEcOpenapiPortNodePort:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_nodeports(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 NodePort 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -86,7 +86,7 @@ class TestEcOpenapiPortNodePort:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_nodeport(cell_code=cell_code, nodeport=nodeport)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 NodePort 可用性失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -105,7 +105,7 @@ class TestEcOpenapiPortNodePort:
             payload = self._build_allocate_payload(tenant_code, ports)
             resp = ec_service.allocate_ports(cell_code=cell_code, payload=payload)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"端口范围分配失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -121,7 +121,7 @@ class TestEcOpenapiPortNodePort:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_ports_by_cell(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定集群端口范围失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -135,6 +135,6 @@ class TestEcOpenapiPortNodePort:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_all_ports()
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全部端口范围失败, code: {resp.get('code')}, 响应: {resp}"
             )

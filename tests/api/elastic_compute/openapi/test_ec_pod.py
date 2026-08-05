@@ -14,12 +14,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant, Timing
 from core.reporting.allure_helper import AllureHelper
 
-# 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-POD_CREATE_WAIT_SECONDS = 10
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -32,7 +29,7 @@ class TestEcOpenapiPod:
     线程组: Thread Group - pod
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -111,18 +108,18 @@ class TestEcOpenapiPod:
             )
             ec_get_code = get_resp.get("code")
 
-            assert ec_get_code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 Pod 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
-            if ec_get_code == BUSINESS_SUCCESS_CODE:
+            if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_pod(
                     cell_code=cell_code, sys_code=sys_code, name=pod_name,
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Pod 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
                 )
-                time.sleep(POD_CREATE_WAIT_SECONDS)
+                time.sleep(Timing.POD_CREATE_WAIT_SECONDS)
 
             api_cache.set("ec_pod_created", False)
 
@@ -144,12 +141,12 @@ class TestEcOpenapiPod:
                 cell_code=cell_code, sys_code=sys_code, payload=create_payload,
             )
 
-            assert create_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 Pod 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
 
             api_cache.set("ec_pod_created", True)
-            time.sleep(POD_CREATE_WAIT_SECONDS)
+            time.sleep(Timing.POD_CREATE_WAIT_SECONDS)
 
     @pytest.mark.dependency(name="pod_get_after_create", depends=["pod_create"])
     @pytest.mark.order(3)
@@ -167,7 +164,7 @@ class TestEcOpenapiPod:
                 cell_code=cell_code, sys_code=sys_code, name=pod_name,
             )
 
-            assert get_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert get_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 Pod 失败, code: {get_resp.get('code')}, 响应: {get_resp}"
             )
 
@@ -196,7 +193,7 @@ class TestEcOpenapiPod:
                 label_selector=label_selector,
             )
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Namespace Pod 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -221,7 +218,7 @@ class TestEcOpenapiPod:
                 cell_code=cell_code, label_selector=label_selector,
             )
 
-            assert list_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 Pod 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
@@ -246,7 +243,7 @@ class TestEcOpenapiPod:
                 cell_code=cell_code, sys_code=sys_code, name=pod_name,
             )
 
-            assert events_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert events_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Pod 事件列表失败, code: {events_resp.get('code')}, 响应: {events_resp}"
             )
 
@@ -268,7 +265,7 @@ class TestEcOpenapiPod:
                 name=pod_name, container=container_name,
             )
 
-            assert logs_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert logs_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Pod 日志失败, code: {logs_resp.get('code')}, 响应: {logs_resp}"
             )
 
@@ -292,7 +289,7 @@ class TestEcOpenapiPod:
                 name=pod_name, payload=pod_object,
             )
 
-            assert update_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert update_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 Pod 失败, code: {update_resp.get('code')}, 响应: {update_resp}"
             )
 
@@ -314,7 +311,7 @@ class TestEcOpenapiPod:
                 name=pod_name, payload=patch_payload,
             )
 
-            assert patch_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 Pod 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
 
@@ -334,7 +331,7 @@ class TestEcOpenapiPod:
                 cell_code=cell_code, sys_code=sys_code, name=pod_name,
             )
 
-            assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 Pod 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
 

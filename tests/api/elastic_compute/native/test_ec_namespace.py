@@ -29,12 +29,10 @@ from base.api.services.elastic_compute_native_service import (
 )
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+from core.constants import HttpStatus, Tenant
 
 logger = get_logger(__name__)
 
-HTTP_OK = 200
-HTTP_CREATED = 201
-HTTP_NOT_FOUND = 404
 
 
 @pytest.mark.api
@@ -48,7 +46,7 @@ class TestEcNativeNamespace:
     线程组: Thread Group - Namespace API
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def native_service(self, service_factory):
@@ -105,15 +103,15 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace,
             )
 
-            assert get_http_code in (HTTP_OK, HTTP_NOT_FOUND), (
+            assert get_http_code in (HttpStatus.OK, HttpStatus.NOT_FOUND), (
                 f"查询 Namespace 返回异常, 期望200或404, 实际: {get_http_code}"
             )
 
-            if get_http_code == HTTP_OK:
+            if get_http_code == HttpStatus.OK:
                 native_service.delete_namespace(
                     cluster_id=cluster_id, namespace=namespace,
                 )
-                assert native_service.last_response.status_code == HTTP_OK, (
+                assert native_service.last_response.status_code == HttpStatus.OK, (
                     f"删除已存在的 Namespace 失败,"
                     f" status={native_service.last_response.status_code}"
                 )
@@ -139,7 +137,7 @@ class TestEcNativeNamespace:
             )
             create_http_code = native_service.last_response.status_code
 
-            assert create_http_code == HTTP_CREATED, (
+            assert create_http_code == HttpStatus.CREATED, (
                 f"创建 Namespace 失败, 期望201, 实际: {create_http_code},"
                 f" 响应: {create_resp}"
             )
@@ -165,7 +163,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace, payload=payload,
             )
 
-            assert native_service.last_response.status_code == HTTP_CREATED, (
+            assert native_service.last_response.status_code == HttpStatus.CREATED, (
                 f"创建 ResourceQuota 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -188,7 +186,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace, name=rq_name,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询 ResourceQuota 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -215,7 +213,7 @@ class TestEcNativeNamespace:
                 payload=payload,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"更新 ResourceQuota 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -239,7 +237,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace, payload=payload,
             )
 
-            assert native_service.last_response.status_code == HTTP_CREATED, (
+            assert native_service.last_response.status_code == HttpStatus.CREATED, (
                 f"创建 LimitRange 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -262,7 +260,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace, name=lr_name,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询 LimitRange 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -289,7 +287,7 @@ class TestEcNativeNamespace:
                 payload=payload,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"更新 LimitRange 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -311,7 +309,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询 Namespace Events 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -330,7 +328,7 @@ class TestEcNativeNamespace:
         with AllureHelper.api_test(native_service):
             native_service.list_namespaces(cluster_id=cluster_id)
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询 Namespace 列表失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -359,7 +357,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace, payload=payload,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"更新 Namespace 失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -381,7 +379,7 @@ class TestEcNativeNamespace:
                 cluster_id=cluster_id, namespace=namespace,
             )
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"删除 Namespace 失败,"
                 f" status={native_service.last_response.status_code}"
             )

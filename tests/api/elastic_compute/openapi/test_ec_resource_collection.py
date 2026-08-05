@@ -11,10 +11,8 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
-
-# 业务码常量
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -29,7 +27,7 @@ class TestEcOpenapiResourceCollection:
     包含 5 个独立的 GET 查询接口，无依赖关系，可独立执行。
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -47,7 +45,7 @@ class TestEcOpenapiResourceCollection:
             resp = ec_service.list_cluster_quota()
 
             # 断言：业务码为成功
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询集群配额信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
             # 断言：返回数据不为空
@@ -65,7 +63,7 @@ class TestEcOpenapiResourceCollection:
             resp = ec_service.list_tenant_quota()
 
             # 断言：业务码为成功
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
             # 断言：返回数据不为空
@@ -83,7 +81,7 @@ class TestEcOpenapiResourceCollection:
             resp = ec_service.list_cluster_resource()
 
             # 断言：业务码为成功
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询集群资源信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
             # 断言：返回数据不为空
@@ -101,7 +99,7 @@ class TestEcOpenapiResourceCollection:
             resp = ec_service.list_middleware_info()
 
             # 断言：业务码为成功
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询中间件信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
             # 断言：返回数据不为空
@@ -119,7 +117,7 @@ class TestEcOpenapiResourceCollection:
             resp = ec_service.list_system_quota()
 
             # 断言：业务码为成功
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询应用/组件系统配额信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
             # 断言：返回数据不为空

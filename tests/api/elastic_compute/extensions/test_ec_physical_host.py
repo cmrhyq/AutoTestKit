@@ -21,10 +21,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -80,7 +78,7 @@ class TestEcExtensionsPhysicalHost:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.search_physical_host_for_authorization()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取主机列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -113,7 +111,7 @@ class TestEcExtensionsPhysicalHost:
                 host_id=host_id,
                 tenant_code=tenant_code,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"主机绑定租户失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -128,7 +126,7 @@ class TestEcExtensionsPhysicalHost:
         """获取当前租户主机列表，断言业务码为成功。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_current_tenant_hosts()
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取当前租户主机列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -147,7 +145,7 @@ class TestEcExtensionsPhysicalHost:
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_host_resource(host_id=host_id, admin=True)
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取主机资源信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -164,7 +162,7 @@ class TestEcExtensionsPhysicalHost:
 
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_host_connect_info(host_id=host_id)
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取主机连接信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -192,6 +190,6 @@ class TestEcExtensionsPhysicalHost:
                 host_id=host_id,
                 tenant_code=tenant_code,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"主机解绑租户失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

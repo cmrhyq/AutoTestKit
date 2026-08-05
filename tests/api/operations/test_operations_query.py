@@ -17,6 +17,7 @@ from pygments.lexers import promql
 from base.api.entity import MetricQuery
 from base.api.services.operation_open_service import OperationOpenService
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.operation
@@ -25,7 +26,7 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Operations Query 查询接口")
 class TestOperationsQuery:
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def operation_service(self, service_factory):

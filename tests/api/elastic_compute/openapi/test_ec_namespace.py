@@ -14,6 +14,7 @@ from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -27,7 +28,7 @@ class TestEcOpenapiNamespace:
     数据流：查询 Namespace 列表 → 提取第一个 sysCode → 查询 Namespace 详情
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):

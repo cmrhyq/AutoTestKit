@@ -12,10 +12,10 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 # 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -28,7 +28,7 @@ class TestEcOpenapiQuotaManagerTenant:
     线程组: Thread Group - quota-manager-tenant
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -64,7 +64,7 @@ class TestEcOpenapiQuotaManagerTenant:
                 sys_code=sys_code, payload=payload,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"系统配额分配失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -84,6 +84,6 @@ class TestEcOpenapiQuotaManagerTenant:
                 sys_code=sys_code, payload={},
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"系统配额扩缩容失败, code: {resp.get('code')}, 响应: {resp}"
             )

@@ -11,10 +11,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -47,7 +45,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_nodes()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询节点列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -60,7 +58,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_workloads()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询工作负载列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -73,7 +71,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_physical_hosts()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询裸金属主机列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -86,7 +84,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_physical_host_number()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询裸金属主机数量失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -99,7 +97,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_cluster_resource()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询集群资源信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -112,7 +110,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_cluster_quota()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询集群配额信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -125,7 +123,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_tenant_quota()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -138,7 +136,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_system_quota()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询系统配额信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -151,7 +149,7 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_container_storage_software()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询容器存储软件信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -164,6 +162,6 @@ class TestEcExtensionsResourceCollector:
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_container_orchestration_software()
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询容器编排软件信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

@@ -19,11 +19,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-RBAC_NOT_FOUND_CODE = 4004
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -85,17 +82,17 @@ class TestEcExtensionsNginxRbac:
             )
             get_code = get_resp.get("code")
 
-            if get_code == BUSINESS_SUCCESS_CODE:
+            if get_code == ApiCode.SUCCESS:
                 delete_resp = ec_ext_service.delete_nginx_rbac(
                     cluster_id=cluster_id,
                     namespace=namespace,
                     code=code,
                 )
-                assert delete_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert delete_resp.get("code") == ApiCode.SUCCESS, (
                     f"预清理阶段删除 Nginx RBAC 失败, 响应: {delete_resp}"
                 )
-            elif get_code == RBAC_NOT_FOUND_CODE:
-                pytest.skip(f"目标 RBAC 不存在 (code={RBAC_NOT_FOUND_CODE})，无需预清理")
+            elif get_code == ApiCode.NOT_FOUND:
+                pytest.skip(f"目标 RBAC 不存在 (code={ApiCode.NOT_FOUND})，无需预清理")
             else:
                 pytest.fail(f"查询 Nginx RBAC 返回未知业务码 code={get_code}, 响应: {get_resp}")
 
@@ -119,7 +116,7 @@ class TestEcExtensionsNginxRbac:
                 code=code,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"创建 Nginx RBAC 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -143,6 +140,6 @@ class TestEcExtensionsNginxRbac:
                 code=code,
             )
 
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"删除 Nginx RBAC 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

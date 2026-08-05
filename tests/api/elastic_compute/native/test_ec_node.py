@@ -15,10 +15,10 @@ from base.api.services.elastic_compute_native_service import (
 )
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+from core.constants import HttpStatus, Tenant
 
 logger = get_logger(__name__)
 
-HTTP_OK = 200
 
 
 @pytest.mark.api
@@ -32,7 +32,7 @@ class TestEcNativeNode:
     线程组: Thread Group - Node API
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def native_service(self, service_factory):
@@ -64,7 +64,7 @@ class TestEcNativeNode:
         with AllureHelper.api_test(native_service):
             list_resp = native_service.list_nodes(cluster_id=cluster_id)
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询 Node 列表失败,"
                 f" status={native_service.last_response.status_code}"
             )
@@ -96,7 +96,7 @@ class TestEcNativeNode:
         with AllureHelper.api_test(native_service):
             get_resp = native_service.get_node(cluster_id=cluster_id, name=name)
 
-            assert native_service.last_response.status_code == HTTP_OK, (
+            assert native_service.last_response.status_code == HttpStatus.OK, (
                 f"查询指定 Node 失败,"
                 f" status={native_service.last_response.status_code}"
             )

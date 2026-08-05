@@ -11,6 +11,7 @@ import pytest
 
 from base.api.services.operation_open_service import OperationOpenService
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.operation
@@ -19,7 +20,7 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("observable Task 巡检任务接口")
 class TestOperationsTask:
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def operation_service(self, service_factory):

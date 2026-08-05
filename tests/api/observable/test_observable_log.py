@@ -18,6 +18,7 @@ from base.api.services.observable_open_service import (
     ObservableOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import HttpStatus, Tenant
 
 @pytest.mark.api
 @pytest.mark.observable
@@ -30,7 +31,7 @@ class TestObservableLog:
     线程组: 可观测接口调用
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def observable_service(self, service_factory):
@@ -81,8 +82,8 @@ class TestObservableLog:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                assert response_json.get("statusCode") == 200, \
-                    f"statusCode 应为 200，实际为 {response_json.get('statusCode')}"
+                assert response_json.get("statusCode") == HttpStatus.OK, \
+                    f"statusCode 应为 {int(HttpStatus.OK)}，实际为 {response_json.get('statusCode')}"
 
             with AllureHelper.step("提取 requestId 供后续接口使用"):
                 data = response_json.get("data", {})
@@ -103,8 +104,8 @@ class TestObservableLog:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                assert response_json.get("statusCode") == 200, \
-                    f"statusCode 应为 200，实际为 {response_json.get('statusCode')}"
+                assert response_json.get("statusCode") == HttpStatus.OK, \
+                    f"statusCode 应为 {int(HttpStatus.OK)}，实际为 {response_json.get('statusCode')}"
 
     @allure.title("查询日志上下文")
     @allure.description("按日志 ID 查询上下文信息并缓存 contextRequestId")
@@ -130,8 +131,8 @@ class TestObservableLog:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                assert response_json.get("statusCode") == 200, \
-                    f"statusCode 应为 200，实际为 {response_json.get('statusCode')}"
+                assert response_json.get("statusCode") == HttpStatus.OK, \
+                    f"statusCode 应为 {int(HttpStatus.OK)}，实际为 {response_json.get('statusCode')}"
 
             with AllureHelper.step("提取 contextRequestId 供后续接口使用"):
                 data = response_json.get("data", {})
@@ -154,5 +155,5 @@ class TestObservableLog:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                assert response_json.get("statusCode") == 200, \
-                    f"statusCode 应为 200，实际为 {response_json.get('statusCode')}"
+                assert response_json.get("statusCode") == HttpStatus.OK, \
+                    f"statusCode 应为 {int(HttpStatus.OK)}，实际为 {response_json.get('statusCode')}"

@@ -22,11 +22,9 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
 from tests.api.microservices.test_microservices_ingress import public_params
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -114,7 +112,7 @@ class TestEcExtensionsPartitionsApi:
                 namespace=public_params["namespace"],
                 payload=self._build_resource_quota_payload(),
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"创建 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -131,7 +129,7 @@ class TestEcExtensionsPartitionsApi:
                 cluster_id=public_params["cluster_id"],
                 namespace=public_params["namespace"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -149,7 +147,7 @@ class TestEcExtensionsPartitionsApi:
                 namespace=public_params["namespace"],
                 payload={},
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -187,7 +185,7 @@ class TestEcExtensionsPartitionsApi:
                 namespace=public_params["namespace"],
                 payload=self._build_limit_range_payload(),
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"创建 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -204,7 +202,7 @@ class TestEcExtensionsPartitionsApi:
                 cluster_id=public_params["cluster_id"],
                 namespace=public_params["namespace"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"获取 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -222,7 +220,7 @@ class TestEcExtensionsPartitionsApi:
                 namespace=public_params["namespace"],
                 payload=self._build_limit_range_payload(),
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"更新 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -239,7 +237,7 @@ class TestEcExtensionsPartitionsApi:
                 cluster_id=public_params["cluster_id"],
                 namespace=public_params["namespace"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"删除 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -258,7 +256,7 @@ class TestEcExtensionsPartitionsApi:
                 cluster_id=public_params["cluster_id"],
                 namespace=public_params["namespace"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群获取 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -276,7 +274,7 @@ class TestEcExtensionsPartitionsApi:
                 namespace=public_params["namespace"],
                 payload={},
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群更新 ResourceQuota 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -293,7 +291,7 @@ class TestEcExtensionsPartitionsApi:
                 cluster_id=public_params["cluster_id"],
                 namespace=public_params["namespace"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群获取 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -311,7 +309,7 @@ class TestEcExtensionsPartitionsApi:
                 namespace=public_params["namespace"],
                 payload={},
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"标准集群更新 LimitRange 失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -331,6 +329,6 @@ class TestEcExtensionsPartitionsApi:
                 cluster_id=public_params["cluster_id"],
                 admin=True,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"查询节点信息失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

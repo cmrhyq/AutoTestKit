@@ -12,10 +12,10 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 # 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -28,7 +28,7 @@ class TestEcOpenapiQuotaManagerAdmin:
     线程组: Thread Group - quota-manager-admin
     """
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -57,7 +57,7 @@ class TestEcOpenapiQuotaManagerAdmin:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_cluster_quota_overview(cell_code=cell_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询集群配额概览失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -73,7 +73,7 @@ class TestEcOpenapiQuotaManagerAdmin:
             payload: Dict[str, Any] = {"tenantCodeList": [tenant_code]}
             resp = ec_service.batch_query_tenant_quotas(payload=payload)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"批量查询租户配额失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -91,7 +91,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code, payload={},
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"租户配额分配失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -109,7 +109,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code, payload={},
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"租户配额调整失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -127,7 +127,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 tenant_code=tenant_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询系统配额概览失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -146,7 +146,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询系统配额详情失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -165,7 +165,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code, sys_code=sys_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询系统可调整配额失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -183,7 +183,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额详情失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -201,7 +201,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额列表（按单元）失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -216,7 +216,7 @@ class TestEcOpenapiQuotaManagerAdmin:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_tenant_quotas(tenant_code=tenant_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -231,7 +231,7 @@ class TestEcOpenapiQuotaManagerAdmin:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_tenant_quota_overview(tenant_code=tenant_code)
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额总览失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -249,7 +249,7 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询单租户单集群配额总览失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -267,6 +267,6 @@ class TestEcOpenapiQuotaManagerAdmin:
                 cell_code=cell_code, tenant_code=tenant_code,
             )
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户可调整配额失败, code: {resp.get('code')}, 响应: {resp}"
             )

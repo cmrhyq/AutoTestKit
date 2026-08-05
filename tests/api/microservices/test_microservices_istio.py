@@ -22,6 +22,7 @@ from base.api.services.microservices_open_service import (
     MicroservicesOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.microservice
@@ -35,7 +36,7 @@ class TestMicroservicesIstio:
     数据流：新建网关实例 → 查询/更新 → 新建规则 → 新建虚拟服务 → 删除虚拟服务 → 删除规则 → 删除实例
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def istio_service(self, service_factory):

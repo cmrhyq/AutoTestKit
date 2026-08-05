@@ -18,15 +18,9 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, ClusterFlag, Tenant
 from core.reporting.allure_helper import AllureHelper
 
-# 业务码 / 常量（顶部集中定义，禁止方法内魔法数字）
-BUSINESS_SUCCESS_CODE = 2000
-RESOURCE_NOT_FOUND_CODE = 4004
-
-# 标准集群 / 托管集群标识（对应 JMX ${testHostCluster}）
-STANDARD_CLUSTER_FLAG = "0"
-HOST_CLUSTER_FLAG = "1"
 
 def _build_limitrange_payload(name: str) -> Dict[str, Any]:
     """
@@ -65,7 +59,7 @@ class TestEcOpenapiLimitRange:
     - 1 托管集群：查询详情 → 若存在删除 → 创建 → 列表 → 更新 → PATCH → 删除
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -98,7 +92,7 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(1)
     def test_std_query_limitrange(self, ec_service, std_params, api_cache):
         """标准集群查询 LimitRange 详情。"""
-        if std_params["test_host_cluster"] != STANDARD_CLUSTER_FLAG:
+        if std_params["test_host_cluster"] != ClusterFlag.STANDARD:
             pytest.skip("testHostCluster != 0, 跳过标准集群分支")
 
         with AllureHelper.api_test(ec_service):
@@ -107,7 +101,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=std_params["sys_code"],
             )
             code = resp.get("code")
-            assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"[标准] 查询 LimitRange 返回异常 code: {code}, 响应: {resp}"
             )
             api_cache.set("ec_std_lr_get_code", code)
@@ -119,14 +113,14 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(2)
     def test_std_list_limitranges(self, ec_service, std_params):
         """标准集群下查询 LimitRange 列表。"""
-        if std_params["test_host_cluster"] != STANDARD_CLUSTER_FLAG:
+        if std_params["test_host_cluster"] != ClusterFlag.STANDARD:
             pytest.skip("testHostCluster != 0, 跳过标准集群分支")
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_limitranges_by_cell_v2(
                 cell_code=std_params["cell_code"],
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[标准] 查询 LimitRange 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -140,9 +134,9 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(3)
     def test_std_put_limitrange(self, ec_service, std_params, api_cache):
         """标准集群下 PUT 更新 LimitRange（仅当 GET 成功时）。"""
-        if std_params["test_host_cluster"] != STANDARD_CLUSTER_FLAG:
+        if std_params["test_host_cluster"] != ClusterFlag.STANDARD:
             pytest.skip("testHostCluster != 0, 跳过标准集群分支")
-        if api_cache.get("ec_std_lr_get_code") != BUSINESS_SUCCESS_CODE:
+        if api_cache.get("ec_std_lr_get_code") != ApiCode.SUCCESS:
             pytest.skip("[标准] 未命中已存在的 LimitRange, 跳过更新")
 
         with AllureHelper.api_test(ec_service):
@@ -152,7 +146,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=std_params["sys_code"],
                 payload=payload,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[标准] PUT LimitRange 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -166,9 +160,9 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(4)
     def test_std_patch_limitrange(self, ec_service, std_params, api_cache):
         """标准集群下 PATCH 增量更新 LimitRange。"""
-        if std_params["test_host_cluster"] != STANDARD_CLUSTER_FLAG:
+        if std_params["test_host_cluster"] != ClusterFlag.STANDARD:
             pytest.skip("testHostCluster != 0, 跳过标准集群分支")
-        if api_cache.get("ec_std_lr_get_code") != BUSINESS_SUCCESS_CODE:
+        if api_cache.get("ec_std_lr_get_code") != ApiCode.SUCCESS:
             pytest.skip("[标准] 未命中已存在的 LimitRange, 跳过 PATCH")
 
         with AllureHelper.api_test(ec_service):
@@ -178,7 +172,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=std_params["sys_code"],
                 payload={},
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[标准] PATCH LimitRange 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -195,7 +189,7 @@ class TestEcOpenapiLimitRange:
         self, ec_service, host_params, api_cache
     ):
         """托管集群下查询 LimitRange，若已存在则先删除。"""
-        if host_params["test_host_cluster"] != HOST_CLUSTER_FLAG:
+        if host_params["test_host_cluster"] != ClusterFlag.HOST:
             pytest.skip("testHostCluster != 1, 跳过托管集群分支")
 
         with AllureHelper.api_test(ec_service):
@@ -204,16 +198,16 @@ class TestEcOpenapiLimitRange:
                 sys_code=host_params["sys_code"],
             )
             code = get_resp.get("code")
-            assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"[托管] 查询 LimitRange 返回异常 code: {code}, 响应: {get_resp}"
             )
 
-            if code == BUSINESS_SUCCESS_CODE:
+            if code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_limitrange_ns(
                     cell_code=host_params["cell_code"],
                     sys_code=host_params["sys_code"],
                 )
-                assert del_resp.get("code") == BUSINESS_SUCCESS_CODE, (
+                assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"[托管] 删除已有 LimitRange 失败, code: {del_resp.get('code')}, "
                     f"响应: {del_resp}"
                 )
@@ -230,7 +224,7 @@ class TestEcOpenapiLimitRange:
         self, ec_service, host_params, api_cache
     ):
         """托管集群下创建 LimitRange。"""
-        if host_params["test_host_cluster"] != HOST_CLUSTER_FLAG:
+        if host_params["test_host_cluster"] != ClusterFlag.HOST:
             pytest.skip("testHostCluster != 1, 跳过托管集群分支")
 
         with AllureHelper.api_test(ec_service):
@@ -240,7 +234,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=host_params["sys_code"],
                 payload=payload,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[托管] 创建 LimitRange 失败, code: {resp.get('code')}, 响应: {resp}"
             )
             api_cache.set("ec_host_lr_created", True)
@@ -253,14 +247,14 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(12)
     def test_host_list_limitranges(self, ec_service, host_params):
         """托管集群下查询 LimitRange 列表。"""
-        if host_params["test_host_cluster"] != HOST_CLUSTER_FLAG:
+        if host_params["test_host_cluster"] != ClusterFlag.HOST:
             pytest.skip("testHostCluster != 1, 跳过托管集群分支")
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_limitranges_by_cell_v2(
                 cell_code=host_params["cell_code"],
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[托管] 查询 LimitRange 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -271,9 +265,9 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(13)
     def test_host_put_limitrange(self, ec_service, host_params, api_cache):
         """托管集群下 PUT 更新 LimitRange。"""
-        if host_params["test_host_cluster"] != HOST_CLUSTER_FLAG:
+        if host_params["test_host_cluster"] != ClusterFlag.HOST:
             pytest.skip("testHostCluster != 1, 跳过托管集群分支")
-        if api_cache.get("ec_host_lr_create_code") != BUSINESS_SUCCESS_CODE:
+        if api_cache.get("ec_host_lr_create_code") != ApiCode.SUCCESS:
             pytest.skip("[托管] 未成功创建 LimitRange, 跳过更新")
 
         with AllureHelper.api_test(ec_service):
@@ -283,7 +277,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=host_params["sys_code"],
                 payload=payload,
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[托管] PUT LimitRange 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -294,9 +288,9 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(14)
     def test_host_patch_limitrange(self, ec_service, host_params, api_cache):
         """托管集群下 PATCH 增量更新 LimitRange。"""
-        if host_params["test_host_cluster"] != HOST_CLUSTER_FLAG:
+        if host_params["test_host_cluster"] != ClusterFlag.HOST:
             pytest.skip("testHostCluster != 1, 跳过托管集群分支")
-        if api_cache.get("ec_host_lr_create_code") != BUSINESS_SUCCESS_CODE:
+        if api_cache.get("ec_host_lr_create_code") != ApiCode.SUCCESS:
             pytest.skip("[托管] 未成功创建 LimitRange, 跳过 PATCH")
 
         with AllureHelper.api_test(ec_service):
@@ -305,7 +299,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=host_params["sys_code"],
                 payload={},
             )
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"[托管] PATCH LimitRange 失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
@@ -316,7 +310,7 @@ class TestEcOpenapiLimitRange:
     @pytest.mark.order(15)
     def test_host_delete_limitrange(self, ec_service, host_params, api_cache):
         """托管集群下删除 LimitRange。"""
-        if host_params["test_host_cluster"] != HOST_CLUSTER_FLAG:
+        if host_params["test_host_cluster"] != ClusterFlag.HOST:
             pytest.skip("testHostCluster != 1, 跳过托管集群分支")
 
         with AllureHelper.api_test(ec_service):
@@ -325,7 +319,7 @@ class TestEcOpenapiLimitRange:
                 sys_code=host_params["sys_code"],
             )
             code = resp.get("code")
-            assert code in (BUSINESS_SUCCESS_CODE, RESOURCE_NOT_FOUND_CODE), (
+            assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"[托管] 删除 LimitRange 返回异常 code: {code}, 响应: {resp}"
             )
             api_cache.set("ec_host_lr_created", False)

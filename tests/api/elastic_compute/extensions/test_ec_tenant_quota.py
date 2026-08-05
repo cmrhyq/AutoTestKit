@@ -23,10 +23,8 @@ import pytest
 from base.api.services.elastic_compute_ext_service import (
     ElasticComputeExtService,
 )
+from core.constants.business import ApiCode
 from core.reporting.allure_helper import AllureHelper
-
-BUSINESS_SUCCESS_CODE = 2000
-
 
 @pytest.mark.api
 @pytest.mark.extension
@@ -73,7 +71,7 @@ class TestEcExtensionsTenantQuota:
             response_json = ec_ext_service.get_cluster_quota(
                 cluster_id=public_params["cluster_id"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"集群配额概览查询失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -89,7 +87,7 @@ class TestEcExtensionsTenantQuota:
             response_json = ec_ext_service.get_tenant_quota_overview(
                 tenant_code=public_params["tenant_code"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"租户资源配额总览失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -106,7 +104,7 @@ class TestEcExtensionsTenantQuota:
                 cluster_id=public_params["cluster_id"],
                 tenant_code=public_params["tenant_code"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"租户资源配额详情失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -123,7 +121,7 @@ class TestEcExtensionsTenantQuota:
                 cluster_id=public_params["cluster_id"],
                 tenant_code=public_params["tenant_code"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"租户资源配额单集群总览失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -140,7 +138,7 @@ class TestEcExtensionsTenantQuota:
                 cluster_id=public_params["cluster_id"],
                 tenant_code=public_params["tenant_code"],
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"租户可调整资源配额查询失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -158,7 +156,7 @@ class TestEcExtensionsTenantQuota:
                 tenant_code=public_params["tenant_code"],
                 payload={},
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"租户资源配额分配失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -176,7 +174,7 @@ class TestEcExtensionsTenantQuota:
                 tenant_code=public_params["tenant_code"],
                 payload={},
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"租户资源配额调整失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
@@ -197,6 +195,6 @@ class TestEcExtensionsTenantQuota:
                 payload=payload,
                 admin=True,
             )
-            assert response_json.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert response_json.get("code") == ApiCode.SUCCESS, (
                 f"批量查询租户资源配额概览失败, code: {response_json.get('code')}, 响应: {response_json}"
             )

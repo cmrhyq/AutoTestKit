@@ -14,6 +14,7 @@ from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -25,7 +26,7 @@ class TestEcOpenapiCluster:
     Elastic Compute Cluster OpenAPI 测试（Bearer 鉴权）
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):

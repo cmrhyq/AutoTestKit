@@ -16,6 +16,7 @@ from base.api.services.portal_inner_service import (
 )
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
+from core.constants import Tenant
 
 logger = get_logger(__name__)
 
@@ -26,7 +27,7 @@ logger = get_logger(__name__)
 @allure.story("Portal Inner 门户内部接口")
 class TestPortalInnerAPI:
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def portal_inner_service(self, api_env):

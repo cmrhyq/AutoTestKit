@@ -10,10 +10,10 @@ import pytest
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
+from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 # 顶部常量抽取
-BUSINESS_SUCCESS_CODE = 2000
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -26,7 +26,7 @@ class TestEcOpenapiOidcHarborinit:
     线程组: Thread Group - Oidc
     """
 
-    TENANT = "monitor-group"
+    TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
     def ec_service(self, service_factory):
@@ -43,6 +43,6 @@ class TestEcOpenapiOidcHarborinit:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_oidc_info()
 
-            assert resp.get("code") == BUSINESS_SUCCESS_CODE, (
+            assert resp.get("code") == ApiCode.SUCCESS, (
                 f"获取 OIDC 信息失败, code: {resp.get('code')}, 响应: {resp}"
             )

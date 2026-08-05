@@ -13,6 +13,7 @@ from base.api.services.portal_open_service import (
     PortalOpenService,
     PortalUserEntity,
 )
+from core.constants import ApiCode, Tenant
 from core.log import get_logger
 from core.reporting.allure_helper import AllureHelper
 
@@ -25,7 +26,7 @@ logger = get_logger(__name__)
 @allure.story("Portal OpenAPI 接口")
 class TestPortalOpenAPI:
 
-    TENANT = "tenant_admin"
+    TENANT = Tenant.ADMIN
     SYSTEM_CODE = "portal_open_api_test_sys"
     APP_CODE = "portal_open_api_test_app"
 
@@ -99,7 +100,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("查询集群平面单元")
     @allure.description("根据prodInstName查询集群平面单元并缓存instanceId")
@@ -112,7 +113,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
             with AllureHelper.step("缓存instanceId"):
                 instance_id = response_json["data"]["list"][0]["instanceId"]
@@ -133,7 +134,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("删除集群平面单元")
     @allure.description("删除已创建的集群平面单元")
@@ -146,7 +147,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     # ==================== 租户集群绑定 ====================
 
@@ -172,7 +173,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     # ==================== 用户与租户操作 ====================
 
@@ -187,7 +188,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("获取菜单权限数据")
     @allure.description("获取系统菜单权限列表数据")
@@ -199,7 +200,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("同步用户")
     @allure.description("同步外部用户信息到门户系统")
@@ -271,7 +272,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
             with AllureHelper.step("缓存创建结果"):
                 api_cache.set("createSystemCode", response_json["code"])
@@ -306,7 +307,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
             with AllureHelper.step("缓存systemId"):
                 data_list = response_json["data"]["list"]
@@ -338,7 +339,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
             with AllureHelper.step("缓存applicationSourceId"):
                 app_id = response_json["data"]["applicationSourceId"]
@@ -365,7 +366,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("用户应用授权")
     @allure.description("批量为用户授权应用访问权限")
@@ -385,7 +386,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     # ==================== 更新操作 ====================
 
@@ -410,7 +411,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("更新应用")
     @allure.description("更新应用信息")
@@ -429,7 +430,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("查询应用列表")
     @allure.description("分页查询应用列表")
@@ -441,7 +442,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("查看应用详细信息")
     @allure.description("根据applicationSourceId查看应用详情")
@@ -457,7 +458,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     # ==================== 资源配额管理 ====================
 
@@ -476,7 +477,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
             with AllureHelper.step("缓存cpuTotal"):
                 if response_json.get("data"):
@@ -516,7 +517,7 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("删除系统")
     @allure.description("删除已创建的系统")
@@ -535,4 +536,4 @@ class TestPortalOpenAPI:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
-                assert response_json["code"] == 2000, "响应Code应等于2000"
+                assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
