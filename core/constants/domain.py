@@ -21,8 +21,6 @@ class HarborConst:
 class HelmConst:
     """Helm 相关默认值。"""
 
-    #: Helm 回滚默认目标 revision（回到首个版本）
-    DEFAULT_ROLLBACK_REVISION: int = 1
     #: Helm 冲突场景下后端返回的错误消息
     RESOURCE_CONFLICT_MSG: str = "RESOURCE CONFLICT"
 

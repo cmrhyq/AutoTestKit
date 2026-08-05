@@ -390,7 +390,7 @@ class TestEcExtensionsHelmChart:
                 cluster_id=cluster_id,
                 namespace=namespace,
                 name=release_name,
-                revision=HelmConst.DEFAULT_ROLLBACK_REVISION,
+                revision=1,
             )
 
             assert response_json.get("code") == ApiCode.SUCCESS, (
