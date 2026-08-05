@@ -6,18 +6,11 @@
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
-from base.api.entity import (
-    ContainerPort,
-    ContainerSpec,
-    PaasLabels,
-    PodTemplate,
-    WorkloadPayload,
-)
+from base.api.entity.elastic_compute import DaemonSetNativePublicParams, WorkloadNativeEntity
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -48,91 +41,19 @@ class TestEcNativeDaemonset:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> DaemonSetNativePublicParams:
         """提取 DaemonSet 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-nginx-ds",
-            "paas_app_code": api_env.get("appCodeDaemonset", "test-app-ds"),
-            "paas_env_code": api_env.get("paasEnvCode", "ENV1"),
-            "paas_owner": api_env.get("user", "panji_probe"),
-            "paas_plane_code": api_env.get("paasPlaneCode", "PLANE1"),
-            "paas_tenant_code": api_env.get("paasTenantCode", "tenant-001"),
-            "paas_unit_code": api_env.get("paasUnitCode", "TEST"),
-            "image": api_env.get("nginxImageUrl", "hpe_containers/nginx:latest"),
-        }
-
-    @staticmethod
-    def _paas_labels(params: Dict[str, Any]) -> PaasLabels:
-        """根据 public_params 组装 PaasLabels 实体（12 字段）。"""
-        return PaasLabels(
-            paas_owner=params["paas_owner"],
-            paas_cluster_code=params["cluster_id"],
-            paas_app_code=params["paas_app_code"],
-            paas_env_code=params["paas_env_code"],
-            paas_plane_code=params["paas_plane_code"],
-            paas_tenant_code=params["paas_tenant_code"],
-            paas_unit_code=params["paas_unit_code"],
-            paas_system_code=params["namespace"],
-            paas_workload_name=params["name"],
-        )
-
-    @classmethod
-    def _build_workload(
-        cls,
-        params: Dict[str, Any],
-        *,
-        container_port: int,
-        extra_labels: Dict[str, str] | None = None,
-    ) -> Dict[str, Any]:
-        """
-        使用 WorkloadPayload + PaasLabels + PodTemplate 组装 DaemonSet payload。
-
-        DaemonSet 无 replicas 字段（每节点一个 Pod）。
-        """
-        name = params["name"]
-        template_labels = {"name": name, "test": "deploy"}
-        return WorkloadPayload(
-            name=name,
-            apiVersion="apps/v1",
-            kind="DaemonSet",
-            labels=cls._paas_labels(params).merged_with(extra_labels),
-            match_labels=dict(template_labels),
-            template=PodTemplate(
-                labels=dict(template_labels),
-                containers=[
-                    ContainerSpec(
-                        image=params["image"],
-                        name="container0",
-                        imagePullPolicy="Always",
-                        ports=[ContainerPort(containerPort=container_port)],
-                    )
-                ],
-            ),
-        ).to_dict()
-
-    @classmethod
-    def _build_daemonset_create_payload(cls, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 DaemonSet 创建请求体。
-
-        对应 JMX 中的 POST body（XML 实体还原后）。
-        """
-        return cls._build_workload(params, container_port=8080)
-
-    @classmethod
-    def _build_daemonset_update_payload(cls, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 DaemonSet 更新请求体。
-
-        对应 JMX 中的 PUT body（XML 实体还原后）。
-        区别：增加了 test: update 标签，containerPort 变为 8090。
-        """
-        return cls._build_workload(
-            params,
-            container_port=8090,
-            extra_labels={"test": "update"},
+        return DaemonSetNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-nginx-ds",
+            paas_app_code=api_env.get("appCodeDaemonset", "test-app-ds"),
+            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
+            paas_owner=api_env.get("user", "panji_probe"),
+            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
+            image=api_env.get("nginxImageUrl", "hpe_containers/nginx:latest"),
         )
 
     # ==================== 生命周期测试（每接口一函数）====================
@@ -144,9 +65,9 @@ class TestEcNativeDaemonset:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_daemonset_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 DaemonSet，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, get_resp = native_service.get_daemonset(
@@ -174,13 +95,24 @@ class TestEcNativeDaemonset:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_daemonset(self, native_service, public_params, api_cache):
         """创建 DaemonSet，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_daemonset_create_payload(public_params)
+            workload = WorkloadNativeEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                kind="DaemonSet",
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+            )
             create_resp = native_service.create_daemonset(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, workload=workload,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -197,9 +129,9 @@ class TestEcNativeDaemonset:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_daemonsets(self, native_service, public_params):
         """查询 DaemonSet 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         time.sleep(Timing.DS_CREATE_WAIT_SECONDS)
 
@@ -225,14 +157,27 @@ class TestEcNativeDaemonset:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_daemonset(self, native_service, public_params):
         """PUT 全量更新 DaemonSet，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_daemonset_update_payload(public_params)
+            workload = WorkloadNativeEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                kind="DaemonSet",
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                container_port=8090,
+                extra_labels={"test": "update"},
+            )
             native_service.update_daemonset(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, workload=workload,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -246,9 +191,9 @@ class TestEcNativeDaemonset:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_daemonset(self, native_service, public_params, api_cache):
         """删除 DaemonSet，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_daemonset(

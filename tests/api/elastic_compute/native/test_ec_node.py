@@ -10,6 +10,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import NodeNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -40,11 +41,11 @@ class TestEcNativeNode:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> NodeNativePublicParams:
         """提取 Node 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-        }
+        return NodeNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+        )
 
     # ==================== 只读测试（每接口一函数）====================
 
@@ -59,7 +60,7 @@ class TestEcNativeNode:
 
         对应 JMX：弹性计算_native_node-api_查询node list + JSON 提取器 name=$.items[0].metadata.name
         """
-        cluster_id = public_params["cluster_id"]
+        cluster_id = public_params.cluster_id
 
         with AllureHelper.api_test(native_service):
             list_resp = native_service.list_nodes(cluster_id=cluster_id)
@@ -89,7 +90,7 @@ class TestEcNativeNode:
 
         对应 JMX：弹性计算_native_node-api_查询node + JSON 提取器 spec/metadata
         """
-        cluster_id = public_params["cluster_id"]
+        cluster_id = public_params.cluster_id
         name = api_cache.get("ec_node_first_name")
         assert name, "缓存中未找到 node_first_name，请检查 list 用例是否成功执行"
 

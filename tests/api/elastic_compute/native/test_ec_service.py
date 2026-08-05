@@ -8,11 +8,11 @@
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import ServiceEntity, ServiceNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -43,72 +43,20 @@ class TestEcNativeService:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ServiceNativePublicParams:
         """提取 Service 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-nginx-svc",
-            "paas_app_code": api_env.get("appCodeDeploy", "test-app-svc"),
-            "paas_env_code": api_env.get("paasEnvCode", "ENV1"),
-            "paas_owner": api_env.get("user", "panji_probe"),
-            "paas_plane_code": api_env.get("paasPlaneCode", "PLANE1"),
-            "paas_tenant_code": api_env.get("paasTenantCode", "tenant-001"),
-            "paas_unit_code": api_env.get("paasUnitCode", "TEST"),
-            "paas_workload_name": "native-test-nginx-deploy",
-        }
-
-    @staticmethod
-    def _build_svc_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Service 创建请求体。
-
-        对应 JMX 中的 POST body。
-        """
-        return {
-            "apiVersion": "v1",
-            "kind": "Service",
-            "metadata": {
-                "name": params["name"],
-                "labels": {
-                    "operation-source": "api",
-                    "paas-app-code": params["paas_app_code"],
-                    "paas-app-service-version": "v1",
-                    "paas-app-source": "baseImage",
-                    "paas-cluster-code": params["cluster_id"],
-                    "paas-env-code": params["paas_env_code"],
-                    "paas-owner": params["paas_owner"],
-                    "paas-plane-code": params["paas_plane_code"],
-                    "paas-resource-category": "tenant-app",
-                    "paas-system-code": params["namespace"],
-                    "paas-tenant-code": params["paas_tenant_code"],
-                    "paas-unit-code": params["paas_unit_code"],
-                    "paas-workload-name": params["paas_workload_name"],
-                },
-            },
-            "spec": {
-                "ports": [
-                    {
-                        "name": "nginx",
-                        "port": 8080,
-                        "protocol": "TCP",
-                        "targetPort": 8080,
-                    }
-                ],
-                "selector": {"name": params["paas_workload_name"]},
-            },
-        }
-
-    @staticmethod
-    def _build_svc_update_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Service 更新请求体。
-
-        对应 JMX 中的 PUT body。区别：新增 test:update 标签，spec 不变。
-        """
-        payload = TestEcNativeService._build_svc_create_payload(params)
-        payload["metadata"]["labels"]["test"] = "update"
-        return payload
+        return ServiceNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-nginx-svc",
+            paas_app_code=api_env.get("appCodeDeploy", "test-app-svc"),
+            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
+            paas_owner=api_env.get("user", "panji_probe"),
+            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
+            paas_workload_name="native-test-nginx-deploy",
+        )
 
     @pytest.mark.dependency(name="svc_query_and_cleanup")
     @pytest.mark.order(1)
@@ -117,9 +65,9 @@ class TestEcNativeService:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_svc_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 Service，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_service_resource(
@@ -148,13 +96,23 @@ class TestEcNativeService:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_svc(self, native_service, public_params, api_cache):
         """创建 Service，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_svc_create_payload(public_params)
+            svc = ServiceEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                paas_workload_name=public_params.paas_workload_name,
+            )
             create_resp = native_service.create_service_resource(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, svc=svc,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -172,9 +130,9 @@ class TestEcNativeService:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_svc(self, native_service, public_params):
         """查询 Service 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         time.sleep(2)
 
@@ -199,14 +157,25 @@ class TestEcNativeService:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_svc(self, native_service, public_params):
         """PUT 全量更新 Service，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_svc_update_payload(public_params)
+            svc = ServiceEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                paas_workload_name=public_params.paas_workload_name,
+                extra_labels={"test": "update"},
+            )
             native_service.update_service_resource(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, svc=svc,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -220,9 +189,9 @@ class TestEcNativeService:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_svc(self, native_service, public_params, api_cache):
         """删除 Service，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_service_resource(

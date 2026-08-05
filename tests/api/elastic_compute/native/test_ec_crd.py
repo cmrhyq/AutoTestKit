@@ -5,11 +5,11 @@
 测试内容：CustomResourceDefinition 原生接口-特权接口（查询、创建、列表、删除）
 """
 import json
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import CrdEntity, CrdNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -41,63 +41,12 @@ class TestEcNativeCrd:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> CrdNativePublicParams:
         """提取 CRD 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "name": "crontabs.stable.example.com",
-        }
-
-    @staticmethod
-    def _build_crd_payload(name: str) -> Dict[str, Any]:
-        """
-        构建 CustomResourceDefinition 创建请求体。
-
-        对应 JMX 中的 POST body（XML 实体还原后）。
-        """
-        return {
-            "apiVersion": "apiextensions.k8s.io/v1",
-            "kind": "CustomResourceDefinition",
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "name": name,
-                    "test": "crd",
-                },
-            },
-            "spec": {
-                "group": "stable.example.com",
-                "scope": "Namespaced",
-                "names": {
-                    "plural": "crontabs",
-                    "singular": "crontab",
-                    "kind": "CronTab",
-                    "shortNames": ["ct"],
-                },
-                "versions": [
-                    {
-                        "name": "v1",
-                        "served": True,
-                        "storage": True,
-                        "schema": {
-                            "openAPIV3Schema": {
-                                "type": "object",
-                                "properties": {
-                                    "spec": {
-                                        "type": "object",
-                                        "properties": {
-                                            "cronSpec": {"type": "string"},
-                                            "image": {"type": "string"},
-                                            "replicas": {"type": "integer"},
-                                        },
-                                    }
-                                },
-                            }
-                        },
-                    }
-                ],
-            },
-        }
+        return CrdNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            name="crontabs.stable.example.com",
+        )
 
     # ==================== 生命周期测试（每接口一函数）====================
 
@@ -108,8 +57,8 @@ class TestEcNativeCrd:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_crd_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 CRD，若已存在则删除。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, get_resp = native_service.get_crd(
@@ -137,13 +86,27 @@ class TestEcNativeCrd:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_crd(self, native_service, public_params, api_cache):
         """创建 CRD，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_crd_payload(name)
+            crd = CrdEntity(
+                name=name,
+                group="stable.example.com",
+                scope="Namespaced",
+                plural="crontabs",
+                singular="crontab",
+                kind="CronTab",
+                short_names=["ct"],
+                version_name="v1",
+                properties={
+                    "cronSpec": {"type": "string"},
+                    "image": {"type": "string"},
+                    "replicas": {"type": "integer"},
+                },
+            )
             create_resp = native_service.create_crd(
-                cluster_id=cluster_id, payload=payload,
+                cluster_id=cluster_id, crd=crd,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -160,8 +123,8 @@ class TestEcNativeCrd:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_crds(self, native_service, public_params):
         """查询 CRD 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             list_resp = native_service.list_crds(
@@ -184,8 +147,8 @@ class TestEcNativeCrd:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_crd(self, native_service, public_params, api_cache):
         """删除 CRD，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_crd(

@@ -5,12 +5,11 @@
 测试内容：Ingress 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 """
 import json
-from typing import Any, Dict
 
 import allure
 import pytest
 
-from base.api.entity import IngressPayload, PaasLabels
+from base.api.entity.elastic_compute import IngressNativeEntity, IngressNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -43,29 +42,12 @@ class TestEcNativeIngress:
     @pytest.fixture(scope="class")
     def public_params(self, api_env):
         """提取 Ingress 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test"),
-            "name": "native-test-ingress001",
-            "paas_owner": api_env.get("user", "panji_probe"),
-        }
-
-    @staticmethod
-    def _build_ingress_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Ingress 请求体（创建与更新使用同一 payload，与 JMX 保持一致）。
-
-        对应 JMX 中的 POST/PUT body（XML 实体还原后）。
-        Ingress labels 只使用 PaasLabels 的一个子集（paas-owner + paas-cluster-code +
-        operation-source + paas-resource-category），
-        通过 PaasLabels 部分字段填充自动生成。
-        默认 path 及 backend 已由 IngressPayload 提供（/install, qwe:4000）。
-        """
-        labels = PaasLabels(
-            paas_owner=params["paas_owner"],
-            paas_cluster_code=params["cluster_id"],
-        ).to_dict()
-        return IngressPayload(name=params["name"], labels=labels).to_dict()
+        return IngressNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test"),
+            name="native-test-ingress001",
+            paas_owner=api_env.get("user", "panji_probe"),
+        )
 
     # ==================== 生命周期测试（每接口一函数）====================
 
@@ -76,9 +58,9 @@ class TestEcNativeIngress:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_ingress_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 Ingress，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_ingress(
@@ -106,13 +88,16 @@ class TestEcNativeIngress:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_ingress(self, native_service, public_params, api_cache):
         """创建 Ingress，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_ingress_payload(public_params)
+            ingress = IngressNativeEntity(
+                name=public_params.name,
+                paas_owner=public_params.paas_owner,
+            )
             create_resp = native_service.create_ingress(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, ingress=ingress,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -129,9 +114,9 @@ class TestEcNativeIngress:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_ingresses(self, native_service, public_params):
         """查询 Ingress 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             list_resp = native_service.list_ingresses(
@@ -153,14 +138,18 @@ class TestEcNativeIngress:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_ingress(self, native_service, public_params):
         """PUT 全量更新 Ingress，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_ingress_payload(public_params)
+            ingress = IngressNativeEntity(
+                name=public_params.name,
+                paas_owner=public_params.paas_owner,
+                extra_labels={"test": "update"},
+            )
             native_service.update_ingress(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, ingress=ingress,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -174,9 +163,9 @@ class TestEcNativeIngress:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_ingress(self, native_service, public_params, api_cache):
         """删除 Ingress，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_ingress(

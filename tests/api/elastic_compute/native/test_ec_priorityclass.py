@@ -6,12 +6,10 @@
 
 注意：PriorityClass 是 cluster-scoped 资源，无 namespace，也无 list 接口。
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
-from base.api.entity import PriorityClassPayload
+from base.api.entity.elastic_compute import PriorityClassNativeEntity, PriorityClassNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -44,29 +42,10 @@ class TestEcNativePriorityClass:
     @pytest.fixture(scope="class")
     def public_params(self, api_env):
         """提取 PriorityClass 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "name": "native-test-pc",
-        }
-
-    @staticmethod
-    def _build_pc_create_payload(name: str) -> Dict[str, Any]:
-        """构建 PriorityClass 创建请求体（对应 JMX POST body）。"""
-        return PriorityClassPayload(
-            name=name,
-            value=100000000,
-            description="this is a test",
-        ).to_dict()
-
-    @staticmethod
-    def _build_pc_update_payload(name: str) -> Dict[str, Any]:
-        """构建 PriorityClass 更新请求体（对应 JMX PUT body，增加 test:update 标签）。"""
-        return PriorityClassPayload(
-            name=name,
-            value=100000000,
-            description="this is a update test",
-            labels={"test": "update"},
-        ).to_dict()
+        return PriorityClassNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            name="native-test-pc",
+        )
 
     # ==================== 生命周期测试（每接口一函数）====================
 
@@ -79,8 +58,8 @@ class TestEcNativePriorityClass:
         self, native_service, public_params, api_cache
     ):
         """查询指定 PriorityClass，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_priority_class(
@@ -111,13 +90,12 @@ class TestEcNativePriorityClass:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_priorityclass(self, native_service, public_params, api_cache):
         """创建 PriorityClass，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_pc_create_payload(name)
+            pc = PriorityClassNativeEntity(name=public_params.name)
             create_resp = native_service.create_priority_class(
-                cluster_id=cluster_id, payload=payload,
+                cluster_id=cluster_id, pc=pc,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -137,13 +115,17 @@ class TestEcNativePriorityClass:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_priorityclass(self, native_service, public_params):
         """PUT 全量更新 PriorityClass，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_pc_update_payload(name)
+            pc = PriorityClassNativeEntity(
+                name=name,
+                description="this is a update test",
+                extra_labels={"test": "update"},
+            )
             native_service.update_priority_class(
-                cluster_id=cluster_id, name=name, payload=payload,
+                cluster_id=cluster_id, name=name, pc=pc,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -160,8 +142,8 @@ class TestEcNativePriorityClass:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_priorityclass(self, native_service, public_params, api_cache):
         """删除 PriorityClass，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_priority_class(

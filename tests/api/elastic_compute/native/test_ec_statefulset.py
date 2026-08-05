@@ -6,11 +6,11 @@
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import StatefulSetNativePublicParams, WorkloadNativeEntity
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -41,138 +41,21 @@ class TestEcNativeStatefulSet:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> StatefulSetNativePublicParams:
         """提取 StatefulSet 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-app-sts",
-            "paas_app_code": api_env.get("appCodeSts", "test-app-sts"),
-            "paas_env_code": api_env.get("paasEnvCode", "ENV1"),
-            "paas_owner": api_env.get("user", "panji_probe"),
-            "paas_plane_code": api_env.get("paasPlaneCode", "PLANE1"),
-            "paas_tenant_code": api_env.get("paasTenantCode", "tenant-001"),
-            "paas_unit_code": api_env.get("paasUnitCode", "TEST"),
-            "image": api_env.get("nginxImageUrl", "hpe_containers/nginx:latest"),
-            "replicas": 1,
-        }
-
-    @staticmethod
-    def _build_sts_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 StatefulSet 创建请求体。
-
-        对应 JMX 中的 POST body。
-        """
-        name = params["name"]
-        return {
-            "apiVersion": "apps/v1",
-            "kind": "StatefulSet",
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "operation-source": "api",
-                    "paas-app-code": params["paas_app_code"],
-                    "paas-app-service-version": "v1",
-                    "paas-app-source": "baseImage",
-                    "paas-cluster-code": params["cluster_id"],
-                    "paas-env-code": params["paas_env_code"],
-                    "paas-owner": params["paas_owner"],
-                    "paas-plane-code": params["paas_plane_code"],
-                    "paas-resource-category": "tenant-app",
-                    "paas-system-code": params["namespace"],
-                    "paas-tenant-code": params["paas_tenant_code"],
-                    "paas-unit-code": params["paas_unit_code"],
-                    "paas-workload-name": name,
-                },
-            },
-            "spec": {
-                "replicas": params["replicas"],
-                "selector": {
-                    "matchLabels": {"name": name, "test": "deploy"},
-                },
-                "template": {
-                    "metadata": {
-                        "labels": {"name": name, "test": "deploy"},
-                    },
-                    "spec": {
-                        "containers": [
-                            {
-                                "image": params["image"],
-                                "imagePullPolicy": "Always",
-                                "name": "container0",
-                                "ports": [
-                                    {
-                                        "containerPort": 8080,
-                                        "name": "port0",
-                                        "protocol": "TCP",
-                                    }
-                                ],
-                            }
-                        ],
-                    },
-                },
-            },
-        }
-
-    @staticmethod
-    def _build_sts_update_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 StatefulSet 更新请求体。
-
-        对应 JMX 中的 PUT body。区别：test:update 标签，replicas+1，containerPort=8090。
-        """
-        name = params["name"]
-        return {
-            "apiVersion": "apps/v1",
-            "kind": "StatefulSet",
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "operation-source": "api",
-                    "paas-app-code": params["paas_app_code"],
-                    "paas-app-service-version": "v1",
-                    "paas-app-source": "baseImage",
-                    "paas-cluster-code": params["cluster_id"],
-                    "paas-env-code": params["paas_env_code"],
-                    "paas-owner": params["paas_owner"],
-                    "paas-plane-code": params["paas_plane_code"],
-                    "paas-resource-category": "tenant-app",
-                    "paas-system-code": params["namespace"],
-                    "paas-tenant-code": params["paas_tenant_code"],
-                    "paas-unit-code": params["paas_unit_code"],
-                    "paas-workload-name": name,
-                    "test": "update",
-                },
-            },
-            "spec": {
-                "replicas": params["replicas"] + 1,
-                "selector": {
-                    "matchLabels": {"name": name, "test": "deploy"},
-                },
-                "template": {
-                    "metadata": {
-                        "labels": {"name": name, "test": "deploy"},
-                    },
-                    "spec": {
-                        "containers": [
-                            {
-                                "image": params["image"],
-                                "imagePullPolicy": "Always",
-                                "name": "container0",
-                                "ports": [
-                                    {
-                                        "containerPort": 8090,
-                                        "name": "port0",
-                                        "protocol": "TCP",
-                                    }
-                                ],
-                            }
-                        ],
-                    },
-                },
-            },
-        }
+        return StatefulSetNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-app-sts",
+            paas_app_code=api_env.get("appCodeSts", "test-app-sts"),
+            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
+            paas_owner=api_env.get("user", "panji_probe"),
+            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
+            image=api_env.get("nginxImageUrl", "hpe_containers/nginx:latest"),
+            replicas=1,
+        )
 
     @pytest.mark.dependency(name="sts_query_and_cleanup")
     @pytest.mark.order(1)
@@ -181,9 +64,9 @@ class TestEcNativeStatefulSet:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_sts_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 StatefulSet，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_statefulset(
@@ -212,13 +95,25 @@ class TestEcNativeStatefulSet:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_sts(self, native_service, public_params, api_cache):
         """创建 StatefulSet，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_sts_create_payload(public_params)
+            workload = WorkloadNativeEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                kind="StatefulSet",
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                replicas=public_params.replicas,
+            )
             create_resp = native_service.create_statefulset(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, workload=workload,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -235,9 +130,9 @@ class TestEcNativeStatefulSet:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_sts(self, native_service, public_params):
         """查询 StatefulSet 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         time.sleep(3)
 
@@ -263,14 +158,28 @@ class TestEcNativeStatefulSet:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_sts(self, native_service, public_params):
         """PUT 全量更新 StatefulSet，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_sts_update_payload(public_params)
+            workload = WorkloadNativeEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                kind="StatefulSet",
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                replicas=public_params.replicas + 1,
+                container_port=8090,
+                extra_labels={"test": "update"},
+            )
             native_service.update_statefulset(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, workload=workload,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -284,9 +193,9 @@ class TestEcNativeStatefulSet:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_sts(self, native_service, public_params, api_cache):
         """删除 StatefulSet，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_statefulset(

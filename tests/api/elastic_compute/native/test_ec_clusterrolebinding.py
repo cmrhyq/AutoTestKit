@@ -4,11 +4,13 @@
 转换自 JMeter 脚本: clusterrolebinding.jmx
 测试内容：ClusterRoleBinding 原生接口，针对 ClusterRoleBinding 增删查进行测试
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    ClusterRoleBindingEntity,
+    ClusterRoleBindingNativePublicParams,
+)
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -39,42 +41,15 @@ class TestEcNativeClusterRoleBinding:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ClusterRoleBindingNativePublicParams:
         """提取 ClusterRoleBinding 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-crb",
-            "cluster_role_name": "test-cr",
-            "service_account_name": "test-sa",
-        }
-
-    @staticmethod
-    def _build_cluster_role_binding_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 ClusterRoleBinding 创建请求体。
-
-        对应 JMX 中的 POST body（XML 实体还原后）。
-        """
-        return {
-            "apiVersion": "rbac.authorization.k8s.io/v1",
-            "kind": "ClusterRoleBinding",
-            "metadata": {
-                "name": params["name"],
-            },
-            "roleRef": {
-                "apiGroup": "rbac.authorization.k8s.io",
-                "kind": "ClusterRole",
-                "name": params["cluster_role_name"],
-            },
-            "subjects": [
-                {
-                    "kind": "ServiceAccount",
-                    "name": params["service_account_name"],
-                    "namespace": params["namespace"],
-                }
-            ],
-        }
+        return ClusterRoleBindingNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-crb",
+            cluster_role_name="test-cr",
+            service_account_name="test-sa",
+        )
 
     # ==================== 生命周期测试（每接口一函数）====================
 
@@ -85,8 +60,8 @@ class TestEcNativeClusterRoleBinding:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_crb_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 ClusterRoleBinding，若已存在则删除。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, get_resp = native_service.get_cluster_role_binding(
@@ -114,12 +89,17 @@ class TestEcNativeClusterRoleBinding:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_crb(self, native_service, public_params, api_cache):
         """创建 ClusterRoleBinding，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
+        cluster_id = public_params.cluster_id
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_cluster_role_binding_payload(public_params)
             create_resp = native_service.create_cluster_role_binding(
-                cluster_id=cluster_id, payload=payload,
+                cluster_id=cluster_id,
+                crb=ClusterRoleBindingEntity(
+                    name=public_params.name,
+                    cluster_role_name=public_params.cluster_role_name,
+                    service_account_name=public_params.service_account_name,
+                    subject_namespace=public_params.namespace,
+                ),
             )
             create_http_code = native_service.last_response.status_code
 
@@ -136,8 +116,8 @@ class TestEcNativeClusterRoleBinding:
     @allure.severity(allure.severity_level.NORMAL)
     def test_verify_crb_created(self, native_service, public_params):
         """验证创建后 ClusterRoleBinding 可查询到。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, get_resp = native_service.get_cluster_role_binding(
@@ -155,8 +135,8 @@ class TestEcNativeClusterRoleBinding:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_crb(self, native_service, public_params, api_cache):
         """删除 ClusterRoleBinding，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_cluster_role_binding(

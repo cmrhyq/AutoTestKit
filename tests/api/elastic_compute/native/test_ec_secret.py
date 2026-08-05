@@ -8,11 +8,11 @@
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import SecretEntity, SecretNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -43,63 +43,14 @@ class TestEcNativeSecret:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> SecretNativePublicParams:
         """提取 Secret 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-secret-001",
-            "paas_owner": api_env.get("user", "panji_probe"),
-        }
-
-    @staticmethod
-    def _build_secret_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Secret 创建请求体。
-
-        对应 JMX 中的 POST body。data.test 字段为 base64 编码值 (create)。
-        """
-        name = params["name"]
-        return {
-            "apiVersion": "v1",
-            "kind": "Secret",
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "operation-source": "api",
-                    "paas-cluster-code": params["cluster_id"],
-                    "paas-owner": params["paas_owner"],
-                    "paas-resource-category": "tenant-app",
-                    "name": name,
-                },
-            },
-            "data": {"test": "Y3JlYXRl"},
-        }
-
-    @staticmethod
-    def _build_secret_update_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Secret 更新请求体。
-
-        对应 JMX 中的 PUT body。区别：新增 test:update 标签，data.test 改为 base64 (update)。
-        """
-        name = params["name"]
-        return {
-            "apiVersion": "v1",
-            "kind": "Secret",
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "operation-source": "api",
-                    "paas-cluster-code": params["cluster_id"],
-                    "paas-owner": params["paas_owner"],
-                    "paas-resource-category": "tenant-app",
-                    "name": name,
-                    "test": "update",
-                },
-            },
-            "data": {"test": "dXBkYXRl"},
-        }
+        return SecretNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-secret-001",
+            paas_owner=api_env.get("user", "panji_probe"),
+        )
 
     @pytest.mark.dependency(name="secret_query_and_cleanup")
     @pytest.mark.order(1)
@@ -108,9 +59,9 @@ class TestEcNativeSecret:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_secret_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 Secret，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_secret(
@@ -139,13 +90,16 @@ class TestEcNativeSecret:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_secret(self, native_service, public_params, api_cache):
         """创建 Secret，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_secret_create_payload(public_params)
+            secret = SecretEntity(
+                name=public_params.name,
+                paas_owner=public_params.paas_owner,
+            )
             create_resp = native_service.create_secret(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, secret=secret,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -162,9 +116,9 @@ class TestEcNativeSecret:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_secrets(self, native_service, public_params):
         """查询 Secret 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         time.sleep(2)
 
@@ -188,14 +142,19 @@ class TestEcNativeSecret:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_secret(self, native_service, public_params):
         """PUT 全量更新 Secret，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_secret_update_payload(public_params)
+            secret = SecretEntity(
+                name=public_params.name,
+                paas_owner=public_params.paas_owner,
+                data={"test": "dXBkYXRl"},
+                extra_labels={"test": "update"},
+            )
             native_service.update_secret(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, secret=secret,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -209,9 +168,9 @@ class TestEcNativeSecret:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_secret(self, native_service, public_params, api_cache):
         """删除 Secret，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_secret(

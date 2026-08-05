@@ -16,9 +16,28 @@ Native 类接口直接代理 K8s API Server，路径模式为：
 - Bearer 通过 BaseService 的 auth_type='bearer' 承载于 session.headers（由 service_factory 从 TokenManager 注入）
 - X-API-KEY + apikey 为静态头，通过 _get_native_headers() 在每次请求时补充
 """
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from base import BaseService
+from base.api.entity.elastic_compute import (
+    ClusterRoleBindingEntity,
+    ConfigMapEntity,
+    CrdEntity,
+    HpaNativeEntity,
+    IngressNativeEntity,
+    JobEntity,
+    LimitRangeNativeEntity,
+    NamespaceEntity,
+    PodNativeEntity,
+    PriorityClassNativeEntity,
+    PvcEntity,
+    ResourceQuotaNativeEntity,
+    RoleBindingEntity,
+    SecretEntity,
+    ServiceAccountEntity,
+    ServiceEntity,
+    WorkloadNativeEntity,
+)
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -113,7 +132,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_service_account(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, sa: ServiceAccountEntity
     ) -> Dict[str, Any]:
         """
         创建 ServiceAccount。
@@ -124,7 +143,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s ServiceAccount JSON 对象
+            sa: ServiceAccount 实体（仅包含 name）
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -136,6 +155,11 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/serviceaccounts"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "ServiceAccount",
+            "metadata": {"name": sa.name},
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -206,7 +230,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_daemonset(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, workload: WorkloadNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 DaemonSet。
@@ -217,7 +241,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s DaemonSet JSON 对象
+            workload: Workload 实体（kind 应为 "DaemonSet"，replicas 忽略）
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -227,11 +251,60 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apps/v1/namespaces/{namespace}/daemonsets"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": workload.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": workload.paas_env_code,
+            "paas-owner": workload.paas_owner,
+            "paas-plane-code": workload.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": workload.namespace,
+            "paas-tenant-code": workload.paas_tenant_code,
+            "paas-unit-code": workload.paas_unit_code,
+            "paas-workload-name": workload.name,
+        }
+        if workload.extra_labels:
+            labels.update(workload.extra_labels)
+        template_labels = {"name": workload.name, "test": "deploy"}
+        payload: Dict[str, Any] = {
+            "apiVersion": "apps/v1",
+            "kind": workload.kind,
+            "metadata": {"name": workload.name, "labels": labels},
+            "spec": {
+                "selector": {"matchLabels": dict(template_labels)},
+                "template": {
+                    "metadata": {"labels": dict(template_labels)},
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": workload.image,
+                                "imagePullPolicy": "Always",
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": workload.container_port,
+                                        "name": "port0",
+                                        "protocol": "TCP",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_daemonset(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self,
+        cluster_id: str,
+        namespace: str,
+        name: str,
+        workload: WorkloadNativeEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 DaemonSet。
@@ -243,7 +316,7 @@ class ElasticComputeNativeService(BaseService):
             cluster_id: 集群 ID
             namespace: 命名空间
             name: DaemonSet 名称
-            payload: K8s DaemonSet JSON 对象（完整）
+            workload: Workload 实体（kind 应为 "DaemonSet"，replicas 忽略）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -255,6 +328,51 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": workload.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": workload.paas_env_code,
+            "paas-owner": workload.paas_owner,
+            "paas-plane-code": workload.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": workload.namespace,
+            "paas-tenant-code": workload.paas_tenant_code,
+            "paas-unit-code": workload.paas_unit_code,
+            "paas-workload-name": workload.name,
+        }
+        if workload.extra_labels:
+            labels.update(workload.extra_labels)
+        template_labels = {"name": workload.name, "test": "deploy"}
+        payload: Dict[str, Any] = {
+            "apiVersion": "apps/v1",
+            "kind": workload.kind,
+            "metadata": {"name": workload.name, "labels": labels},
+            "spec": {
+                "selector": {"matchLabels": dict(template_labels)},
+                "template": {
+                    "metadata": {"labels": dict(template_labels)},
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": workload.image,
+                                "imagePullPolicy": "Always",
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": workload.container_port,
+                                        "name": "port0",
+                                        "protocol": "TCP",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -360,7 +478,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_cluster_role_binding(
-        self, cluster_id: str, payload: Dict[str, Any]
+        self, cluster_id: str, crb: ClusterRoleBindingEntity
     ) -> Dict[str, Any]:
         """
         创建 ClusterRoleBinding。
@@ -370,7 +488,7 @@ class ElasticComputeNativeService(BaseService):
 
         Args:
             cluster_id: 集群 ID
-            payload: K8s ClusterRoleBinding JSON 对象
+            crb: ClusterRoleBinding 实体（包含 name / cluster_role_name / service_account_name / subject_namespace）
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -380,6 +498,23 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/rbac.authorization.k8s.io/v1/clusterrolebindings"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {"name": crb.name},
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": crb.cluster_role_name,
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": crb.service_account_name,
+                    "namespace": crb.subject_namespace,
+                }
+            ],
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -447,7 +582,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_native_configmap(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, cm: ConfigMapEntity
     ) -> Dict[str, Any]:
         """
         创建 ConfigMap（Native 接口）。
@@ -458,7 +593,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s ConfigMap JSON 对象
+            cm: ConfigMap 实体（name / paas_owner / data / extra_labels）
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -468,11 +603,26 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/configmaps"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-cluster-code": cluster_id,
+            "paas-owner": cm.paas_owner,
+            "paas-resource-category": "tenant-app",
+            "name": cm.name,
+        }
+        if cm.extra_labels:
+            labels.update(cm.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "ConfigMap",
+            "metadata": {"name": cm.name, "labels": labels},
+            "data": dict(cm.data),
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_native_configmap(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, name: str, cm: ConfigMapEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新 ConfigMap（Native 接口）。
@@ -484,7 +634,7 @@ class ElasticComputeNativeService(BaseService):
             cluster_id: 集群 ID
             namespace: 命名空间
             name: ConfigMap 名称
-            payload: K8s ConfigMap JSON 对象（完整）
+            cm: ConfigMap 实体（完整）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -496,6 +646,21 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/configmaps/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-cluster-code": cluster_id,
+            "paas-owner": cm.paas_owner,
+            "paas-resource-category": "tenant-app",
+            "name": cm.name,
+        }
+        if cm.extra_labels:
+            labels.update(cm.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "ConfigMap",
+            "metadata": {"name": cm.name, "labels": labels},
+            "data": dict(cm.data),
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -601,7 +766,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_crd(
-        self, cluster_id: str, payload: Dict[str, Any]
+        self, cluster_id: str, crd: CrdEntity
     ) -> Dict[str, Any]:
         """
         创建 CustomResourceDefinition。
@@ -611,7 +776,7 @@ class ElasticComputeNativeService(BaseService):
 
         Args:
             cluster_id: 集群 ID
-            payload: K8s CRD JSON 对象
+            crd: CRD 实体（name / group / scope / plural / singular / kind / short_names / version_name / properties / extra_labels）
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -621,6 +786,42 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apiextensions.k8s.io/v1/customresourcedefinitions"
         )
+        labels: Dict[str, str] = {"name": crd.name, "test": "crd"}
+        if crd.extra_labels:
+            labels.update(crd.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "apiextensions.k8s.io/v1",
+            "kind": "CustomResourceDefinition",
+            "metadata": {"name": crd.name, "labels": labels},
+            "spec": {
+                "group": crd.group,
+                "scope": crd.scope,
+                "names": {
+                    "plural": crd.plural,
+                    "singular": crd.singular,
+                    "kind": crd.kind,
+                    "shortNames": list(crd.short_names),
+                },
+                "versions": [
+                    {
+                        "name": crd.version_name,
+                        "served": True,
+                        "storage": True,
+                        "schema": {
+                            "openAPIV3Schema": {
+                                "type": "object",
+                                "properties": {
+                                    "spec": {
+                                        "type": "object",
+                                        "properties": dict(crd.properties),
+                                    }
+                                },
+                            },
+                        },
+                    }
+                ],
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -721,7 +922,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_job(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, job: JobEntity
     ) -> Dict[str, Any]:
         """
         创建 Job。
@@ -732,7 +933,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s Job JSON 对象
+            job: Job 实体
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -742,11 +943,50 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/batch/v1/namespaces/{namespace}/jobs"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": job.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": job.paas_env_code,
+            "paas-owner": job.paas_owner,
+            "paas-plane-code": job.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": job.namespace,
+            "paas-tenant-code": job.paas_tenant_code,
+            "paas-unit-code": job.paas_unit_code,
+            "paas-workload-name": job.name,
+        }
+        if job.extra_labels:
+            labels.update(job.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "batch/v1",
+            "kind": "Job",
+            "metadata": {"name": job.name, "labels": labels},
+            "spec": {
+                "backoffLimit": job.backoff_limit,
+                "completions": job.completions,
+                "parallelism": job.parallelism,
+                "template": {
+                    "spec": {
+                        "restartPolicy": job.restart_policy,
+                        "containers": [
+                            {
+                                "name": job.container_name,
+                                "image": job.image,
+                                "command": list(job.command),
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_job(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, name: str, job: JobEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Job。
@@ -758,7 +998,7 @@ class ElasticComputeNativeService(BaseService):
             cluster_id: 集群 ID
             namespace: 命名空间
             name: Job 名称
-            payload: K8s Job JSON 对象（完整）
+            job: Job 实体（完整）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -768,6 +1008,45 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/batch/v1/namespaces/{namespace}/jobs/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": job.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": job.paas_env_code,
+            "paas-owner": job.paas_owner,
+            "paas-plane-code": job.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": job.namespace,
+            "paas-tenant-code": job.paas_tenant_code,
+            "paas-unit-code": job.paas_unit_code,
+            "paas-workload-name": job.name,
+        }
+        if job.extra_labels:
+            labels.update(job.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "batch/v1",
+            "kind": "Job",
+            "metadata": {"name": job.name, "labels": labels},
+            "spec": {
+                "backoffLimit": job.backoff_limit,
+                "completions": job.completions,
+                "parallelism": job.parallelism,
+                "template": {
+                    "spec": {
+                        "restartPolicy": job.restart_policy,
+                        "containers": [
+                            {
+                                "name": job.container_name,
+                                "image": job.image,
+                                "command": list(job.command),
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -885,7 +1164,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_deployment(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, workload: WorkloadNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 Deployment。
@@ -896,7 +1175,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s Deployment JSON 对象
+            workload: Workload 实体（kind 应为 "Deployment"）
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -906,11 +1185,61 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apps/v1/namespaces/{namespace}/deployments"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": workload.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": workload.paas_env_code,
+            "paas-owner": workload.paas_owner,
+            "paas-plane-code": workload.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": workload.namespace,
+            "paas-tenant-code": workload.paas_tenant_code,
+            "paas-unit-code": workload.paas_unit_code,
+            "paas-workload-name": workload.name,
+        }
+        if workload.extra_labels:
+            labels.update(workload.extra_labels)
+        template_labels = {"name": workload.name, "test": "deploy"}
+        payload: Dict[str, Any] = {
+            "apiVersion": "apps/v1",
+            "kind": workload.kind,
+            "metadata": {"name": workload.name, "labels": labels},
+            "spec": {
+                "replicas": workload.replicas,
+                "selector": {"matchLabels": dict(template_labels)},
+                "template": {
+                    "metadata": {"labels": dict(template_labels)},
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": workload.image,
+                                "imagePullPolicy": "Always",
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": workload.container_port,
+                                        "name": "port0",
+                                        "protocol": "TCP",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_deployment(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self,
+        cluster_id: str,
+        namespace: str,
+        name: str,
+        workload: WorkloadNativeEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Deployment。
@@ -922,7 +1251,7 @@ class ElasticComputeNativeService(BaseService):
             cluster_id: 集群 ID
             namespace: 命名空间
             name: Deployment 名称
-            payload: K8s Deployment JSON 对象（完整）
+            workload: Workload 实体（kind 应为 "Deployment"）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -934,6 +1263,52 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apps/v1/namespaces/{namespace}/deployments/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": workload.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": workload.paas_env_code,
+            "paas-owner": workload.paas_owner,
+            "paas-plane-code": workload.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": workload.namespace,
+            "paas-tenant-code": workload.paas_tenant_code,
+            "paas-unit-code": workload.paas_unit_code,
+            "paas-workload-name": workload.name,
+        }
+        if workload.extra_labels:
+            labels.update(workload.extra_labels)
+        template_labels = {"name": workload.name, "test": "deploy"}
+        payload: Dict[str, Any] = {
+            "apiVersion": "apps/v1",
+            "kind": workload.kind,
+            "metadata": {"name": workload.name, "labels": labels},
+            "spec": {
+                "replicas": workload.replicas,
+                "selector": {"matchLabels": dict(template_labels)},
+                "template": {
+                    "metadata": {"labels": dict(template_labels)},
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": workload.image,
+                                "imagePullPolicy": "Always",
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": workload.container_port,
+                                        "name": "port0",
+                                        "protocol": "TCP",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1042,7 +1417,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_native_hpa(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, hpa: HpaNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 HorizontalPodAutoscaler（Native 接口）。
@@ -1053,7 +1428,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s HPA JSON 对象
+            hpa: HPA 实体
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -1063,11 +1438,52 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": "ENV1",
+            "paas-owner": hpa.paas_owner,
+            "paas-plane-code": "PLANE1",
+            "paas-resource-category": "tenant-app",
+            "paas-tenant-code": "tenant-001",
+            "paas-unit-code": "TEST",
+            "name": hpa.name,
+        }
+        if hpa.extra_labels:
+            labels.update(hpa.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "autoscaling/v2",
+            "kind": "HorizontalPodAutoscaler",
+            "metadata": {"name": hpa.name, "labels": labels},
+            "spec": {
+                "maxReplicas": hpa.max_replicas,
+                "minReplicas": hpa.min_replicas,
+                "metrics": [
+                    {
+                        "type": "Resource",
+                        "resource": {
+                            "name": "cpu",
+                            "target": {
+                                "type": "Utilization",
+                                "averageUtilization": hpa.cpu_utilization,
+                            },
+                        },
+                    }
+                ],
+                "scaleTargetRef": {
+                    "apiVersion": "apps/v1",
+                    "kind": hpa.workload_kind,
+                    "name": hpa.workload_name,
+                },
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_native_hpa(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, name: str, hpa: HpaNativeEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 HorizontalPodAutoscaler（Native 接口）。
@@ -1079,7 +1495,7 @@ class ElasticComputeNativeService(BaseService):
             cluster_id: 集群 ID
             namespace: 命名空间
             name: HPA 名称
-            payload: K8s HPA JSON 对象（完整）
+            hpa: HPA 实体（完整）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -1091,6 +1507,47 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": "ENV1",
+            "paas-owner": hpa.paas_owner,
+            "paas-plane-code": "PLANE1",
+            "paas-resource-category": "tenant-app",
+            "paas-tenant-code": "tenant-001",
+            "paas-unit-code": "TEST",
+            "name": hpa.name,
+        }
+        if hpa.extra_labels:
+            labels.update(hpa.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "autoscaling/v2",
+            "kind": "HorizontalPodAutoscaler",
+            "metadata": {"name": hpa.name, "labels": labels},
+            "spec": {
+                "maxReplicas": hpa.max_replicas,
+                "minReplicas": hpa.min_replicas,
+                "metrics": [
+                    {
+                        "type": "Resource",
+                        "resource": {
+                            "name": "cpu",
+                            "target": {
+                                "type": "Utilization",
+                                "averageUtilization": hpa.cpu_utilization,
+                            },
+                        },
+                    }
+                ],
+                "scaleTargetRef": {
+                    "apiVersion": "apps/v1",
+                    "kind": hpa.workload_kind,
+                    "name": hpa.workload_name,
+                },
+            },
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1197,7 +1654,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_ingress(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, ingress: IngressNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 Ingress。
@@ -1208,7 +1665,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
-            payload: K8s Ingress JSON 对象
+            ingress: Ingress 实体
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -1218,11 +1675,53 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": "ENV1",
+            "paas-owner": ingress.paas_owner,
+            "paas-plane-code": "PLANE1",
+            "paas-resource-category": "tenant-app",
+            "paas-tenant-code": "tenant-001",
+            "paas-unit-code": "TEST",
+        }
+        if ingress.extra_labels:
+            labels.update(ingress.extra_labels)
+        rule: Dict[str, Any] = {
+            "http": {
+                "paths": [
+                    {
+                        "path": ingress.path,
+                        "pathType": "Prefix",
+                        "backend": {
+                            "service": {
+                                "name": ingress.service_name,
+                                "port": {"number": ingress.service_port},
+                            }
+                        },
+                    }
+                ]
+            }
+        }
+        if ingress.host:
+            rule["host"] = ingress.host
+        payload: Dict[str, Any] = {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "Ingress",
+            "metadata": {"name": ingress.name, "labels": labels},
+            "spec": {"rules": [rule]},
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_ingress(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self,
+        cluster_id: str,
+        namespace: str,
+        name: str,
+        ingress: IngressNativeEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Ingress。
@@ -1234,7 +1733,7 @@ class ElasticComputeNativeService(BaseService):
             cluster_id: 集群 ID
             namespace: 命名空间
             name: Ingress 名称
-            payload: K8s Ingress JSON 对象（完整）
+            ingress: Ingress 实体（完整）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -1246,6 +1745,44 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": "ENV1",
+            "paas-owner": ingress.paas_owner,
+            "paas-plane-code": "PLANE1",
+            "paas-resource-category": "tenant-app",
+            "paas-tenant-code": "tenant-001",
+            "paas-unit-code": "TEST",
+        }
+        if ingress.extra_labels:
+            labels.update(ingress.extra_labels)
+        rule: Dict[str, Any] = {
+            "http": {
+                "paths": [
+                    {
+                        "path": ingress.path,
+                        "pathType": "Prefix",
+                        "backend": {
+                            "service": {
+                                "name": ingress.service_name,
+                                "port": {"number": ingress.service_port},
+                            }
+                        },
+                    }
+                ]
+            }
+        }
+        if ingress.host:
+            rule["host"] = ingress.host
+        payload: Dict[str, Any] = {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "Ingress",
+            "metadata": {"name": ingress.name, "labels": labels},
+            "spec": {"rules": [rule]},
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1351,7 +1888,7 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_priority_class(
-        self, cluster_id: str, payload: Dict[str, Any]
+        self, cluster_id: str, pc: PriorityClassNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 PriorityClass。
@@ -1361,7 +1898,7 @@ class ElasticComputeNativeService(BaseService):
 
         Args:
             cluster_id: 集群 ID
-            payload: K8s PriorityClass JSON 对象
+            pc: PriorityClass 实体
 
         Returns:
             响应 JSON（HTTP 201=创建成功）
@@ -1371,11 +1908,21 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/scheduling.k8s.io/v1/priorityclasses"
         )
+        metadata: Dict[str, Any] = {"name": pc.name}
+        if pc.extra_labels:
+            metadata["labels"] = dict(pc.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "scheduling.k8s.io/v1",
+            "kind": "PriorityClass",
+            "metadata": metadata,
+            "value": pc.value,
+            "description": pc.description,
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_priority_class(
-        self, cluster_id: str, name: str, payload: Dict[str, Any]
+        self, cluster_id: str, name: str, pc: PriorityClassNativeEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 PriorityClass。
@@ -1386,7 +1933,7 @@ class ElasticComputeNativeService(BaseService):
         Args:
             cluster_id: 集群 ID
             name: PriorityClass 名称
-            payload: K8s PriorityClass JSON 对象（完整）
+            pc: PriorityClass 实体（完整）
 
         Returns:
             响应 JSON（HTTP 200=更新成功）
@@ -1396,6 +1943,16 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/scheduling.k8s.io/v1/priorityclasses/{name}"
         )
+        metadata: Dict[str, Any] = {"name": pc.name}
+        if pc.extra_labels:
+            metadata["labels"] = dict(pc.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "scheduling.k8s.io/v1",
+            "kind": "PriorityClass",
+            "metadata": metadata,
+            "value": pc.value,
+            "description": pc.description,
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1453,33 +2010,60 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_namespace(
-        self, cluster_id: str, payload: Dict[str, Any]
+        self, cluster_id: str, ns: NamespaceEntity
     ) -> Dict[str, Any]:
         """
         创建 Namespace。
 
         对应 JMX：弹性计算_native_namespace-api_创建namespace
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces
+
+        Args:
+            cluster_id: 集群 ID
+            ns: Namespace 实体
         """
         logger.info(f"Create Namespace: cluster={cluster_id}")
         url = f"/elastic-compute/v2/k8s/clusters/{cluster_id}/api/v1/namespaces"
+        metadata: Dict[str, Any] = {"name": ns.name}
+        if ns.extra_labels:
+            metadata["labels"] = dict(ns.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": metadata,
+            "spec": {},
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_namespace(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, ns: NamespaceEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Namespace。
 
         对应 JMX：弹性计算_native_namespace-api_更新namespace
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            ns: Namespace 实体（完整）
         """
         logger.info(f"Update Namespace: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}"
         )
+        metadata: Dict[str, Any] = {"name": ns.name}
+        if ns.extra_labels:
+            metadata["labels"] = dict(ns.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": metadata,
+            "spec": {},
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1567,30 +2151,54 @@ class ElasticComputeNativeService(BaseService):
         return resp.json()
 
     def create_resource_quota(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, rq: ResourceQuotaNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 ResourceQuota。
 
         对应 JMX：弹性计算_native_namespace-api_创建资源配额（ResourceQuota）
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/resourcequotas
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            rq: ResourceQuota 实体
         """
         logger.info(f"Create ResourceQuota: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/resourcequotas"
         )
+        metadata: Dict[str, Any] = {"name": rq.name}
+        if rq.extra_labels:
+            metadata["labels"] = dict(rq.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "ResourceQuota",
+            "metadata": metadata,
+            "spec": {"hard": dict(rq.hard)},
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_resource_quota(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self,
+        cluster_id: str,
+        namespace: str,
+        name: str,
+        rq: ResourceQuotaNativeEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 ResourceQuota。
 
         对应 JMX：弹性计算_native_namespace-api_更新资源配额（ResourceQuota）设置
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/resourcequotas/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: ResourceQuota 名称
+            rq: ResourceQuota 实体（完整）
         """
         logger.info(
             f"Update ResourceQuota: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -1599,6 +2207,15 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/resourcequotas/{name}"
         )
+        metadata: Dict[str, Any] = {"name": rq.name}
+        if rq.extra_labels:
+            metadata["labels"] = dict(rq.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "ResourceQuota",
+            "metadata": metadata,
+            "spec": {"hard": dict(rq.hard)},
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1624,30 +2241,65 @@ class ElasticComputeNativeService(BaseService):
         return resp.json()
 
     def create_limit_range(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, lr: LimitRangeNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 LimitRange。
 
         对应 JMX：弹性计算_native_namespace-api_创建资源限制（LimitRange）
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/limitranges
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            lr: LimitRange 实体
         """
         logger.info(f"Create LimitRange: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/limitranges"
         )
+        metadata: Dict[str, Any] = {"name": lr.name}
+        if lr.extra_labels:
+            metadata["labels"] = dict(lr.extra_labels)
+        limits: List[Dict[str, Any]] = (
+            [dict(item) for item in lr.limits]
+            if lr.limits is not None
+            else [
+                {
+                    "type": "Container",
+                    "default": {"cpu": "500m", "memory": "512Mi"},
+                    "defaultRequest": {"cpu": "100m", "memory": "128Mi"},
+                }
+            ]
+        )
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "LimitRange",
+            "metadata": metadata,
+            "spec": {"limits": limits},
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_limit_range(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self,
+        cluster_id: str,
+        namespace: str,
+        name: str,
+        lr: LimitRangeNativeEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 LimitRange。
 
         对应 JMX：弹性计算_native_namespace-api_更新资源限制（LimitRange）设置
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/limitranges/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: LimitRange 名称
+            lr: LimitRange 实体（完整）
         """
         logger.info(
             f"Update LimitRange: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -1656,6 +2308,26 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/limitranges/{name}"
         )
+        metadata: Dict[str, Any] = {"name": lr.name}
+        if lr.extra_labels:
+            metadata["labels"] = dict(lr.extra_labels)
+        limits: List[Dict[str, Any]] = (
+            [dict(item) for item in lr.limits]
+            if lr.limits is not None
+            else [
+                {
+                    "type": "Container",
+                    "default": {"cpu": "500m", "memory": "512Mi"},
+                    "defaultRequest": {"cpu": "100m", "memory": "128Mi"},
+                }
+            ]
+        )
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "LimitRange",
+            "metadata": metadata,
+            "spec": {"limits": limits},
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1723,19 +2395,56 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_pod(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, pod: PodNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 Pod。
 
         对应 JMX：弹性计算_native_pod_创建Pod请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/pods
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            pod: Pod 实体
         """
         logger.info(f"Create Pod: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/pods"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": pod.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": pod.paas_env_code,
+            "paas-owner": pod.paas_owner,
+            "paas-plane-code": pod.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": pod.namespace,
+            "paas-tenant-code": pod.paas_tenant_code,
+            "paas-unit-code": pod.paas_unit_code,
+            "paas-workload-name": pod.name,
+            "kind": "Pod",
+        }
+        if pod.extra_labels:
+            labels.update(pod.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {"name": pod.name, "labels": labels},
+            "spec": {
+                "containers": [
+                    {
+                        "image": pod.image,
+                        "name": "container0",
+                        "ports": [{"containerPort": pod.container_port}],
+                    }
+                ]
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1862,30 +2571,91 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_statefulset(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, workload: WorkloadNativeEntity
     ) -> Dict[str, Any]:
         """
         创建 StatefulSet。
 
         对应 JMX：弹性计算_native_statefulset_创建StatefulSet请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            workload: Workload 实体（kind="StatefulSet"）
         """
         logger.info(f"Create StatefulSet: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apps/v1/namespaces/{namespace}/statefulsets"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": workload.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": workload.paas_env_code,
+            "paas-owner": workload.paas_owner,
+            "paas-plane-code": workload.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": workload.namespace,
+            "paas-tenant-code": workload.paas_tenant_code,
+            "paas-unit-code": workload.paas_unit_code,
+            "paas-workload-name": workload.name,
+        }
+        if workload.extra_labels:
+            labels.update(workload.extra_labels)
+        template_labels = {"name": workload.name, "test": "deploy"}
+        payload: Dict[str, Any] = {
+            "apiVersion": "apps/v1",
+            "kind": workload.kind,
+            "metadata": {"name": workload.name, "labels": labels},
+            "spec": {
+                "replicas": workload.replicas,
+                "selector": {"matchLabels": dict(template_labels)},
+                "template": {
+                    "metadata": {"labels": dict(template_labels)},
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": workload.image,
+                                "imagePullPolicy": "Always",
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": workload.container_port,
+                                        "name": "port0",
+                                        "protocol": "TCP",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_statefulset(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self,
+        cluster_id: str,
+        namespace: str,
+        name: str,
+        workload: WorkloadNativeEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 StatefulSet。
 
         对应 JMX：弹性计算_native_statefulset_更新指定StatefulSet
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: StatefulSet 名称
+            workload: Workload 实体（完整）
         """
         logger.info(
             f"Update StatefulSet: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -1894,6 +2664,52 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/apps/v1/namespaces/{namespace}/statefulsets/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": workload.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": workload.paas_env_code,
+            "paas-owner": workload.paas_owner,
+            "paas-plane-code": workload.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": workload.namespace,
+            "paas-tenant-code": workload.paas_tenant_code,
+            "paas-unit-code": workload.paas_unit_code,
+            "paas-workload-name": workload.name,
+        }
+        if workload.extra_labels:
+            labels.update(workload.extra_labels)
+        template_labels = {"name": workload.name, "test": "deploy"}
+        payload: Dict[str, Any] = {
+            "apiVersion": "apps/v1",
+            "kind": workload.kind,
+            "metadata": {"name": workload.name, "labels": labels},
+            "spec": {
+                "replicas": workload.replicas,
+                "selector": {"matchLabels": dict(template_labels)},
+                "template": {
+                    "metadata": {"labels": dict(template_labels)},
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": workload.image,
+                                "imagePullPolicy": "Always",
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": workload.container_port,
+                                        "name": "port0",
+                                        "protocol": "TCP",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -1980,19 +2796,41 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_pvc(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, pvc: PvcEntity
     ) -> Dict[str, Any]:
         """
         创建 PersistentVolumeClaim。
 
         对应 JMX：弹性计算_native_pvc-pv-api_创建PVC
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/persistentvolumeclaims
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            pvc: PVC 实体
         """
         logger.info(f"Create PVC: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/persistentvolumeclaims"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-resource-category": "tenant-app",
+            "paas-owner": pvc.paas_owner,
+            "paas-cluster-code": cluster_id,
+        }
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "PersistentVolumeClaim",
+            "metadata": {"name": pvc.name, "labels": labels},
+            "spec": {
+                "accessModes": list(pvc.access_modes),
+                "resources": {"requests": {"storage": pvc.storage}},
+                "storageClassName": pvc.storage_class_name,
+                "volumeMode": pvc.volume_mode,
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -2045,19 +2883,41 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_role_binding(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, rb: RoleBindingEntity
     ) -> Dict[str, Any]:
         """
         创建 RoleBinding。
 
         对应 JMX：弹性计算_native_rolebinding_创建RoleBinding请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/rolebindings
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            rb: RoleBinding 实体（name / role_name / service_account_name / namespace）
         """
         logger.info(f"Create RoleBinding: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/rolebindings"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "RoleBinding",
+            "metadata": {"name": rb.name},
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "Role",
+                "name": rb.role_name,
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": rb.service_account_name,
+                    "namespace": rb.namespace,
+                }
+            ],
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -2110,30 +2970,56 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_secret(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, secret: SecretEntity
     ) -> Dict[str, Any]:
         """
         创建 Secret。
 
         对应 JMX：弹性计算_native_secret_创建Secret请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            secret: Secret 实体
         """
         logger.info(f"Create Secret: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/secrets"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-cluster-code": cluster_id,
+            "paas-owner": secret.paas_owner,
+            "paas-resource-category": "tenant-app",
+            "name": secret.name,
+        }
+        if secret.extra_labels:
+            labels.update(secret.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {"name": secret.name, "labels": labels},
+            "data": dict(secret.data),
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_secret(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, name: str, secret: SecretEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Secret。
 
         对应 JMX：弹性计算_native_secret_更新指定Secret
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: Secret 名称
+            secret: Secret 实体（完整）
         """
         logger.info(
             f"Update Secret: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2142,6 +3028,21 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/secrets/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-cluster-code": cluster_id,
+            "paas-owner": secret.paas_owner,
+            "paas-resource-category": "tenant-app",
+            "name": secret.name,
+        }
+        if secret.extra_labels:
+            labels.update(secret.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {"name": secret.name, "labels": labels},
+            "data": dict(secret.data),
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
@@ -2227,30 +3128,74 @@ class ElasticComputeNativeService(BaseService):
             raise
 
     def create_service_resource(
-        self, cluster_id: str, namespace: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, svc: ServiceEntity
     ) -> Dict[str, Any]:
         """
         创建 Service。
 
         对应 JMX：弹性计算_native_service_创建Service请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            svc: Service 实体
         """
         logger.info(f"Create Service: cluster={cluster_id}, ns={namespace}")
         url = (
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/services"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": svc.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": svc.paas_env_code,
+            "paas-owner": svc.paas_owner,
+            "paas-plane-code": svc.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": svc.namespace,
+            "paas-tenant-code": svc.paas_tenant_code,
+            "paas-unit-code": svc.paas_unit_code,
+            "paas-workload-name": svc.paas_workload_name,
+        }
+        if svc.extra_labels:
+            labels.update(svc.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {"name": svc.name, "labels": labels},
+            "spec": {
+                "ports": [
+                    {
+                        "name": svc.port_name,
+                        "port": svc.port,
+                        "protocol": svc.protocol,
+                        "targetPort": svc.target_port,
+                    }
+                ],
+                "selector": {"name": svc.paas_workload_name},
+            },
+        }
         resp = self.post(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
     def update_service_resource(
-        self, cluster_id: str, namespace: str, name: str, payload: Dict[str, Any]
+        self, cluster_id: str, namespace: str, name: str, svc: ServiceEntity
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Service。
 
         对应 JMX：弹性计算_native_service_更新指定Service
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services/{name}
+
+        Args:
+            cluster_id: 集群 ID
+            namespace: 命名空间
+            name: Service 名称
+            svc: Service 实体（完整）
         """
         logger.info(
             f"Update Service: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2259,6 +3204,39 @@ class ElasticComputeNativeService(BaseService):
             f"/elastic-compute/v2/k8s/clusters/{cluster_id}"
             f"/api/v1/namespaces/{namespace}/services/{name}"
         )
+        labels: Dict[str, str] = {
+            "operation-source": "api",
+            "paas-app-code": svc.paas_app_code,
+            "paas-app-service-version": "v1",
+            "paas-app-source": "baseImage",
+            "paas-cluster-code": cluster_id,
+            "paas-env-code": svc.paas_env_code,
+            "paas-owner": svc.paas_owner,
+            "paas-plane-code": svc.paas_plane_code,
+            "paas-resource-category": "tenant-app",
+            "paas-system-code": svc.namespace,
+            "paas-tenant-code": svc.paas_tenant_code,
+            "paas-unit-code": svc.paas_unit_code,
+            "paas-workload-name": svc.paas_workload_name,
+        }
+        if svc.extra_labels:
+            labels.update(svc.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {"name": svc.name, "labels": labels},
+            "spec": {
+                "ports": [
+                    {
+                        "name": svc.port_name,
+                        "port": svc.port,
+                        "protocol": svc.protocol,
+                        "targetPort": svc.target_port,
+                    }
+                ],
+                "selector": {"name": svc.paas_workload_name},
+            },
+        }
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 

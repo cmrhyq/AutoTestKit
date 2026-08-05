@@ -4,15 +4,13 @@
 转换自 JMeter 脚本: job.jmx
 测试内容：Job 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 """
-import copy
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
-from base.api.entity import ContainerSpec, PaasLabels
+from base.api.entity.elastic_compute import JobEntity, JobNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -45,79 +43,22 @@ class TestEcNativeJob:
     @pytest.fixture(scope="class")
     def public_params(self, api_env):
         """提取 Job 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-busy-job",
-            "paas_app_code": api_env.get("appCodeJob", "test-app-job"),
-            "paas_env_code": api_env.get("paasEnvCode", "ENV1"),
-            "paas_owner": api_env.get("user", "panji_probe"),
-            "paas_plane_code": api_env.get("paasPlaneCode", "PLANE1"),
-            "paas_tenant_code": api_env.get("paasTenantCode", "tenant-001"),
-            "paas_unit_code": api_env.get("paasUnitCode", "TEST"),
-            "image": api_env.get(
+        return JobNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-busy-job",
+            paas_app_code=api_env.get("appCodeJob", "test-app-job"),
+            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
+            paas_owner=api_env.get("user", "panji_probe"),
+            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
+            image=api_env.get(
                 "nginxImageUrl", "100.10.102.53:1121/tools/nginx:arm"
             ),
-            "completions": 1,
-            "parallelism": 1,
-        }
-
-    @staticmethod
-    def _paas_labels(params: Dict[str, Any]) -> PaasLabels:
-        """根据 public_params 组装 PaasLabels 实体（12 字段）。"""
-        return PaasLabels(
-            paas_owner=params["paas_owner"],
-            paas_cluster_code=params["cluster_id"],
-            paas_app_code=params["paas_app_code"],
-            paas_env_code=params["paas_env_code"],
-            paas_plane_code=params["paas_plane_code"],
-            paas_tenant_code=params["paas_tenant_code"],
-            paas_unit_code=params["paas_unit_code"],
-            paas_system_code=params["namespace"],
-            paas_workload_name=params["name"],
+            completions=int(api_env.get("completions", 1)),
+            parallelism=int(api_env.get("parallelism", 1)),
         )
-
-    @classmethod
-    def _build_job_create_payload(cls, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Job 创建请求体。
-
-        对应 JMX 中的 POST body（XML 实体还原后）。
-
-        Job 相较通用工作负载有特殊字段（backoffLimit / completions / parallelism /
-        restartPolicy / command 等），故此处不使用 WorkloadPayload，仅复用
-        PaasLabels 与 ContainerSpec 组装。
-        """
-        name = params["name"]
-        container = ContainerSpec(
-            image=params["image"],
-            name="busyjob",
-            imagePullPolicy="Always",
-        ).to_dict()
-        container["command"] = [
-            "/bin/sh",
-            "-c",
-            "date;echo 'Hello World'",
-        ]
-        return {
-            "apiVersion": "batch/v1",
-            "kind": "Job",
-            "metadata": {
-                "name": name,
-                "labels": cls._paas_labels(params).to_dict(),
-            },
-            "spec": {
-                "backoffLimit": 6,
-                "completions": params["completions"],
-                "parallelism": params["parallelism"],
-                "template": {
-                    "spec": {
-                        "restartPolicy": "Never",
-                        "containers": [container],
-                    },
-                },
-            },
-        }
 
     # ==================== 生命周期测试（每接口一函数）====================
 
@@ -128,9 +69,9 @@ class TestEcNativeJob:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_job_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 Job，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_job(
@@ -158,13 +99,25 @@ class TestEcNativeJob:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_job(self, native_service, public_params, api_cache):
         """创建 Job，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_job_create_payload(public_params)
+            job = JobEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                completions=public_params.completions,
+                parallelism=public_params.parallelism,
+            )
             create_resp = native_service.create_job(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, job=job,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -181,9 +134,9 @@ class TestEcNativeJob:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_jobs(self, native_service, public_params):
         """查询 Job 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         time.sleep(3)
 
@@ -215,25 +168,28 @@ class TestEcNativeJob:
 
         对应 JMX 中的 JSR223PostProcessor 逻辑：先 GET 拿完整对象，追加标签后 PUT。
         """
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            get_http_code, current_job = native_service.get_job(
-                cluster_id=cluster_id, namespace=namespace, name=name,
+            job = JobEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                completions=public_params.completions,
+                parallelism=public_params.parallelism,
+                extra_labels={"test": "update"},
             )
-            assert get_http_code == HttpStatus.OK, (
-                f"更新前查询 Job 失败, status={get_http_code}, 响应: {current_job}"
-            )
-
-            payload = copy.deepcopy(current_job)
-            payload.setdefault("metadata", {}).setdefault("labels", {})[
-                "test"
-            ] = "update"
 
             native_service.update_job(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, job=job,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -247,9 +203,9 @@ class TestEcNativeJob:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_job(self, native_service, public_params, api_cache):
         """删除 Job，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_job(

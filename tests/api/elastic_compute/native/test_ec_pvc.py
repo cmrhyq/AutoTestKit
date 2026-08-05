@@ -6,11 +6,10 @@
 
 注意：JMX 中仅包含 PVC 部分，没有 PV / update / list 接口。
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import PvcEntity, PvcNativePublicParams
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -41,43 +40,14 @@ class TestEcNativePvc:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> PvcNativePublicParams:
         """提取 PVC 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "pvc_name": "test-pvc001",
-            "paas_owner": api_env.get("user", "panji_probe"),
-        }
-
-    @staticmethod
-    def _build_pvc_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 PVC 创建请求体。
-
-        对应 JMX 中的 POST body。
-        """
-        return {
-            "apiVersion": "v1",
-            "kind": "PersistentVolumeClaim",
-            "metadata": {
-                "name": params["pvc_name"],
-                "labels": {
-                    "operation-source": "api",
-                    "paas-resource-category": "tenant-app",
-                    "paas-owner": params["paas_owner"],
-                    "paas-cluster-code": params["cluster_id"],
-                },
-            },
-            "spec": {
-                "accessModes": ["ReadWriteOnce"],
-                "resources": {
-                    "requests": {"storage": "10Mi"},
-                },
-                "storageClassName": "demo-sss-001",
-                "volumeMode": "Filesystem",
-            },
-        }
+        return PvcNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            pvc_name="test-pvc001",
+            paas_owner=api_env.get("user", "panji_probe"),
+        )
 
     @pytest.mark.dependency(name="pvc_query_and_cleanup")
     @pytest.mark.order(1)
@@ -86,9 +56,9 @@ class TestEcNativePvc:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_pvc_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 PVC，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["pvc_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.pvc_name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_pvc(
@@ -117,13 +87,16 @@ class TestEcNativePvc:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_pvc(self, native_service, public_params, api_cache):
         """创建 PVC，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_pvc_create_payload(public_params)
+            pvc = PvcEntity(
+                name=public_params.pvc_name,
+                paas_owner=public_params.paas_owner,
+            )
             create_resp = native_service.create_pvc(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, pvc=pvc,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -140,9 +113,9 @@ class TestEcNativePvc:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_pvc(self, native_service, public_params, api_cache):
         """删除 PVC，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["pvc_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.pvc_name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_pvc(

@@ -6,18 +6,11 @@
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
-from base.api.entity import (
-    ContainerPort,
-    ContainerSpec,
-    PaasLabels,
-    PodTemplate,
-    WorkloadPayload,
-)
+from base.api.entity.elastic_compute import DeploymentNativePublicParams, WorkloadNativeEntity
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -48,101 +41,20 @@ class TestEcNativeDeployment:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> DeploymentNativePublicParams:
         """提取 Deployment 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-app-nginx",
-            "paas_app_code": api_env.get("appCodeDeploy", "test-app"),
-            "paas_env_code": api_env.get("paasEnvCode", "ENV1"),
-            "paas_owner": api_env.get("user", "panji_probe"),
-            "paas_plane_code": api_env.get("paasPlaneCode", "PLANE1"),
-            "paas_tenant_code": api_env.get("paasTenantCode", "tenant-001"),
-            "paas_unit_code": api_env.get("paasUnitCode", "TEST"),
-            "image": api_env.get("nginxImageUrl", "hpe_containers/nginx:latest"),
-            "replicas": 1,
-        }
-
-    @staticmethod
-    def _paas_labels(params: Dict[str, Any]) -> PaasLabels:
-        """
-        根据 public_params 组装 PaasLabels 实体（12 字段）。
-
-        `paas_system_code` 与 `paas_workload_name` 分别取自 namespace 与 name。
-        """
-        return PaasLabels(
-            paas_owner=params["paas_owner"],
-            paas_cluster_code=params["cluster_id"],
-            paas_app_code=params["paas_app_code"],
-            paas_env_code=params["paas_env_code"],
-            paas_plane_code=params["paas_plane_code"],
-            paas_tenant_code=params["paas_tenant_code"],
-            paas_unit_code=params["paas_unit_code"],
-            paas_system_code=params["namespace"],
-            paas_workload_name=params["name"],
-        )
-
-    @classmethod
-    def _build_workload(
-        cls,
-        params: Dict[str, Any],
-        *,
-        container_port: int,
-        extra_labels: Dict[str, str] | None = None,
-        replicas_delta: int = 0,
-    ) -> Dict[str, Any]:
-        """
-        使用 WorkloadPayload + PaasLabels + PodTemplate 组装 Deployment payload。
-
-        - `container_port`: 容器端口（创建=8080，更新=8090）
-        - `extra_labels`: 附加标签（如更新时的 `{"test": "update"}`）
-        - `replicas_delta`: replicas 增量（更新时 +1）
-        """
-        name = params["name"]
-        template_labels = {"name": name, "test": "deploy"}
-        return WorkloadPayload(
-            name=name,
-            apiVersion="apps/v1",
-            kind="Deployment",
-            labels=cls._paas_labels(params).merged_with(extra_labels),
-            match_labels=dict(template_labels),
-            replicas=params["replicas"] + replicas_delta,
-            template=PodTemplate(
-                labels=dict(template_labels),
-                containers=[
-                    ContainerSpec(
-                        image=params["image"],
-                        name="container0",
-                        imagePullPolicy="Always",
-                        ports=[ContainerPort(containerPort=container_port)],
-                    )
-                ],
-            ),
-        ).to_dict()
-
-    @classmethod
-    def _build_deployment_create_payload(cls, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Deployment 创建请求体。
-
-        对应 JMX 中的 POST body（XML 实体还原后）。
-        """
-        return cls._build_workload(params, container_port=8080)
-
-    @classmethod
-    def _build_deployment_update_payload(cls, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 Deployment 更新请求体。
-
-        对应 JMX 中的 PUT body（XML 实体还原后）。
-        区别：增加 test: update 标签，replicas+1，containerPort 改为 8090。
-        """
-        return cls._build_workload(
-            params,
-            container_port=8090,
-            extra_labels={"test": "update"},
-            replicas_delta=1,
+        return DeploymentNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-app-nginx",
+            paas_app_code=api_env.get("appCodeDeploy", "test-app"),
+            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
+            paas_owner=api_env.get("user", "panji_probe"),
+            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
+            image=api_env.get("nginxImageUrl", "hpe_containers/nginx:latest"),
+            replicas=1,
         )
 
     # ==================== 生命周期测试（每接口一函数）====================
@@ -156,9 +68,9 @@ class TestEcNativeDeployment:
         self, native_service, public_params, api_cache
     ):
         """查询指定 Deployment，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_deployment(
@@ -186,13 +98,25 @@ class TestEcNativeDeployment:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_deployment(self, native_service, public_params, api_cache):
         """创建 Deployment，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_deployment_create_payload(public_params)
+            workload = WorkloadNativeEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                kind="Deployment",
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                replicas=public_params.replicas,
+            )
             create_resp = native_service.create_deployment(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, workload=workload,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -209,9 +133,9 @@ class TestEcNativeDeployment:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_deployments(self, native_service, public_params):
         """查询 Deployment 列表，断言包含目标资源。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         time.sleep(3)
 
@@ -237,14 +161,28 @@ class TestEcNativeDeployment:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_deployment(self, native_service, public_params):
         """PUT 全量更新 Deployment，断言更新成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_deployment_update_payload(public_params)
+            workload = WorkloadNativeEntity(
+                name=public_params.name,
+                namespace=public_params.namespace,
+                kind="Deployment",
+                paas_app_code=public_params.paas_app_code,
+                paas_env_code=public_params.paas_env_code,
+                paas_owner=public_params.paas_owner,
+                paas_plane_code=public_params.paas_plane_code,
+                paas_tenant_code=public_params.paas_tenant_code,
+                paas_unit_code=public_params.paas_unit_code,
+                image=public_params.image,
+                replicas=public_params.replicas + 1,
+                container_port=8090,
+                extra_labels={"test": "update"},
+            )
             native_service.update_deployment(
-                cluster_id=cluster_id, namespace=namespace, name=name, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, name=name, workload=workload,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -258,9 +196,9 @@ class TestEcNativeDeployment:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_deployment(self, native_service, public_params, api_cache):
         """删除 Deployment，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_deployment(

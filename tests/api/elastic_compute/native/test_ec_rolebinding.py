@@ -6,11 +6,13 @@
 
 注意：JMX 中仅包含 GET/POST/DELETE，没有 update / list 接口。
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    RoleBindingEntity,
+    RoleBindingNativePublicParams,
+)
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -41,40 +43,15 @@ class TestEcNativeRoleBinding:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> RoleBindingNativePublicParams:
         """提取 RoleBinding 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-rolebinding-001",
-            "role_name": "test-role",
-            "service_account_name": "test-sa",
-        }
-
-    @staticmethod
-    def _build_rb_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 RoleBinding 创建请求体。
-
-        对应 JMX 中的 POST body。
-        """
-        return {
-            "apiVersion": "rbac.authorization.k8s.io/v1",
-            "kind": "RoleBinding",
-            "metadata": {"name": params["name"]},
-            "roleRef": {
-                "apiGroup": "rbac.authorization.k8s.io",
-                "kind": "Role",
-                "name": params["role_name"],
-            },
-            "subjects": [
-                {
-                    "kind": "ServiceAccount",
-                    "name": params["service_account_name"],
-                    "namespace": params["namespace"],
-                }
-            ],
-        }
+        return RoleBindingNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-rolebinding-001",
+            role_name="test-role",
+            service_account_name="test-sa",
+        )
 
     @pytest.mark.dependency(name="rb_query_and_cleanup")
     @pytest.mark.order(1)
@@ -83,9 +60,9 @@ class TestEcNativeRoleBinding:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_rb_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 RoleBinding，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_role_binding(
@@ -114,13 +91,19 @@ class TestEcNativeRoleBinding:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_rb(self, native_service, public_params, api_cache):
         """创建 RoleBinding，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_rb_create_payload(public_params)
             create_resp = native_service.create_role_binding(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id,
+                namespace=namespace,
+                rb=RoleBindingEntity(
+                    name=public_params.name,
+                    role_name=public_params.role_name,
+                    service_account_name=public_params.service_account_name,
+                    namespace=public_params.namespace,
+                ),
             )
             create_http_code = native_service.last_response.status_code
 
@@ -138,9 +121,9 @@ class TestEcNativeRoleBinding:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_rb(self, native_service, public_params):
         """查询新创建的 RoleBinding。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, resp = native_service.get_role_binding(
@@ -161,9 +144,9 @@ class TestEcNativeRoleBinding:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_rb(self, native_service, public_params, api_cache):
         """删除 RoleBinding，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_role_binding(

@@ -14,15 +14,14 @@
   6. 查询 ns → 查询 ns 列表 → 更新 ns
   7. 删除 ns（级联清理 rq/lr/events）
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
-from base.api.entity import (
-    LimitRangePayload,
-    NamespacePayload,
-    ResourceQuotaPayload,
+from base.api.entity.elastic_compute import (
+    LimitRangeNativeEntity,
+    NamespaceEntity,
+    NamespaceNativePublicParams,
+    ResourceQuotaNativeEntity,
 )
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
@@ -62,27 +61,12 @@ class TestEcNativeNamespace:
         JMX 中 ResourceQuota / LimitRange 的 name 与 namespace 同名。
         """
         ns = "native-test-namespace"
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": ns,
-            "rq_name": ns,
-            "lr_name": ns,
-        }
-
-    @staticmethod
-    def _build_ns_payload(namespace: str) -> Dict[str, Any]:
-        """构建 Namespace payload（对应 JMX POST/PUT body）。"""
-        return NamespacePayload(name=namespace).to_dict()
-
-    @staticmethod
-    def _build_rq_payload(name: str) -> Dict[str, Any]:
-        """构建 ResourceQuota payload（对应 JMX POST/PUT body）。"""
-        return ResourceQuotaPayload(name=name, hard={"pods": "110"}).to_dict()
-
-    @staticmethod
-    def _build_lr_payload(name: str) -> Dict[str, Any]:
-        """构建 LimitRange payload（对应 JMX POST/PUT body）。"""
-        return LimitRangePayload(name=name).to_dict()
+        return NamespaceNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=ns,
+            rq_name=ns,
+            lr_name=ns,
+        )
 
     # ==================== 生命周期测试（每接口一函数）====================
 
@@ -95,8 +79,8 @@ class TestEcNativeNamespace:
         self, native_service, public_params, api_cache
     ):
         """查询指定 Namespace，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_namespace(
@@ -127,13 +111,12 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_namespace(self, native_service, public_params, api_cache):
         """创建 Namespace，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_ns_payload(namespace)
+            ns = NamespaceEntity(name=public_params.namespace)
             create_resp = native_service.create_namespace(
-                cluster_id=cluster_id, payload=payload,
+                cluster_id=cluster_id, ns=ns,
             )
             create_http_code = native_service.last_response.status_code
 
@@ -153,14 +136,14 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_create_resource_quota(self, native_service, public_params):
         """创建 ResourceQuota。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        rq_name = public_params["rq_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        rq_name = public_params.rq_name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_rq_payload(rq_name)
+            rq = ResourceQuotaNativeEntity(name=rq_name)
             native_service.create_resource_quota(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, rq=rq,
             )
 
             assert native_service.last_response.status_code == HttpStatus.CREATED, (
@@ -177,9 +160,9 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_quota(self, native_service, public_params):
         """查询指定 ResourceQuota。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        rq_name = public_params["rq_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        rq_name = public_params.rq_name
 
         with AllureHelper.api_test(native_service):
             native_service.get_resource_quota(
@@ -200,17 +183,17 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota(self, native_service, public_params):
         """更新指定 ResourceQuota。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        rq_name = public_params["rq_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        rq_name = public_params.rq_name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_rq_payload(rq_name)
+            rq = ResourceQuotaNativeEntity(name=rq_name)
             native_service.update_resource_quota(
                 cluster_id=cluster_id,
                 namespace=namespace,
                 name=rq_name,
-                payload=payload,
+                rq=rq,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -227,14 +210,14 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_create_limit_range(self, native_service, public_params):
         """创建 LimitRange。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        lr_name = public_params["lr_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        lr_name = public_params.lr_name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_lr_payload(lr_name)
+            lr = LimitRangeNativeEntity(name=lr_name)
             native_service.create_limit_range(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, lr=lr,
             )
 
             assert native_service.last_response.status_code == HttpStatus.CREATED, (
@@ -251,9 +234,9 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_limit_range(self, native_service, public_params):
         """查询指定 LimitRange。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        lr_name = public_params["lr_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        lr_name = public_params.lr_name
 
         with AllureHelper.api_test(native_service):
             native_service.get_limit_range(
@@ -274,17 +257,20 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range(self, native_service, public_params):
         """更新指定 LimitRange。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        lr_name = public_params["lr_name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        lr_name = public_params.lr_name
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_lr_payload(lr_name)
+            lr = LimitRangeNativeEntity(
+                name=lr_name,
+                extra_labels={"test": "update"},
+            )
             native_service.update_limit_range(
                 cluster_id=cluster_id,
                 namespace=namespace,
                 name=lr_name,
-                payload=payload,
+                lr=lr,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -301,8 +287,8 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.MINOR)
     def test_get_namespace_events(self, native_service, public_params):
         """查询 Namespace Events。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
             native_service.get_namespace_events(
@@ -323,7 +309,7 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_namespaces(self, native_service, public_params):
         """查询 Namespace 列表。"""
-        cluster_id = public_params["cluster_id"]
+        cluster_id = public_params.cluster_id
 
         with AllureHelper.api_test(native_service):
             native_service.list_namespaces(cluster_id=cluster_id)
@@ -348,13 +334,16 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_namespace(self, native_service, public_params):
         """PUT 全量更新 Namespace。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_ns_payload(namespace)
+            ns = NamespaceEntity(
+                name=namespace,
+                extra_labels={"test": "update"},
+            )
             native_service.update_namespace(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id, namespace=namespace, ns=ns,
             )
 
             assert native_service.last_response.status_code == HttpStatus.OK, (
@@ -371,8 +360,8 @@ class TestEcNativeNamespace:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_namespace(self, native_service, public_params, api_cache):
         """删除 Namespace。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
             native_service.delete_namespace(

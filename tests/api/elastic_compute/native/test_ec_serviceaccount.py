@@ -8,11 +8,13 @@
 Service 层的 get_service_account / create_service_account / delete_service_account
 在文件顶部已存在，直接复用。
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
+from base.api.entity.elastic_compute import (
+    ServiceAccountEntity,
+    ServiceAccountNativePublicParams,
+)
 from base.api.services.elastic_compute_native_service import (
     ElasticComputeNativeService,
 )
@@ -43,26 +45,13 @@ class TestEcNativeServiceAccount:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ServiceAccountNativePublicParams:
         """提取 ServiceAccount 测试所需的公共参数。"""
-        return {
-            "cluster_id": str(api_env.get("clusterId", "1")),
-            "namespace": api_env.get("namespace", "test-admin"),
-            "name": "native-test-sa",
-        }
-
-    @staticmethod
-    def _build_sa_create_payload(params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        构建 ServiceAccount 创建请求体。
-
-        对应 JMX 中的 POST body。结构最简单：仅 metadata.name。
-        """
-        return {
-            "apiVersion": "v1",
-            "kind": "ServiceAccount",
-            "metadata": {"name": params["name"]},
-        }
+        return ServiceAccountNativePublicParams(
+            cluster_id=str(api_env.get("clusterId", "1")),
+            namespace=api_env.get("namespace", "test-admin"),
+            name="native-test-sa",
+        )
 
     @pytest.mark.dependency(name="sa_query_and_cleanup")
     @pytest.mark.order(1)
@@ -71,9 +60,9 @@ class TestEcNativeServiceAccount:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_sa_and_cleanup(self, native_service, public_params, api_cache):
         """查询指定 ServiceAccount，若已存在则删除，确保测试环境干净。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             get_http_code, _ = native_service.get_service_account(
@@ -102,13 +91,14 @@ class TestEcNativeServiceAccount:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_sa(self, native_service, public_params, api_cache):
         """创建 ServiceAccount，断言创建成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
 
         with AllureHelper.api_test(native_service):
-            payload = self._build_sa_create_payload(public_params)
             create_resp = native_service.create_service_account(
-                cluster_id=cluster_id, namespace=namespace, payload=payload,
+                cluster_id=cluster_id,
+                namespace=namespace,
+                sa=ServiceAccountEntity(name=public_params.name),
             )
             create_http_code = native_service.last_response.status_code
 
@@ -126,9 +116,9 @@ class TestEcNativeServiceAccount:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_sa(self, native_service, public_params, api_cache):
         """删除 ServiceAccount，断言删除成功。"""
-        cluster_id = public_params["cluster_id"]
-        namespace = public_params["namespace"]
-        name = public_params["name"]
+        cluster_id = public_params.cluster_id
+        namespace = public_params.namespace
+        name = public_params.name
 
         with AllureHelper.api_test(native_service):
             native_service.delete_service_account(
