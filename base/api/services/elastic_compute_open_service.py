@@ -30,10 +30,9 @@ from typing import Any, Dict, List, Optional
 import json
 
 from base import BaseService
-from base.api.entity.elastic_compute_openapi import (
+from base.api.entity.elastic_compute.openapi import (
     ClusterCustomResourceEntity,
     ClusterCustomResourcePatchEntity,
-    ConfigMapPublicParams,
     HarborMemberEntity,
     HarborProjectEntity,
     HarborReplicationPolicyEntity,

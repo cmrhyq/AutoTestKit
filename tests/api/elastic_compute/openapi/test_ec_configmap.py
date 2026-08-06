@@ -10,7 +10,7 @@ import json
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import (
+from base.api.entity.elastic_compute.openapi import (
     ConfigMapPublicParams,
     K8sConfigMapEntity,
     K8sConfigMapPatchEntity,

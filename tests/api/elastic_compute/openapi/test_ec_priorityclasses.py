@@ -9,7 +9,7 @@ import json
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import (
+from base.api.entity.elastic_compute.openapi import (
     K8sPriorityClassEntity,
     K8sPriorityClassPatchEntity,
     PriorityClassPublicParams,

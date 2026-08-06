@@ -10,7 +10,7 @@ from typing import Dict
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import ClusterPublicParams
+from base.api.entity.elastic_compute.openapi import ClusterPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )

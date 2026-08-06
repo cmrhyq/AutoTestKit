@@ -7,7 +7,7 @@ RBAC 管理接口测试
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import RbacPublicParams
+from base.api.entity.elastic_compute.openapi import RbacPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )

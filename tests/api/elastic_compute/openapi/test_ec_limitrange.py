@@ -13,7 +13,7 @@ JMX 顶层通过 testHostCluster 分成两个分支：
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import (
+from base.api.entity.elastic_compute.openapi import (
     K8sLimitRangeEntity,
     LimitrangeHostParams,
     LimitrangeStandardParams,

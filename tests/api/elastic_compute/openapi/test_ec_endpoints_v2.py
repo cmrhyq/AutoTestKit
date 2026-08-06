@@ -10,7 +10,7 @@ import json
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import EndpointsV2PublicParams
+from base.api.entity.elastic_compute.openapi import EndpointsV2PublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )

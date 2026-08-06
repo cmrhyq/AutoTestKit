@@ -8,7 +8,7 @@
 import allure
 import pytest
 
-from base.api.entity.elastic_compute_openapi import HarborInitPublicParams
+from base.api.entity.elastic_compute.openapi import HarborInitPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
