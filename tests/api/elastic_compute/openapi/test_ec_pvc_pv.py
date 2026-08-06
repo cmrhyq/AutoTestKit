@@ -6,11 +6,14 @@ PVC/PV/StorageClass 接口测试
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    K8sPvcEntity,
+    PvcPvPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -35,32 +38,17 @@ class TestEcOpenapiPvcPv:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> PvcPvPublicParams:
         """提取 PVC/PV 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            "sys_code": api_env.get("sysCode", "test"),
-            "pvc_name": api_env.get("pvcName", "test-hpa-001"),
-            "pv_name": api_env.get("pvName", "test-pv-001"),
-            "storage_class_name": api_env.get("storageClassName", "test-sc-001"),
-        }
-
-    # -------------------- Payload 构造 --------------------
-
-    @staticmethod
-    def _build_pvc_payload(name: str, storage_class_name: str) -> Dict[str, Any]:
-        """构造 PVC 创建请求体。"""
-        return {
-            "apiVersion": "v1",
-            "kind": "PersistentVolumeClaim",
-            "metadata": {"name": name},
-            "spec": {
-                "accessModes": ["ReadWriteOnce"],
-                "resources": {"requests": {"storage": "1Gi"}},
-                "storageClassName": storage_class_name,
-            },
-        }
+        return PvcPvPublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=api_env.get("sysCode", "test"),
+            pvc_name=api_env.get("pvcName", "test-hpa-001"),
+            pv_name=api_env.get("pvName", "test-pv-001"),
+            storage_class_name=api_env.get("storageClassName", "test-sc-001"),
+        )
 
     # -------------------- 测试用例 --------------------
 
@@ -71,13 +59,11 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_pvc_and_cleanup(self, ec_service, public_params, api_cache):
         """查询指定 PVC，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pvc_name = public_params["pvc_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_pvc(
-                cell_code=cell_code, sys_code=sys_code, name=pvc_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pvc_name,
             )
             ec_get_code = get_resp.get("code")
 
@@ -87,7 +73,9 @@ class TestEcOpenapiPvcPv:
 
             if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_pvc(
-                    cell_code=cell_code, sys_code=sys_code, name=pvc_name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    name=public_params.pvc_name,
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 PVC 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -102,15 +90,15 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_pvc(self, ec_service, public_params, api_cache):
         """创建 PVC，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pvc_name = public_params["pvc_name"]
-        storage_class_name = public_params["storage_class_name"]
-
         with AllureHelper.api_test(ec_service):
-            payload = self._build_pvc_payload(pvc_name, storage_class_name)
+            pvc = K8sPvcEntity(
+                name=public_params.pvc_name,
+                storage_class_name=public_params.storage_class_name,
+            )
             create_resp = ec_service.create_pvc(
-                cell_code=cell_code, sys_code=sys_code, payload=payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                pvc=pvc,
             )
 
             assert create_resp.get("code") == ApiCode.SUCCESS, (
@@ -127,20 +115,19 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_pvc_by_namespace(self, ec_service, public_params):
         """查询 Namespace 下 PVC 列表，断言包含目标 PVC。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pvc_name = public_params["pvc_name"]
-
         with AllureHelper.api_test(ec_service):
-            list_resp = ec_service.list_pvc(cell_code=cell_code, sys_code=sys_code)
+            list_resp = ec_service.list_pvc(
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+            )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 PVC 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert pvc_name in resp_str, (
-                f"Namespace 下 PVC 列表未找到 {pvc_name}, 响应: {list_resp}"
+            assert public_params.pvc_name in resp_str, (
+                f"Namespace 下 PVC 列表未找到 {public_params.pvc_name}, 响应: {list_resp}"
             )
 
     @pytest.mark.dependency(name="pvc_list_cell", depends=["pvc_create"])
@@ -150,19 +137,16 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_pvc_by_cell(self, ec_service, public_params):
         """查询全集群 PVC 列表，断言包含目标 PVC。"""
-        cell_code = public_params["cell_code"]
-        pvc_name = public_params["pvc_name"]
-
         with AllureHelper.api_test(ec_service):
-            list_resp = ec_service.list_all_cluster_pvc(cell_code=cell_code)
+            list_resp = ec_service.list_all_cluster_pvc(cell_code=public_params.cell_code)
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 PVC 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
 
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert pvc_name in resp_str, (
-                f"全集群 PVC 列表未找到 {pvc_name}, 响应: {list_resp}"
+            assert public_params.pvc_name in resp_str, (
+                f"全集群 PVC 列表未找到 {public_params.pvc_name}, 响应: {list_resp}"
             )
 
     @pytest.mark.dependency(name="pvc_delete", depends=["pvc_list_ns", "pvc_list_cell"])
@@ -172,13 +156,11 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_pvc(self, ec_service, public_params, api_cache):
         """删除 PVC，断言删除成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pvc_name = public_params["pvc_name"]
-
         with AllureHelper.api_test(ec_service):
             del_resp = ec_service.delete_pvc(
-                cell_code=cell_code, sys_code=sys_code, name=pvc_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pvc_name,
             )
 
             assert del_resp.get("code") == ApiCode.SUCCESS, (
@@ -193,11 +175,11 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_pv(self, ec_service, public_params):
         """查询指定 PV，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        pv_name = public_params["pv_name"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.get_pv(cell_code=cell_code, pv_name=pv_name)
+            resp = ec_service.get_pv(
+                cell_code=public_params.cell_code,
+                pv_name=public_params.pv_name,
+            )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 PV 失败, code: {resp.get('code')}, 响应: {resp}"
@@ -209,12 +191,10 @@ class TestEcOpenapiPvcPv:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_storage_class(self, ec_service, public_params):
         """查询指定 StorageClass，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        storage_class_name = public_params["storage_class_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_storage_class(
-                cell_code=cell_code, storage_class_name=storage_class_name,
+                cell_code=public_params.cell_code,
+                storage_class_name=public_params.storage_class_name,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (

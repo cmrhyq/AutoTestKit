@@ -5,16 +5,20 @@
 线程组: Thread Group - ScaledObject完整生命周期
 测试内容：ScaledObject 完整生命周期（查询/清理 → 创建 → 更新 → 删除）
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    ScaledObjectEntity,
+    ScaledObjectPatchEntity,
+    ScaledObjectPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -36,54 +40,17 @@ class TestEcOpenapiScaledObject:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ScaledObjectPublicParams:
         """提取 ScaledObject 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            "sys_code": api_env.get("sysCode", "test"),
-            "so_name": "test-scaled-object-001",
-            "workload_kind": api_env.get("soWorkloadKind", "Deployment"),
-            "workload_name": api_env.get("soWorkloadName", "auto-test-deploy-probe-ns-test-0002"),
-        }
-
-    # ---------------- Body helpers ----------------
-
-    @staticmethod
-    def _build_create_payload(
-        name: str, workload_kind: str, workload_name: str,
-    ) -> Dict[str, Any]:
-        """
-        构造创建 ScaledObject 请求体。
-
-        源自 JMX ScaledObject.jmx 中"创建ScaledObject"sampler 的 postBodyRaw。
-        """
-        return {
-            "name": name,
-            "workloadKind": workload_kind,
-            "workloadName": workload_name,
-            "pollingInterval": 30,
-            "cooldownPeriod": 300,
-            "minReplicaCount": 1,
-            "maxReplicaCount": 5,
-            "restoreToOriginalReplicaCount": False,
-            "timezone": "Asia/Shanghai",
-            "start": "30 * * * *",
-            "end": "45 * * * *",
-            "desiredReplicas": 3,
-        }
-
-    @staticmethod
-    def _build_update_payload() -> Dict[str, Any]:
-        """
-        构造更新 ScaledObject 请求体。
-
-        源自 JMX ScaledObject.jmx 中"更新ScaledObject"sampler 的 postBodyRaw。
-        """
-        return {
-            "start": "35 * * * *",
-            "end": "45 * * * *",
-        }
+        return ScaledObjectPublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=api_env.get("sysCode", "test"),
+            so_name="test-scaled-object-001",
+            workload_kind=api_env.get("soWorkloadKind", "Deployment"),
+            workload_name=api_env.get("soWorkloadName", "auto-test-deploy-probe-ns-test-0002"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -94,13 +61,11 @@ class TestEcOpenapiScaledObject:
     @pytest.mark.order(1)
     def test_query_scaled_object_and_cleanup(self, ec_service, public_params):
         """查询指定 ScaledObject，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        so_name = public_params["so_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_scaled_object(
-                cell_code=cell_code, sys_code=sys_code, name=so_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.so_name,
             )
             ec_get_code = get_resp.get("code")
 
@@ -111,7 +76,9 @@ class TestEcOpenapiScaledObject:
             # 若已存在，先删除以保证幂等
             if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_scaled_object(
-                    cell_code=cell_code, sys_code=sys_code, name=so_name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    name=public_params.so_name,
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 ScaledObject 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -126,18 +93,16 @@ class TestEcOpenapiScaledObject:
     @pytest.mark.order(2)
     def test_create_scaled_object(self, ec_service, public_params):
         """创建 ScaledObject，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        so_name = public_params["so_name"]
-        workload_kind = public_params["workload_kind"]
-        workload_name = public_params["workload_name"]
-
         with AllureHelper.api_test(ec_service):
-            create_payload = self._build_create_payload(
-                so_name, workload_kind, workload_name,
+            scaled_object = ScaledObjectEntity(
+                name=public_params.so_name,
+                workload_kind=public_params.workload_kind,
+                workload_name=public_params.workload_name,
             )
             create_resp = ec_service.create_scaled_object(
-                cell_code=cell_code, sys_code=sys_code, payload=create_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                scaled_object=scaled_object,
             )
 
             assert create_resp.get("code") == ApiCode.SUCCESS, (
@@ -153,15 +118,13 @@ class TestEcOpenapiScaledObject:
     @pytest.mark.order(3)
     def test_update_scaled_object(self, ec_service, public_params):
         """PUT 更新 ScaledObject，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        so_name = public_params["so_name"]
-
         with AllureHelper.api_test(ec_service):
-            update_payload = self._build_update_payload()
+            patch = ScaledObjectPatchEntity()
             update_resp = ec_service.update_scaled_object(
-                cell_code=cell_code, sys_code=sys_code, name=so_name,
-                payload=update_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.so_name,
+                patch=patch,
             )
 
             assert update_resp.get("code") == ApiCode.SUCCESS, (
@@ -177,13 +140,11 @@ class TestEcOpenapiScaledObject:
     @pytest.mark.order(4)
     def test_delete_scaled_object(self, ec_service, public_params):
         """删除 ScaledObject，断言删除成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        so_name = public_params["so_name"]
-
         with AllureHelper.api_test(ec_service):
             del_resp = ec_service.delete_scaled_object(
-                cell_code=cell_code, sys_code=sys_code, name=so_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.so_name,
             )
 
             assert del_resp.get("code") == ApiCode.SUCCESS, (

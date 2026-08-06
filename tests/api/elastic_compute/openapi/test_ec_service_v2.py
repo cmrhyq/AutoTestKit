@@ -6,16 +6,22 @@
 测试内容：Service 完整生命周期（查询/删除/创建/列表/全集群列表/PUT 更新/PATCH 增量更新/删除）
 """
 import json
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    K8sServiceEntity,
+    K8sServicePatchEntity,
+    K8sServicePortSpec,
+    ServiceV2PublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -37,77 +43,15 @@ class TestEcOpenapiServiceV2:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ServiceV2PublicParams:
         """提取 Service 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "test"),
-            "sys_code": api_env.get("sysCode", "test-sys"),
-            "svc_name": "auto-test-probe-svc-test-0001",
-        }
-
-    # ---------------- Body helpers ----------------
-
-    @staticmethod
-    def _build_service_create_payload(name: str) -> Dict[str, Any]:
-        """构造创建 Service 请求体（ClusterIP 类型）。"""
-        return {
-            "apiVersion": "v1",
-            "kind": "Service",
-            "metadata": {
-                "name": name,
-            },
-            "spec": {
-                "type": "ClusterIP",
-                "ports": [
-                    {
-                        "port": 80,
-                        "targetPort": 8080,
-                        "protocol": "TCP",
-                        "name": "http",
-                    },
-                ],
-                "selector": {
-                    "app": "auto-test-probe",
-                },
-            },
-        }
-
-    @staticmethod
-    def _build_service_put_payload(name: str) -> Dict[str, Any]:
-        """构造 PUT 全量更新 Service 请求体。"""
-        return {
-            "apiVersion": "v1",
-            "kind": "Service",
-            "metadata": {
-                "name": name,
-            },
-            "spec": {
-                "type": "ClusterIP",
-                "ports": [
-                    {
-                        "port": 8080,
-                        "targetPort": 9090,
-                        "protocol": "TCP",
-                        "name": "http-updated",
-                    },
-                ],
-                "selector": {
-                    "app": "auto-test-probe",
-                },
-            },
-        }
-
-    @staticmethod
-    def _build_service_patch_payload() -> Dict[str, Any]:
-        """构造 PATCH 增量更新 Service 请求体。"""
-        return {
-            "metadata": {
-                "labels": {
-                    "test": "patch-test",
-                },
-            },
-        }
+        return ServiceV2PublicParams(
+            cell_code=api_env.get("cellCode", "test"),
+            sys_code=api_env.get("sysCode", "test-sys"),
+            svc_name="auto-test-probe-svc-test-0001",
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -118,13 +62,11 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(1)
     def test_query_service_and_cleanup(self, ec_service, public_params, api_cache):
         """查询指定 Service，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_service(
-                cell_code=cell_code, sys_code=sys_code, name=svc_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.svc_name,
             )
             ec_get_code = get_resp.get("code")
 
@@ -134,7 +76,9 @@ class TestEcOpenapiServiceV2:
 
             if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_service(
-                    cell_code=cell_code, sys_code=sys_code, name=svc_name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    name=public_params.svc_name,
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Service 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -149,22 +93,23 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(2)
     def test_create_service(self, ec_service, public_params, api_cache):
         """创建 Service，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
-            create_payload = self._build_service_create_payload(svc_name)
+            service = K8sServiceEntity(
+                name=public_params.svc_name,
+                ports=[K8sServicePortSpec(port=80, target_port=8080, name="http")],
+            )
             create_resp = ec_service.create_service(
-                cell_code=cell_code, sys_code=sys_code, payload=create_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                service=service,
             )
 
             assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 Service 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
             resp_str = json.dumps(create_resp, ensure_ascii=False)
-            assert svc_name in resp_str, (
-                f"创建 Service 响应中未包含资源名称 {svc_name}, 响应: {create_resp}"
+            assert public_params.svc_name in resp_str, (
+                f"创建 Service 响应中未包含资源名称 {public_params.svc_name}, 响应: {create_resp}"
             )
 
             api_cache.set("ec_service_v2_created", True)
@@ -176,13 +121,10 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(3)
     def test_list_services_by_namespace(self, ec_service, public_params):
         """查询 Namespace 下 Service 列表，断言包含目标 Service。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_services_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
@@ -190,8 +132,8 @@ class TestEcOpenapiServiceV2:
                 f"响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert svc_name in resp_str, (
-                f"Namespace Service 列表未找到 {svc_name}, 响应: {list_resp}"
+            assert public_params.svc_name in resp_str, (
+                f"Namespace Service 列表未找到 {public_params.svc_name}, 响应: {list_resp}"
             )
 
     @allure.title("查询全集群 Service 列表")
@@ -201,18 +143,15 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(4)
     def test_list_services_by_cell(self, ec_service, public_params):
         """查询全集群 Service 列表，断言包含目标 Service。"""
-        cell_code = public_params["cell_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
-            list_resp = ec_service.list_services_by_cell(cell_code=cell_code)
+            list_resp = ec_service.list_services_by_cell(cell_code=public_params.cell_code)
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 Service 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert svc_name in resp_str, (
-                f"全集群 Service 列表未找到 {svc_name}, 响应: {list_resp}"
+            assert public_params.svc_name in resp_str, (
+                f"全集群 Service 列表未找到 {public_params.svc_name}, 响应: {list_resp}"
             )
 
     @allure.title("PUT 全量更新 Service")
@@ -222,15 +161,16 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(5)
     def test_put_update_service(self, ec_service, public_params):
         """PUT 全量更新 Service，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
-            put_payload = self._build_service_put_payload(svc_name)
+            service = K8sServiceEntity(
+                name=public_params.svc_name,
+                ports=[K8sServicePortSpec(port=8080, target_port=9090, name="http-updated")],
+            )
             put_resp = ec_service.update_service(
-                cell_code=cell_code, sys_code=sys_code, name=svc_name,
-                payload=put_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.svc_name,
+                service=service,
             )
 
             assert put_resp.get("code") == ApiCode.SUCCESS, (
@@ -244,15 +184,13 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(6)
     def test_patch_update_service(self, ec_service, public_params):
         """PATCH 增量更新 Service，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
-            patch_payload = self._build_service_patch_payload()
+            patch = K8sServicePatchEntity()
             patch_resp = ec_service.patch_service(
-                cell_code=cell_code, sys_code=sys_code, name=svc_name,
-                payload=patch_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.svc_name,
+                patch=patch,
             )
 
             assert patch_resp.get("code") == ApiCode.SUCCESS, (
@@ -266,13 +204,11 @@ class TestEcOpenapiServiceV2:
     @pytest.mark.order(7)
     def test_delete_service(self, ec_service, public_params, api_cache):
         """删除 Service，断言删除成功并清理缓存标记。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        svc_name = public_params["svc_name"]
-
         with AllureHelper.api_test(ec_service):
             del_resp = ec_service.delete_service(
-                cell_code=cell_code, sys_code=sys_code, name=svc_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.svc_name,
             )
 
             assert del_resp.get("code") == ApiCode.SUCCESS, (

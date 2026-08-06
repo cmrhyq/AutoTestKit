@@ -6,11 +6,16 @@ Pod 接口测试
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    K8sPodEntity,
+    K8sPodPatchEntity,
+    K8sPodRawEntity,
+    PodPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -35,59 +40,17 @@ class TestEcOpenapiPod:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> PodPublicParams:
         """提取 Pod 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "TEST"),
-            "sys_code": api_env.get("sysCode", "test-admin"),
-            "pod_name": "openapi-test-nginx-pod",
-            "pod_image": api_env.get("nginxImageName", "tools/nginx:x86"),
-            "container_name": "container0",
-        }
-
-    # -------------------- Payload 构造 --------------------
-
-    @staticmethod
-    def _build_create_payload(name: str, image: str) -> Dict[str, Any]:
-        """构造 Pod 创建请求体。"""
-        return {
-            "apiVersion": "v1",
-            "kind": "Pod",
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "name": name,
-                    "kind": "Pod",
-                },
-            },
-            "spec": {
-                "containers": [
-                    {
-                        "image": image,
-                        "name": "container0",
-                        "ports": [
-                            {
-                                "containerPort": 8080,
-                                "name": "port0",
-                                "protocol": "TCP",
-                            }
-                        ],
-                    }
-                ]
-            },
-        }
-
-    @staticmethod
-    def _build_patch_payload() -> Dict[str, Any]:
-        """构造 Pod PATCH 增量更新请求体。"""
-        return {
-            "metadata": {
-                "labels": {
-                    "test": "patch-update",
-                },
-            },
-        }
+        return PodPublicParams(
+            cell_code=api_env.get("cellCode", "TEST"),
+            sys_code=api_env.get("sysCode", "test-admin"),
+            pod_name="openapi-test-nginx-pod",
+            pod_image=api_env.get("nginxImageName", "tools/nginx:x86"),
+            container_name="container0",
+        )
 
     # -------------------- 测试用例 --------------------
 
@@ -98,13 +61,11 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_pod_and_cleanup(self, ec_service, public_params, api_cache):
         """查询指定 Pod，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_pod(
-                cell_code=cell_code, sys_code=sys_code, name=pod_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
             )
             ec_get_code = get_resp.get("code")
 
@@ -114,7 +75,9 @@ class TestEcOpenapiPod:
 
             if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_pod(
-                    cell_code=cell_code, sys_code=sys_code, name=pod_name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    name=public_params.pod_name,
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Pod 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -130,15 +93,16 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_pod(self, ec_service, public_params, api_cache):
         """创建 Pod，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-        pod_image = public_params["pod_image"]
-
         with AllureHelper.api_test(ec_service):
-            create_payload = self._build_create_payload(pod_name, pod_image)
+            pod = K8sPodEntity(
+                name=public_params.pod_name,
+                image=public_params.pod_image,
+                container_name=public_params.container_name,
+            )
             create_resp = ec_service.create_pod(
-                cell_code=cell_code, sys_code=sys_code, payload=create_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                pod=pod,
             )
 
             assert create_resp.get("code") == ApiCode.SUCCESS, (
@@ -155,13 +119,11 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_pod_after_create(self, ec_service, public_params, api_cache):
         """创建后查询指定 Pod，缓存 Pod 对象用于 PUT 更新。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_pod(
-                cell_code=cell_code, sys_code=sys_code, name=pod_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
             )
 
             assert get_resp.get("code") == ApiCode.SUCCESS, (
@@ -182,14 +144,11 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_pods_by_namespace(self, ec_service, public_params):
         """查询 Namespace 下 Pod 列表，断言包含目标 Pod。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
-            label_selector = f"name={pod_name},kind=Pod"
+            label_selector = f"name={public_params.pod_name},kind=Pod"
             list_resp = ec_service.list_pods_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
                 label_selector=label_selector,
             )
 
@@ -198,8 +157,8 @@ class TestEcOpenapiPod:
             )
 
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert pod_name in resp_str, (
-                f"Namespace 下 Pod 列表未找到 {pod_name}, 响应: {list_resp}"
+            assert public_params.pod_name in resp_str, (
+                f"Namespace 下 Pod 列表未找到 {public_params.pod_name}, 响应: {list_resp}"
             )
 
     @pytest.mark.dependency(name="pod_list_by_cell", depends=["pod_create"])
@@ -209,13 +168,11 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_pods_by_cell(self, ec_service, public_params):
         """查询全集群 Pod 列表，断言包含目标 Pod。"""
-        cell_code = public_params["cell_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
-            label_selector = f"name={pod_name},kind=Pod"
+            label_selector = f"name={public_params.pod_name},kind=Pod"
             list_resp = ec_service.list_pods_by_cell(
-                cell_code=cell_code, label_selector=label_selector,
+                cell_code=public_params.cell_code,
+                label_selector=label_selector,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
@@ -223,8 +180,8 @@ class TestEcOpenapiPod:
             )
 
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert pod_name in resp_str, (
-                f"全集群 Pod 列表未找到 {pod_name}, 响应: {list_resp}"
+            assert public_params.pod_name in resp_str, (
+                f"全集群 Pod 列表未找到 {public_params.pod_name}, 响应: {list_resp}"
             )
 
     @pytest.mark.dependency(name="pod_events", depends=["pod_create"])
@@ -234,13 +191,11 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_pod_events(self, ec_service, public_params):
         """查询 Pod 事件列表，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
             events_resp = ec_service.list_pod_events(
-                cell_code=cell_code, sys_code=sys_code, name=pod_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
             )
 
             assert events_resp.get("code") == ApiCode.SUCCESS, (
@@ -254,15 +209,12 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_pod_logs(self, ec_service, public_params):
         """查询 Pod 容器日志，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-        container_name = public_params["container_name"]
-
         with AllureHelper.api_test(ec_service):
             logs_resp = ec_service.get_pod_logs(
-                cell_code=cell_code, sys_code=sys_code,
-                name=pod_name, container=container_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
+                container=public_params.container_name,
             )
 
             assert logs_resp.get("code") == ApiCode.SUCCESS, (
@@ -276,17 +228,15 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_pod(self, ec_service, public_params, api_cache):
         """PUT 全量更新 Pod，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
             pod_object = api_cache.get("pod_object")
             assert pod_object, "未找到缓存的 Pod 对象，前置用例可能失败"
 
             update_resp = ec_service.update_pod(
-                cell_code=cell_code, sys_code=sys_code,
-                name=pod_name, payload=pod_object,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
+                pod=K8sPodRawEntity(body=pod_object),
             )
 
             assert update_resp.get("code") == ApiCode.SUCCESS, (
@@ -300,15 +250,13 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_pod(self, ec_service, public_params):
         """PATCH 增量更新 Pod，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
-            patch_payload = self._build_patch_payload()
+            patch_entity = K8sPodPatchEntity(labels={"test": "patch-update"})
             patch_resp = ec_service.patch_pod(
-                cell_code=cell_code, sys_code=sys_code,
-                name=pod_name, payload=patch_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
+                pod=patch_entity,
             )
 
             assert patch_resp.get("code") == ApiCode.SUCCESS, (
@@ -322,13 +270,11 @@ class TestEcOpenapiPod:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_pod(self, ec_service, public_params, api_cache):
         """删除 Pod，断言删除成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        pod_name = public_params["pod_name"]
-
         with AllureHelper.api_test(ec_service):
             del_resp = ec_service.delete_pod(
-                cell_code=cell_code, sys_code=sys_code, name=pod_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.pod_name,
             )
 
             assert del_resp.get("code") == ApiCode.SUCCESS, (

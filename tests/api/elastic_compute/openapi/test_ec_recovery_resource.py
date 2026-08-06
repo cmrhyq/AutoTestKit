@@ -6,16 +6,20 @@
 测试内容：容灾组件资源生命周期（查询+清理 → 创建 → 查询验证 → Apply）
 """
 import json
-from typing import Any, Dict, List
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    RecoveryResourceEntity,
+    RecoveryResourcePublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -37,78 +41,24 @@ class TestEcOpenapiRecoveryResource:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> RecoveryResourcePublicParams:
         """提取容灾组件测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            "sys_code": api_env.get("sysCode", "test"),
-            "resource_name": "test-resource-deploy-001",
-            "app_name": "app-nginx-test",
-            "kind": "Deployment",
-            "image": api_env.get("nginxImageName", "hpe_containers/nginx:latest"),
-            "tenant_code": api_env.get("paasTenantCode", "monitor-group"),
-            "app_code": api_env.get("grantAppCode", "probe-deploy"),
-            "plane_code": api_env.get("planeCode", "PLANE"),
-            "unit_code": api_env.get("unitCode", "test"),
-            "env_code": api_env.get("paasEnvCode", "PROD"),
-            "user": api_env.get("user", "PROD"),
-        }
-
-    # ---------------- Body helpers ----------------
-
-    @staticmethod
-    def _build_create_payload(params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        构造创建容灾组件资源请求体（数组形式）。
-
-        源自 JMX recovery-resource.jmx 中"创建资源"sampler 的 postBodyRaw。
-        """
-        return [
-            {
-                "name": params["resource_name"],
-                "appName": params["app_name"],
-                "kind": params["kind"],
-                "image": params["image"],
-                "tenantCode": params["tenant_code"],
-                "appCode": params["app_code"],
-                "planeCode": params["plane_code"],
-                "unitCode": params["unit_code"],
-                "envCode": params["env_code"],
-                "username": params["user"],
-            },
-        ]
-
-    @staticmethod
-    def _build_delete_payload(resource_name: str) -> List[str]:
-        """
-        构造删除容灾组件资源请求体（名称数组）。
-
-        源自 JMX recovery-resource.jmx 中"删除资源"sampler 的 postBodyRaw。
-        """
-        return [resource_name]
-
-    @staticmethod
-    def _build_apply_payload(params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        构造 Apply 容灾组件资源请求体。
-
-        源自 JMX recovery-resource.jmx 中"Apply资源"sampler 的 postBodyRaw。
-        """
-        return [
-            {
-                "name": params["resource_name"],
-                "appName": params["app_name"],
-                "kind": params["kind"],
-                "image": params["image"],
-                "tenantCode": params["tenant_code"],
-                "appCode": params["app_code"],
-                "planeCode": params["plane_code"],
-                "unitCode": params["unit_code"],
-                "envCode": params["env_code"],
-                "username": params["user"],
-            },
-        ]
+        return RecoveryResourcePublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=api_env.get("sysCode", "test"),
+            resource_name="test-resource-deploy-001",
+            app_name="app-nginx-test",
+            kind="Deployment",
+            image=api_env.get("nginxImageName", "hpe_containers/nginx:latest"),
+            tenant_code=api_env.get("paasTenantCode", "monitor-group"),
+            app_code=api_env.get("grantAppCode", "probe-deploy"),
+            plane_code=api_env.get("planeCode", "PLANE"),
+            unit_code=api_env.get("unitCode", "test"),
+            env_code=api_env.get("paasEnvCode", "PROD"),
+            user=api_env.get("user", "PROD"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -119,13 +69,10 @@ class TestEcOpenapiRecoveryResource:
     @pytest.mark.order(1)
     def test_query_recovery_resource_and_cleanup(self, ec_service, public_params):
         """查询容灾组件资源，若目标资源已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        resource_name = public_params["resource_name"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_recovery_resources(
-                sys_code=sys_code, cell_code=cell_code,
+                sys_code=public_params.sys_code,
+                cell_code=public_params.cell_code,
             )
             ec_code = list_resp.get("code")
 
@@ -135,10 +82,11 @@ class TestEcOpenapiRecoveryResource:
 
             # 若目标资源存在，先删除
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            if ec_code == ApiCode.SUCCESS and resource_name in resp_str:
-                del_payload = self._build_delete_payload(resource_name)
+            if ec_code == ApiCode.SUCCESS and public_params.resource_name in resp_str:
                 del_resp = ec_service.delete_recovery_resources(
-                    cell_code=cell_code, sys_code=sys_code, payload=del_payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    resource_names=[public_params.resource_name],
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的容灾资源失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -153,13 +101,23 @@ class TestEcOpenapiRecoveryResource:
     @pytest.mark.order(2)
     def test_create_recovery_resource(self, ec_service, public_params):
         """创建容灾组件资源，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            create_payload = self._build_create_payload(public_params)
+            resource = RecoveryResourceEntity(
+                name=public_params.resource_name,
+                app_name=public_params.app_name,
+                kind=public_params.kind,
+                image=public_params.image,
+                tenant_code=public_params.tenant_code,
+                app_code=public_params.app_code,
+                plane_code=public_params.plane_code,
+                unit_code=public_params.unit_code,
+                env_code=public_params.env_code,
+                username=public_params.user,
+            )
             create_resp = ec_service.create_recovery_resources(
-                cell_code=cell_code, sys_code=sys_code, payload=create_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                resources=[resource],
             )
 
             assert create_resp.get("code") == ApiCode.SUCCESS, (
@@ -175,21 +133,18 @@ class TestEcOpenapiRecoveryResource:
     @pytest.mark.order(3)
     def test_verify_recovery_resource_created(self, ec_service, public_params):
         """创建后查询验证容灾组件资源已存在。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        resource_name = public_params["resource_name"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_recovery_resources(
-                sys_code=sys_code, cell_code=cell_code,
+                sys_code=public_params.sys_code,
+                cell_code=public_params.cell_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询容灾组件资源列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert resource_name in resp_str, (
-                f"容灾组件资源列表中未找到 {resource_name}, 响应: {list_resp}"
+            assert public_params.resource_name in resp_str, (
+                f"容灾组件资源列表中未找到 {public_params.resource_name}, 响应: {list_resp}"
             )
 
     @allure.title("Apply 容灾组件资源")
@@ -201,13 +156,23 @@ class TestEcOpenapiRecoveryResource:
     @pytest.mark.order(4)
     def test_apply_recovery_resource(self, ec_service, public_params):
         """Apply 容灾组件资源，断言操作成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            apply_payload = self._build_apply_payload(public_params)
+            resource = RecoveryResourceEntity(
+                name=public_params.resource_name,
+                app_name=public_params.app_name,
+                kind=public_params.kind,
+                image=public_params.image,
+                tenant_code=public_params.tenant_code,
+                app_code=public_params.app_code,
+                plane_code=public_params.plane_code,
+                unit_code=public_params.unit_code,
+                env_code=public_params.env_code,
+                username=public_params.user,
+            )
             apply_resp = ec_service.apply_recovery_resources(
-                cell_code=cell_code, sys_code=sys_code, payload=apply_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                resources=[resource],
             )
 
             assert apply_resp.get("code") == ApiCode.SUCCESS, (

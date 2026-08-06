@@ -10,11 +10,13 @@ import json
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import ServiceAccountPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -36,13 +38,14 @@ class TestEcOpenapiServiceAccount:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ServiceAccountPublicParams:
         """提取 ServiceAccount 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "test"),
-            "sys_code": api_env.get("sysCode", "test-sys"),
-        }
+        return ServiceAccountPublicParams(
+            cell_code=api_env.get("cellCode", "test"),
+            sys_code=api_env.get("sysCode", "test-sys"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -53,11 +56,9 @@ class TestEcOpenapiServiceAccount:
     @pytest.mark.order(1)
     def test_list_service_accounts_by_cell(self, ec_service, public_params):
         """查询全集群 ServiceAccount 列表，断言成功。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_service_accounts_by_cell(
-                cell_code=cell_code,
+                cell_code=public_params.cell_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
@@ -72,12 +73,10 @@ class TestEcOpenapiServiceAccount:
     @pytest.mark.order(2)
     def test_list_service_accounts_by_ns(self, ec_service, api_cache, public_params):
         """查询 Namespace 下 ServiceAccount 列表，断言成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_service_accounts_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
@@ -98,13 +97,13 @@ class TestEcOpenapiServiceAccount:
     @pytest.mark.order(3)
     def test_get_service_account(self, ec_service, public_params, api_cache):
         """查询指定 ServiceAccount，断言返回成功且包含目标名称。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
         sa_name = api_cache.get("sa_name", "default")
 
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_service_account(
-                cell_code=cell_code, sys_code=sys_code, name=sa_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=sa_name,
             )
 
             assert get_resp.get("code") == ApiCode.SUCCESS, (

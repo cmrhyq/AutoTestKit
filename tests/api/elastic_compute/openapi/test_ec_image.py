@@ -10,6 +10,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import ImagePublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -38,16 +39,17 @@ class TestEcOpenapiImage:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ImagePublicParams:
         """提取 Image 测试所需的公共参数。"""
-        return {
-            "cluster_id": api_env.get("clusterId"),
-            "namespace": api_env.get("namespace"),
-            "project_name": api_env.get("copyProjectName"),
-            "image_name": api_env.get("copyRepName"),
-            "image_version": api_env.get("copyImageTag"),
-        }
+        return ImagePublicParams(
+            cluster_id=api_env.get("clusterId"),
+            namespace=api_env.get("namespace"),
+            project_name=api_env.get("copyProjectName"),
+            image_name=api_env.get("copyRepName"),
+            image_version=api_env.get("copyImageTag"),
+        )
 
     @allure.title("获取镜像列表")
     @allure.description("查询弹性计算镜像列表，验证业务码为 2000")
@@ -74,11 +76,11 @@ class TestEcOpenapiImage:
         """查询镜像已部署应用服务列表。"""
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_image_apps(
-                cluster_id=public_params["cluster_id"],
-                namespace=public_params["namespace"],
-                project_name=public_params["project_name"],
-                image_name=public_params["image_name"],
-                version=public_params["image_version"],
+                cluster_id=public_params.cluster_id,
+                namespace=public_params.namespace,
+                project_name=public_params.project_name,
+                image_name=public_params.image_name,
+                version=public_params.image_version,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"获取镜像已部署应用服务列表失败, code: {resp.get('code')}, 响应: {resp}"

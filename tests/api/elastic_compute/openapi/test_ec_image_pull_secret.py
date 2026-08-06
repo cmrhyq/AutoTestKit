@@ -12,6 +12,7 @@ import time
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import ImagePullSecretPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -41,13 +42,14 @@ class TestEcOpenapiImagePullSecret:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ImagePullSecretPublicParams:
         """提取 ImagePullSecret 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode"),
-            "sys_code": api_env.get("sysCode"),
-        }
+        return ImagePullSecretPublicParams(
+            cell_code=api_env.get("cellCode"),
+            sys_code=api_env.get("sysCode"),
+        )
 
     @allure.title("创建 ImagePullSecret")
     @allure.description(
@@ -60,12 +62,10 @@ class TestEcOpenapiImagePullSecret:
         self, ec_service, public_params, api_cache
     ):
         """创建 ImagePullSecret 并抽取 secretName。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.create_image_pull_secret(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 ImagePullSecret 失败, code: {resp.get('code')}, 响应: {resp}"
@@ -90,13 +90,13 @@ class TestEcOpenapiImagePullSecret:
     @pytest.mark.order(2)
     def test_delete_secret(self, ec_service, public_params, api_cache):
         """删除 Secret。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
         secret_name = api_cache.get("ec_image_pull_secret_name") or SecretConst.DEFAULT_IMAGE_PULL_SECRET_NAME
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.delete_secret_by_name(
-                cell_code=cell_code, sys_code=sys_code, secret_name=secret_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                secret_name=secret_name,
             )
             code = resp.get("code")
             assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (

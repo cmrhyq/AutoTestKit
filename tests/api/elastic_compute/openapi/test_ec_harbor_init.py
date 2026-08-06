@@ -8,6 +8,7 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import HarborInitPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -33,12 +34,11 @@ class TestEcOpenapiHarborInit:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> HarborInitPublicParams:
         """提取 Harbor-Init 测试所需的公共参数。"""
-        return {
-            "harbor_id": api_env.get("harborId"),
-        }
+        return HarborInitPublicParams(harbor_id=api_env.get("harborId"))
 
     @allure.title("刷新 Harbor 版本信息")
     @allure.description("调用 refreshHarborVersion 接口刷新指定 harbor 的版本信息")
@@ -46,10 +46,10 @@ class TestEcOpenapiHarborInit:
     @pytest.mark.order(1)
     def test_refresh_harbor_version(self, ec_service, public_params):
         """调用 refreshHarborVersion 接口，断言业务码为成功。"""
-        harbor_id = public_params["harbor_id"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.refresh_harbor_version(harbor_id=harbor_id)
+            resp = ec_service.refresh_harbor_version(
+                harbor_id=public_params.harbor_id
+            )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"刷新 Harbor 版本信息失败, code: {resp.get('code')}, 响应: {resp}"

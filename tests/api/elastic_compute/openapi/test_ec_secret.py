@@ -6,16 +6,21 @@
 测试内容：Secret 完整生命周期（查询/删除/创建/列表/全集群列表/PUT 更新/PATCH 增量更新/删除）
 """
 import json
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    K8sSecretEntity,
+    K8sSecretPatchEntity,
+    SecretPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -37,62 +42,15 @@ class TestEcOpenapiSecret:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> SecretPublicParams:
         """提取 Secret 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "test"),
-            "sys_code": api_env.get("sysCode", "test-sys"),
-            "secret_name": "auto-test-probe-secret-test-0001",
-        }
-
-    # ---------------- Body helpers ----------------
-
-    @staticmethod
-    def _build_secret_create_payload(name: str) -> Dict[str, Any]:
-        """构造创建 Secret 请求体。"""
-        return {
-            "apiVersion": "v1",
-            "kind": "Secret",
-            "metadata": {
-                "name": name,
-            },
-            "type": "Opaque",
-            "data": {
-                "username": "YWRtaW4=",
-                "password": "MWYyZDFlMmU2N2Rm",
-            },
-        }
-
-    @staticmethod
-    def _build_secret_put_payload(name: str) -> Dict[str, Any]:
-        """构造 PUT 全量更新 Secret 请求体。"""
-        return {
-            "apiVersion": "v1",
-            "kind": "Secret",
-            "metadata": {
-                "name": name,
-            },
-            "type": "Opaque",
-            "data": {
-                "username": "YWRtaW4=",
-                "password": "dXBkYXRlZA==",
-            },
-        }
-
-    @staticmethod
-    def _build_secret_patch_payload() -> Dict[str, Any]:
-        """构造 PATCH 增量更新 Secret 请求体。"""
-        return {
-            "metadata": {
-                "labels": {
-                    "test": "patch-test",
-                },
-            },
-            "data": {
-                "extra": "cGF0Y2hlZA==",
-            },
-        }
+        return SecretPublicParams(
+            cell_code=api_env.get("cellCode", "test"),
+            sys_code=api_env.get("sysCode", "test-sys"),
+            secret_name="auto-test-probe-secret-test-0001",
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -103,13 +61,11 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(1)
     def test_query_secret_and_cleanup(self, ec_service, public_params, api_cache):
         """查询指定 Secret，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_secret(
-                cell_code=cell_code, sys_code=sys_code, name=secret_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.secret_name,
             )
             ec_get_code = get_resp.get("code")
 
@@ -119,7 +75,9 @@ class TestEcOpenapiSecret:
 
             if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_secret(
-                    cell_code=cell_code, sys_code=sys_code, name=secret_name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    name=public_params.secret_name,
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Secret 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -134,22 +92,20 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(2)
     def test_create_secret(self, ec_service, public_params, api_cache):
         """创建 Secret，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
-            create_payload = self._build_secret_create_payload(secret_name)
+            secret = K8sSecretEntity(name=public_params.secret_name)
             create_resp = ec_service.create_secret(
-                cell_code=cell_code, sys_code=sys_code, payload=create_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                secret=secret,
             )
 
             assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 Secret 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
             resp_str = json.dumps(create_resp, ensure_ascii=False)
-            assert secret_name in resp_str, (
-                f"创建 Secret 响应中未包含资源名称 {secret_name}, 响应: {create_resp}"
+            assert public_params.secret_name in resp_str, (
+                f"创建 Secret 响应中未包含资源名称 {public_params.secret_name}, 响应: {create_resp}"
             )
 
             api_cache.set("ec_secret_created", True)
@@ -161,21 +117,18 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(3)
     def test_list_secrets_by_namespace(self, ec_service, public_params):
         """查询 Namespace 下 Secret 列表，断言包含目标 Secret。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_secrets_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Namespace Secret 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert secret_name in resp_str, (
-                f"Namespace Secret 列表未找到 {secret_name}, 响应: {list_resp}"
+            assert public_params.secret_name in resp_str, (
+                f"Namespace Secret 列表未找到 {public_params.secret_name}, 响应: {list_resp}"
             )
 
     @allure.title("查询全集群 Secret 列表")
@@ -185,18 +138,15 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(4)
     def test_list_secrets_by_cell(self, ec_service, public_params):
         """查询全集群 Secret 列表，断言包含目标 Secret。"""
-        cell_code = public_params["cell_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
-            list_resp = ec_service.list_secrets_by_cell(cell_code=cell_code)
+            list_resp = ec_service.list_secrets_by_cell(cell_code=public_params.cell_code)
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 Secret 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert secret_name in resp_str, (
-                f"全集群 Secret 列表未找到 {secret_name}, 响应: {list_resp}"
+            assert public_params.secret_name in resp_str, (
+                f"全集群 Secret 列表未找到 {public_params.secret_name}, 响应: {list_resp}"
             )
 
     @allure.title("PUT 全量更新 Secret")
@@ -206,15 +156,16 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(5)
     def test_put_update_secret(self, ec_service, public_params):
         """PUT 全量更新 Secret，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
-            put_payload = self._build_secret_put_payload(secret_name)
+            secret = K8sSecretEntity(
+                name=public_params.secret_name,
+                data={"username": "YWRtaW4=", "password": "dXBkYXRlZA=="},
+            )
             put_resp = ec_service.update_secret(
-                cell_code=cell_code, sys_code=sys_code, name=secret_name,
-                payload=put_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.secret_name,
+                secret=secret,
             )
 
             assert put_resp.get("code") == ApiCode.SUCCESS, (
@@ -228,15 +179,13 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(6)
     def test_patch_update_secret(self, ec_service, public_params):
         """PATCH 增量更新 Secret，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
-            patch_payload = self._build_secret_patch_payload()
+            patch = K8sSecretPatchEntity()
             patch_resp = ec_service.patch_secret(
-                cell_code=cell_code, sys_code=sys_code, name=secret_name,
-                payload=patch_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.secret_name,
+                patch=patch,
             )
 
             assert patch_resp.get("code") == ApiCode.SUCCESS, (
@@ -250,13 +199,11 @@ class TestEcOpenapiSecret:
     @pytest.mark.order(7)
     def test_delete_secret(self, ec_service, public_params, api_cache):
         """删除 Secret，断言删除成功并清理缓存标记。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        secret_name = public_params["secret_name"]
-
         with AllureHelper.api_test(ec_service):
             del_resp = ec_service.delete_secret(
-                cell_code=cell_code, sys_code=sys_code, name=secret_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.secret_name,
             )
 
             assert del_resp.get("code") == ApiCode.SUCCESS, (

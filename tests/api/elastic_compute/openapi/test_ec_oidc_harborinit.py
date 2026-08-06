@@ -7,6 +7,7 @@ OIDC/Harbor 初始化 接口测试
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import OidcHarborInitPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -32,6 +33,12 @@ class TestEcOpenapiOidcHarborinit:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
+    @pytest.fixture(scope="class")
+    def public_params(self) -> OidcHarborInitPublicParams:
+        """OIDC 接口无入参，返回占位 dataclass 保持 SOP 契约一致。"""
+        return OidcHarborInitPublicParams()
+
     # -------------------- 测试用例 --------------------
 
     @pytest.mark.order(1)

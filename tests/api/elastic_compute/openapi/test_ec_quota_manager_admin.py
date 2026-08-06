@@ -4,18 +4,19 @@
 转换自 JMeter 脚本: quota-manager-admin.jmx
 测试内容：配额管理完整流程（集群配额概览、批量查询、租户配额分配/调整/查询/列表、系统配额概览/详情/可调整查询）
 """
-from typing import Any, Dict
-
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    QuotaManagerAdminPublicParams,
+    TenantQuotaAllocationEntity,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
-# 顶部常量抽取
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,15 +35,16 @@ class TestEcOpenapiQuotaManagerAdmin:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> QuotaManagerAdminPublicParams:
         """提取配额管理测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            "sys_code": api_env.get("sysCode", "test"),
-            "tenant_code": api_env.get("tenantCode", "lzm"),
-            "username": api_env.get("user", "lzm-admin"),
-        }
+        return QuotaManagerAdminPublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=api_env.get("sysCode", "test"),
+            tenant_code=api_env.get("tenantCode", "lzm"),
+            username=api_env.get("user", "lzm-admin"),
+        )
 
     # -------------------- 测试用例 --------------------
 
@@ -52,10 +54,8 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cluster_quota_overview(self, ec_service, public_params):
         """查询集群资源配额概览。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.get_cluster_quota_overview(cell_code=cell_code)
+            resp = ec_service.get_cluster_quota_overview(cell_code=public_params.cell_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询集群配额概览失败, code: {resp.get('code')}, 响应: {resp}"
@@ -67,11 +67,10 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_query_tenant_quotas(self, ec_service, public_params):
         """批量查询多租户资源配额总览。"""
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
-            payload: Dict[str, Any] = {"tenantCodeList": [tenant_code]}
-            resp = ec_service.batch_query_tenant_quotas(payload=payload)
+            resp = ec_service.batch_query_tenant_quotas(
+                tenant_codes=[public_params.tenant_code],
+            )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"批量查询租户配额失败, code: {resp.get('code')}, 响应: {resp}"
@@ -83,12 +82,11 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_allocate_tenant_quota(self, ec_service, public_params):
         """租户资源配额分配。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.allocate_tenant_quota(
-                cell_code=cell_code, tenant_code=tenant_code, payload={},
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
+                allocation=TenantQuotaAllocationEntity(),
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -101,12 +99,11 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_scale_tenant_quota(self, ec_service, public_params):
         """租户资源配额调整。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.scale_tenant_quota(
-                cell_code=cell_code, tenant_code=tenant_code, payload={},
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
+                allocation=TenantQuotaAllocationEntity(),
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -119,12 +116,10 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_system_quota_overview(self, ec_service, public_params):
         """查询系统资源配额各集群概览。"""
-        tenant_code = public_params["tenant_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_system_quota_overview(
-                tenant_code=tenant_code, sys_code=sys_code,
+                tenant_code=public_params.tenant_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -137,13 +132,11 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_system_quota_detail(self, ec_service, public_params):
         """查询系统资源配额详情。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_system_quota_detail(
-                cell_code=cell_code, tenant_code=tenant_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -156,13 +149,11 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_system_quota_scalable(self, ec_service, public_params):
         """查询系统可调整资源配额。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_system_quota_scalable(
-                cell_code=cell_code, tenant_code=tenant_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -175,12 +166,10 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_detail(self, ec_service, public_params):
         """查询租户资源配额详情。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_tenant_quota_detail(
-                cell_code=cell_code, tenant_code=tenant_code,
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -193,12 +182,10 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_tenant_quotas_by_cell(self, ec_service, public_params):
         """查询租户资源配额列表（按单元区分）。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_tenant_quotas_by_cell(
-                cell_code=cell_code, tenant_code=tenant_code,
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -211,10 +198,8 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_tenant_quotas(self, ec_service, public_params):
         """查询租户资源配额列表。"""
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_tenant_quotas(tenant_code=tenant_code)
+            resp = ec_service.list_tenant_quotas(tenant_code=public_params.tenant_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -226,10 +211,8 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_overview(self, ec_service, public_params):
         """查询租户资源配额总览。"""
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.get_tenant_quota_overview(tenant_code=tenant_code)
+            resp = ec_service.get_tenant_quota_overview(tenant_code=public_params.tenant_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额总览失败, code: {resp.get('code')}, 响应: {resp}"
@@ -241,12 +224,10 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_cell_quota_overview(self, ec_service, public_params):
         """查询单租户资源配额单集群下总览信息。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_tenant_cell_quota_overview(
-                cell_code=cell_code, tenant_code=tenant_code,
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -259,12 +240,10 @@ class TestEcOpenapiQuotaManagerAdmin:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_scalable(self, ec_service, public_params):
         """查询租户可调整资源配额。"""
-        cell_code = public_params["cell_code"]
-        tenant_code = public_params["tenant_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_tenant_quota_scalable(
-                cell_code=cell_code, tenant_code=tenant_code,
+                cell_code=public_params.cell_code,
+                tenant_code=public_params.tenant_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (

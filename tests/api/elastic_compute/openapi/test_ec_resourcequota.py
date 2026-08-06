@@ -8,11 +8,17 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    K8sResourceQuotaEntity,
+    K8sResourceQuotaPatchEntity,
+    ResourceQuotaPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,46 +40,14 @@ class TestEcOpenapiResourceQuota:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ResourceQuotaPublicParams:
         """提取 ResourceQuota 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            "sys_code": api_env.get("sysCode", "test"),
-        }
-
-    # ---------------- Body helpers ----------------
-
-    @staticmethod
-    def _build_put_payload() -> dict:
-        """
-        构造 PUT 全量更新 ResourceQuota 请求体。
-
-        源自 JMX resourcequota.jmx 中 PUT 更新 sampler 的 postBodyRaw。
-        """
-        return {
-            "spec": {
-                "hard": {
-                    "limits.cpu": "100",
-                    "limits.memory": "200Gi",
-                },
-            },
-        }
-
-    @staticmethod
-    def _build_patch_payload() -> dict:
-        """
-        构造 PATCH 增量更新 ResourceQuota 请求体。
-
-        源自 JMX resourcequota.jmx 中 PATCH 更新 sampler 的 postBodyRaw。
-        """
-        return {
-            "spec": {
-                "hard": {
-                    "limits.cpu": "50",
-                },
-            },
-        }
+        return ResourceQuotaPublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=api_env.get("sysCode", "test"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -84,12 +58,10 @@ class TestEcOpenapiResourceQuota:
     @pytest.mark.order(1)
     def test_list_resource_quotas_by_ns(self, ec_service, public_params):
         """查询命名空间下 ResourceQuota 列表，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_resource_quotas_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
@@ -105,10 +77,8 @@ class TestEcOpenapiResourceQuota:
     @pytest.mark.order(2)
     def test_list_resource_quotas_by_cell(self, ec_service, public_params):
         """查询全集群 ResourceQuota 列表，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            list_resp = ec_service.list_resource_quotas_by_cell(cell_code=cell_code)
+            list_resp = ec_service.list_resource_quotas_by_cell(cell_code=public_params.cell_code)
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 ResourceQuota 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
@@ -123,13 +93,12 @@ class TestEcOpenapiResourceQuota:
     @pytest.mark.order(3)
     def test_put_update_resource_quota(self, ec_service, public_params):
         """PUT 全量更新 ResourceQuota，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            put_payload = self._build_put_payload()
+            quota = K8sResourceQuotaEntity()
             put_resp = ec_service.update_resource_quotas_ns(
-                cell_code=cell_code, sys_code=sys_code, payload=put_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                quota=quota,
             )
 
             assert put_resp.get("code") == ApiCode.SUCCESS, (
@@ -145,13 +114,12 @@ class TestEcOpenapiResourceQuota:
     @pytest.mark.order(4)
     def test_patch_update_resource_quota(self, ec_service, public_params):
         """PATCH 增量更新 ResourceQuota，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            patch_payload = self._build_patch_payload()
+            patch = K8sResourceQuotaPatchEntity()
             patch_resp = ec_service.patch_resource_quotas_ns(
-                cell_code=cell_code, sys_code=sys_code, payload=patch_payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                patch=patch,
             )
 
             assert patch_resp.get("code") == ApiCode.SUCCESS, (

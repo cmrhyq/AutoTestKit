@@ -544,6 +544,49 @@ payload = {"workloadList": [{"kind": w.kind, "name": w.name} for w in workloads]
 
 ---
 
+## 附录 A：openapi 系补充（与 extensions 系并存）
+
+本 SOP 最初为 `tests/api/elastic_compute/extensions/` 编写，`tests/api/elastic_compute/openapi/`
+后续按同样的分层原则完成了完整改造，但由于 API 契约差异，登记了以下三条补充约定：
+
+### A.1 Entity 模块物理隔离
+
+- openapi 系 Entity **不再**加入 `base/api/entity/elastic_compute.py`，改为独立文件
+  `base/api/entity/elastic_compute_openapi.py`。
+- 理由：openapi 侧接口使用 K8s 原生 spec 风格（`apiVersion` / `metadata` / `spec` / ...），
+  而 extensions 侧是磐基自定义扁平结构；同名的 `WorkloadPublicParams` / `WorkloadEntity`
+  在两个 module 中含义完全不同。物理隔离可避免同名冲突，也让 Entity 语义清晰对齐所属域。
+
+### A.2 命名前缀约定
+
+- 承载 K8s 原生 spec 的实体统一带 `K8s` 前缀：`K8sConfigMapEntity`、`K8sPodEntity`、
+  `K8sServiceEntity`、`K8sLimitRangeEntity` …
+- 无 K8s spec 语义、纯 openapi 业务的实体保持普通命名：`HarborProjectEntity`、
+  `HelmInstallEntity`、`TenantQuotaAllocationEntity`、`WorkloadCreateEntity` …
+- 每个测试类 `public_params` fixture 的强类型返回体统一命名为 `XxxPublicParams`，即使
+  该测试文件的接口无入参也保留占位 dataclass（如 `ClusterPublicParams` / `NamespacePublicParams`
+  / `OidcHarborInitPublicParams` / `ResourceCollectionPublicParams`）以保持 SOP 契约一致。
+
+### A.3 Service 层单文件与内联 payload
+
+- `base/api/services/elastic_compute_open_service.py` 保持**单文件**（当前 ~4000 行），
+  各资源域通过顶层注释块 `# ==================== XxxV2 ====================` 分区。
+- 每个改造后的方法签名接收 Entity（或必要时接收 `List[XxxEntity]`），并在方法体内内联完成
+  snake_case → camelCase 的 payload 构造；测试层禁止再引用 `payload=...` 显式字典入参。
+- 对 K8s spec 中的固定字段（如 `apiVersion: apps/v1`、`containerName: container0`、
+  `containerPort: 8080/8090/8010/8020` 等 JMX 硬编码值）由 service 层内联写死，Entity
+  只承载业务可变字段。
+
+### A.4 完成状态
+
+- 完成时间：2026-08-06
+- 覆盖：32 个测试文件（openapi 目录全量）
+- 静态验证：`python -m py_compile` 全部通过；
+  `rg 'def _build_|self\._build_|public_params\['` 结果为 0。
+- Entity 总数：72（含 extensions + openapi）。
+
+---
+
 **最后**：改完每个文件后，请把改动记录追加到 git commit message，格式建议：
 
 ```

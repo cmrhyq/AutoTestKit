@@ -11,11 +11,21 @@
 """
 import json
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    WorkloadAppPodDeleteEntity,
+    WorkloadBatchPatchTargetEntity,
+    WorkloadBatchTargetEntity,
+    WorkloadCreateEntity,
+    WorkloadExecEntity,
+    WorkloadPatchEntity,
+    WorkloadPodDeleteEntity,
+    WorkloadPublicParams,
+    WorkloadUpdateEntity,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -43,290 +53,20 @@ class TestEcOpenapiWorkload:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> WorkloadPublicParams:
         """提取 Workload 测试所需的公共参数（对应 JMX 用户定义变量）。"""
-        return {
-            "cell_code": api_env.get("cellCode", "TEST"),
-            "sys_code": api_env.get("sysCode", "test-admin"),
-            "app_code": api_env.get("appCode", "test-app"),
-            "kind": "Deployment",
-            "name": api_env.get("workloadName", "app-nginx"),
-            "image": api_env.get("image", "hpe_containers/nginx:latest"),
-            "replicas": int(api_env.get("replicas", 1)),
-            "file_path_in_pod": api_env.get("filePathInPod", "/docker-entrypoint.sh"),
-        }
-
-    # ==================== Payload 构造方法 ====================
-
-    @staticmethod
-    def _build_create_payload(
-        name: str, kind: str, image: str, replicas: int
-    ) -> Dict[str, Any]:
-        """
-        构造创建 Deployment Workload 请求体。
-        对应 JMX: 弹性计算_openapi_workload_创建Deployment请求
-        """
-        return {
-            "workload": {
-                "apiVersion": "apps/v1",
-                "kind": kind,
-                "metadata": {
-                    "name": name,
-                    "labels": {
-                        "name": name,
-                        "kind": kind,
-                    },
-                },
-                "spec": {
-                    "replicas": replicas,
-                    "selector": {
-                        "matchLabels": {
-                            "name": name,
-                            "kind": kind,
-                        },
-                    },
-                    "template": {
-                        "metadata": {
-                            "labels": {
-                                "name": name,
-                                "kind": kind,
-                            },
-                        },
-                        "spec": {
-                            "containers": [
-                                {
-                                    "image": image,
-                                    "name": "container0",
-                                    "ports": [
-                                        {
-                                            "containerPort": 8080,
-                                            "name": "port0",
-                                            "protocol": "TCP",
-                                        }
-                                    ],
-                                }
-                            ],
-                        },
-                    },
-                },
-            }
-        }
-
-    @staticmethod
-    def _build_update_payload(
-        name: str, kind: str, image: str, replicas: int
-    ) -> Dict[str, Any]:
-        """
-        构造 PUT 全量更新 Deployment 请求体。
-        对应 JMX: 弹性计算_openapi_workload_更新指定Deployment
-        replicas = 原 replicas + 1, containerPort 改为 8090, 新增 imagePullPolicy
-        """
-        return {
-            "workload": {
-                "apiVersion": "apps/v1",
-                "kind": kind,
-                "metadata": {
-                    "name": name,
-                    "labels": {
-                        "name": name,
-                        "kind": kind,
-                        "test": "update",
-                    },
-                },
-                "spec": {
-                    "replicas": replicas + 1,
-                    "selector": {
-                        "matchLabels": {
-                            "name": name,
-                            "kind": kind,
-                        },
-                    },
-                    "template": {
-                        "metadata": {
-                            "labels": {
-                                "name": name,
-                                "kind": kind,
-                            },
-                        },
-                        "spec": {
-                            "containers": [
-                                {
-                                    "image": image,
-                                    "imagePullPolicy": "Always",
-                                    "name": "container0",
-                                    "ports": [
-                                        {
-                                            "containerPort": 8090,
-                                            "name": "port0",
-                                            "protocol": "TCP",
-                                        }
-                                    ],
-                                }
-                            ],
-                        },
-                    },
-                },
-            }
-        }
-
-    @staticmethod
-    def _build_patch_payload(replicas: int) -> Dict[str, Any]:
-        """
-        构造 PATCH 增量更新请求体。
-        对应 JMX: 弹性计算_openapi_workload_增量更新指定Deployment
-        """
-        return {
-            "metadata": {
-                "labels": {
-                    "test": "patch-update",
-                },
-            },
-            "spec": {
-                "replicas": replicas,
-                "template": {
-                    "spec": {
-                        "containers": [
-                            {
-                                "name": "container0",
-                                "ports": [
-                                    {
-                                        "containerPort": 8010,
-                                        "name": "port1",
-                                    }
-                                ],
-                            }
-                        ],
-                    },
-                },
-            },
-        }
-
-    @staticmethod
-    def _build_batch_status_payload(name: str, kind: str) -> Dict[str, Any]:
-        """
-        构造批量查询 Workload 状态请求体。
-        对应 JMX: 弹性计算_openapi_workload_批量查询Deployment状态列表
-        """
-        return {
-            "applications": [
-                {
-                    "appName": name,
-                    "kind": kind,
-                }
-            ]
-        }
-
-    @staticmethod
-    def _build_batch_rolling_payload(
-        name: str, kind: str, action: str
-    ) -> Dict[str, Any]:
-        """构造批量滚动操作请求体（pause/resume/undo/restart）。"""
-        return {
-            "applications": [
-                {
-                    "appName": name,
-                    "kind": kind,
-                }
-            ],
-            "action": action,
-        }
-
-    @staticmethod
-    def _build_batch_patch_payload(name: str, kind: str) -> Dict[str, Any]:
-        """
-        构造批量增量更新请求体。
-        对应 JMX: 弹性计算_openapi_workload_批量增量更新Deployment
-        """
-        return {
-            "applications": [
-                {
-                    "appName": name,
-                    "kind": kind,
-                    "patch": {
-                        "metadata": {
-                            "labels": {
-                                "test": "batch-patch-update",
-                            },
-                        },
-                        "spec": {
-                            "template": {
-                                "spec": {
-                                    "containers": [
-                                        {
-                                            "name": "container0",
-                                            "ports": [
-                                                {
-                                                    "containerPort": 8020,
-                                                    "name": "port2",
-                                                }
-                                            ],
-                                        }
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                }
-            ]
-        }
-
-    @staticmethod
-    def _build_batch_lifecycle_payload(name: str, kind: str) -> Dict[str, Any]:
-        """构造批量停止/启动/重启请求体。"""
-        return {
-            "applications": [
-                {
-                    "appName": name,
-                    "kind": kind,
-                }
-            ]
-        }
-
-    @staticmethod
-    def _build_exec_payload(pod_name: str) -> Dict[str, Any]:
-        """
-        构造 Pod exec 请求体。
-        对应 JMX: 弹性计算_openapi_workload_应用服务Pod exec请求
-        """
-        return {
-            "podName": pod_name,
-            "containerName": "container0",
-            "timeout": 10,
-            "command": "ls",
-        }
-
-    @staticmethod
-    def _build_batch_delete_workload_pods_payload(
-        pod_name: str, app_code: str
-    ) -> Dict[str, Any]:
-        """
-        构造批量删除应用服务 Pod 实例请求体。
-        对应 JMX: 弹性计算_openapi_workload_批量删除应用服务Pod实例
-        """
-        return {
-            "pods": [pod_name],
-            "appCode": app_code,
-        }
-
-    @staticmethod
-    def _build_batch_delete_app_pods_payload(
-        pod_name: str, app_code: str, cell_code: str, sys_code: str
-    ) -> Dict[str, Any]:
-        """
-        构造批量删除 Pod 实例请求体。
-        对应 JMX: 弹性计算_openapi_workload_批量删除Pod实例
-        """
-        return {
-            "pods": [
-                {
-                    "podName": pod_name,
-                    "appCode": app_code,
-                    "cellCode": cell_code,
-                    "sysCode": sys_code,
-                }
-            ]
-        }
+        return WorkloadPublicParams(
+            cell_code=api_env.get("cellCode", "TEST"),
+            sys_code=api_env.get("sysCode", "test-admin"),
+            app_code=api_env.get("appCode", "test-app"),
+            kind="Deployment",
+            name=api_env.get("workloadName", "app-nginx"),
+            image=api_env.get("image", "hpe_containers/nginx:latest"),
+            replicas=int(api_env.get("replicas", 1)),
+            file_path_in_pod=api_env.get("filePathInPod", "/docker-entrypoint.sh"),
+        )
 
     # ==================== 测试用例 ====================
 
@@ -337,15 +77,13 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_workload_and_cleanup(self, ec_service, public_params, api_cache):
         """查询指定 Workload，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询指定 Workload 状态"):
                 get_resp = ec_service.get_workload_status(
-                    cell_code=cell_code, sys_code=sys_code, kind=kind, name=name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
                 )
                 ec_get_code = get_resp.get("code")
 
@@ -357,7 +95,10 @@ class TestEcOpenapiWorkload:
             if ec_get_code == ApiCode.SUCCESS:
                 with AllureHelper.step("删除已存在的 Workload"):
                     del_resp = ec_service.delete_workload(
-                        cell_code=cell_code, sys_code=sys_code, kind=kind, name=name,
+                        cell_code=public_params.cell_code,
+                        sys_code=public_params.sys_code,
+                        kind=public_params.kind,
+                        name=public_params.name,
                     )
                     assert del_resp.get("code") == ApiCode.SUCCESS, (
                         f"删除已存在的 Workload 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -372,20 +113,18 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_workload(self, ec_service, public_params, api_cache):
         """创建 Workload，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        app_code = public_params["app_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-        image = public_params["image"]
-        replicas = public_params["replicas"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送创建 Workload 请求"):
-                payload = self._build_create_payload(name, kind, image, replicas)
                 resp = ec_service.create_workload(
-                    cell_code=cell_code, sys_code=sys_code,
-                    app_code=app_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    app_code=public_params.app_code,
+                    workload=WorkloadCreateEntity(
+                        kind=public_params.kind,
+                        name=public_params.name,
+                        image=public_params.image,
+                        replicas=public_params.replicas,
+                    ),
                 )
 
             with AllureHelper.step("验证响应"):
@@ -402,16 +141,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_query_workload_status(self, ec_service, public_params):
         """批量查询 Workload 状态，断言返回成功且包含目标名称。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量查询状态请求"):
-                payload = self._build_batch_status_payload(name, kind)
                 resp = ec_service.batch_query_workload_status(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -419,8 +158,8 @@ class TestEcOpenapiWorkload:
                     f"批量查询 Workload 状态失败, code: {resp.get('code')}, 响应: {resp}"
                 )
                 resp_str = json.dumps(resp, ensure_ascii=False)
-                assert name in resp_str, (
-                    f"批量查询状态响应中未包含 {name}, 响应: {resp}"
+                assert public_params.name in resp_str, (
+                    f"批量查询状态响应中未包含 {public_params.name}, 响应: {resp}"
                 )
 
     @pytest.mark.dependency(name="workload_put", depends=["workload_create"])
@@ -430,19 +169,19 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_workload(self, ec_service, public_params):
         """PUT 全量更新 Workload，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-        image = public_params["image"]
-        replicas = public_params["replicas"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送 PUT 更新请求"):
-                payload = self._build_update_payload(name, kind, image, replicas)
                 resp = ec_service.update_workload(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    workload=WorkloadUpdateEntity(
+                        kind=public_params.kind,
+                        name=public_params.name,
+                        image=public_params.image,
+                        replicas=public_params.replicas,
+                    ),
                 )
 
             with AllureHelper.step("验证响应"):
@@ -457,16 +196,14 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_workload_rolling_undo(self, ec_service, public_params):
         """撤销更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送撤销更新请求"):
                 resp = ec_service.workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, action="undo",
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    action="undo",
                 )
 
             with AllureHelper.step("验证响应"):
@@ -481,16 +218,14 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_workload_rolling_pause(self, ec_service, public_params):
         """暂停更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送暂停更新请求"):
                 resp = ec_service.workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, action="pause",
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    action="pause",
                 )
 
             with AllureHelper.step("验证响应"):
@@ -505,18 +240,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_workload(self, ec_service, public_params):
         """PATCH 增量更新 Workload，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-        replicas = public_params["replicas"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送 PATCH 增量更新请求"):
-                payload = self._build_patch_payload(replicas)
                 resp = ec_service.patch_workload(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    workload=WorkloadPatchEntity(
+                        replicas=public_params.replicas,
+                    ),
                 )
 
             with AllureHelper.step("验证响应"):
@@ -531,16 +264,14 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_workload_rolling_resume(self, ec_service, public_params):
         """恢复更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送恢复更新请求"):
                 resp = ec_service.workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, action="resume",
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    action="resume",
                 )
 
             with AllureHelper.step("验证响应"):
@@ -555,16 +286,14 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_workload_rolling_restart(self, ec_service, public_params):
         """滚动重启 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送滚动重启请求"):
                 resp = ec_service.workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, action="restart",
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    action="restart",
                 )
 
             with AllureHelper.step("验证响应"):
@@ -580,15 +309,13 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_stop_workload(self, ec_service, public_params):
         """停止 Workload，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送停止请求"):
                 resp = ec_service.stop_workload(
-                    cell_code=cell_code, sys_code=sys_code, kind=kind, name=name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
                 )
 
             with AllureHelper.step("验证响应"):
@@ -604,15 +331,13 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_start_workload(self, ec_service, public_params):
         """启动 Workload，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送启动请求"):
                 resp = ec_service.start_workload(
-                    cell_code=cell_code, sys_code=sys_code, kind=kind, name=name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
                 )
 
             with AllureHelper.step("验证响应"):
@@ -628,15 +353,13 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_restart_workload(self, ec_service, public_params):
         """重启 Workload，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送重启请求"):
                 resp = ec_service.restart_workload(
-                    cell_code=cell_code, sys_code=sys_code, kind=kind, name=name,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
                 )
 
             with AllureHelper.step("验证响应"):
@@ -652,17 +375,17 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_rolling_pause(self, ec_service, public_params):
         """批量暂停更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量暂停更新请求"):
-                payload = self._build_batch_rolling_payload(name, kind, "pause")
                 resp = ec_service.batch_workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    action="pause", payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    action="pause",
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -677,16 +400,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_patch_workloads(self, ec_service, public_params):
         """批量增量更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量增量更新请求"):
-                payload = self._build_batch_patch_payload(name, kind)
                 resp = ec_service.batch_patch_workloads(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    applications=[
+                        WorkloadBatchPatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -701,17 +424,17 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_rolling_resume(self, ec_service, public_params):
         """批量恢复更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量恢复更新请求"):
-                payload = self._build_batch_rolling_payload(name, kind, "resume")
                 resp = ec_service.batch_workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    action="resume", payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    action="resume",
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -726,17 +449,17 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_rolling_undo(self, ec_service, public_params):
         """批量撤销更新 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量撤销更新请求"):
-                payload = self._build_batch_rolling_payload(name, kind, "undo")
                 resp = ec_service.batch_workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    action="undo", payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    action="undo",
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -752,17 +475,17 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_rolling_restart(self, ec_service, public_params):
         """批量滚动重启 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量滚动重启请求"):
-                payload = self._build_batch_rolling_payload(name, kind, "restart")
                 resp = ec_service.batch_workload_rolling(
-                    cell_code=cell_code, sys_code=sys_code,
-                    action="restart", payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    action="restart",
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -778,16 +501,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_stop_workloads(self, ec_service, public_params):
         """批量停止 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量停止请求"):
-                payload = self._build_batch_lifecycle_payload(name, kind)
                 resp = ec_service.batch_stop_workloads(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -803,16 +526,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_start_workloads(self, ec_service, public_params):
         """批量启动 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量启动请求"):
-                payload = self._build_batch_lifecycle_payload(name, kind)
                 resp = ec_service.batch_start_workloads(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -828,16 +551,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_restart_workloads(self, ec_service, public_params):
         """批量重启 Workload。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量重启请求"):
-                payload = self._build_batch_lifecycle_payload(name, kind)
                 resp = ec_service.batch_restart_workloads(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    applications=[
+                        WorkloadBatchTargetEntity(
+                            name=public_params.name, kind=public_params.kind
+                        )
+                    ],
                 )
 
             with AllureHelper.step("验证响应"):
@@ -853,18 +576,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_pod_list(self, ec_service, public_params, api_cache):
         """查询 Pod 列表并缓存 podName。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         time.sleep(Timing.POD_WAIT_SECONDS)
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询 Pod 列表"):
-                label_selector = f"name={name},kind={kind}"
+                label_selector = (
+                    f"name={public_params.name},kind={public_params.kind}"
+                )
                 resp = ec_service.list_pods_by_ns(
-                    cell_code=cell_code, sys_code=sys_code,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
                     label_selector=label_selector,
                 )
 
@@ -887,9 +608,6 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_workload_exec(self, ec_service, public_params, api_cache):
         """在 Pod 中执行命令，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        app_code = public_params["app_code"]
         pod_name = api_cache.get("workload_pod_name", "")
 
         if not pod_name:
@@ -897,10 +615,11 @@ class TestEcOpenapiWorkload:
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送 Pod exec 请求"):
-                payload = self._build_exec_payload(pod_name)
                 resp = ec_service.workload_exec(
-                    cell_code=cell_code, sys_code=sys_code,
-                    app_code=app_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    app_code=public_params.app_code,
+                    exec_entity=WorkloadExecEntity(pod_name=pod_name),
                 )
 
             with AllureHelper.step("验证响应"):
@@ -915,11 +634,6 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_workload_copy_file(self, ec_service, public_params, api_cache):
         """从 Pod 复制文件，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-        file_path = public_params["file_path_in_pod"]
         pod_name = api_cache.get("workload_pod_name", "")
 
         if not pod_name:
@@ -930,9 +644,13 @@ class TestEcOpenapiWorkload:
                 # 注意: copy 接口返回的是文件流，此处验证 HTTP 响应状态
                 # service 方法内部 raise_for_status() 已覆盖 HTTP 状态检查
                 resp = ec_service.workload_copy_file(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, name=name, pod_name=pod_name,
-                    container_name="container0", file_path=file_path,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    name=public_params.name,
+                    pod_name=pod_name,
+                    container_name="container0",
+                    file_path=public_params.file_path_in_pod,
                 )
                 # copy 接口 JMX 中只断言 HTTP 200，由 raise_for_status 覆盖
                 # 若到此未抛异常则视为成功
@@ -945,9 +663,6 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_delete_workload_pods(self, ec_service, public_params, api_cache):
         """批量删除应用服务 Pod 实例。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        app_code = public_params["app_code"]
         pod_name = api_cache.get("workload_pod_name", "")
 
         if not pod_name:
@@ -955,9 +670,12 @@ class TestEcOpenapiWorkload:
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量删除应用服务 Pod 请求"):
-                payload = self._build_batch_delete_workload_pods_payload(pod_name, app_code)
                 resp = ec_service.batch_delete_workload_pods(
-                    cell_code=cell_code, sys_code=sys_code, payload=payload,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    pod_delete=WorkloadPodDeleteEntity(
+                        pod_name=pod_name, app_code=public_params.app_code
+                    ),
                 )
 
             with AllureHelper.step("验证响应"):
@@ -972,18 +690,16 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_pod_list_again(self, ec_service, public_params, api_cache):
         """再次查询 Pod 列表并缓存新 podName。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         time.sleep(Timing.POD_WAIT_SECONDS)
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("查询 Pod 列表"):
-                label_selector = f"name={name},kind={kind}"
+                label_selector = (
+                    f"name={public_params.name},kind={public_params.kind}"
+                )
                 resp = ec_service.list_pods_by_ns(
-                    cell_code=cell_code, sys_code=sys_code,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
                     label_selector=label_selector,
                 )
 
@@ -1005,9 +721,6 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_delete_app_pods(self, ec_service, public_params, api_cache):
         """批量删除 Pod 实例。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        app_code = public_params["app_code"]
         pod_name = api_cache.get("workload_pod_name_2", "")
 
         if not pod_name:
@@ -1015,10 +728,16 @@ class TestEcOpenapiWorkload:
 
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送批量删除 Pod 实例请求"):
-                payload = self._build_batch_delete_app_pods_payload(
-                    pod_name, app_code, cell_code, sys_code,
+                resp = ec_service.batch_delete_app_pods(
+                    pods=[
+                        WorkloadAppPodDeleteEntity(
+                            pod_name=pod_name,
+                            app_code=public_params.app_code,
+                            cell_code=public_params.cell_code,
+                            sys_code=public_params.sys_code,
+                        )
+                    ]
                 )
-                resp = ec_service.batch_delete_app_pods(payload=payload)
 
             with AllureHelper.step("验证响应"):
                 assert resp.get("code") == ApiCode.SUCCESS, (
@@ -1032,17 +751,14 @@ class TestEcOpenapiWorkload:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_workload_by_labels(self, ec_service, public_params, api_cache):
         """按标签删除 Workload，断言删除成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-        name = public_params["name"]
-
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送按标签删除请求"):
-                labels = f"name={name},kind={kind}"
+                labels = f"name={public_params.name},kind={public_params.kind}"
                 resp = ec_service.delete_workload_by_labels(
-                    cell_code=cell_code, sys_code=sys_code,
-                    kind=kind, labels=labels,
+                    cell_code=public_params.cell_code,
+                    sys_code=public_params.sys_code,
+                    kind=public_params.kind,
+                    labels=labels,
                 )
 
             with AllureHelper.step("验证响应"):

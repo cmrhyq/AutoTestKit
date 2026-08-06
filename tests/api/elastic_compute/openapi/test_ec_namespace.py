@@ -10,6 +10,7 @@ from typing import Dict
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import NamespacePublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -34,6 +35,12 @@ class TestEcOpenapiNamespace:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
+    @pytest.fixture(scope="class")
+    def public_params(self) -> NamespacePublicParams:
+        """Namespace 接口通过 api_env fixture 取值，返回占位 dataclass 保持 SOP 契约。"""
+        return NamespacePublicParams()
+
     @allure.title("查询 Namespace 列表")
     @allure.description("查询指定单元下的 Namespace 列表并缓存首条 sysCode")
     @allure.severity(allure.severity_level.NORMAL)

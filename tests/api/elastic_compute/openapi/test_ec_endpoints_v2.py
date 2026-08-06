@@ -10,6 +10,7 @@ import json
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import EndpointsV2PublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -36,13 +37,14 @@ class TestEcOpenapiEndpointsV2:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> EndpointsV2PublicParams:
         """提取 Endpoints 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode"),
-            "sys_code": api_env.get("sysCode"),
-        }
+        return EndpointsV2PublicParams(
+            cell_code=api_env.get("cellCode"),
+            sys_code=api_env.get("sysCode"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -53,12 +55,10 @@ class TestEcOpenapiEndpointsV2:
     @pytest.mark.order(1)
     def test_list_endpoints(self, ec_service, public_params, api_cache):
         """查询 Endpoints 列表，断言成功并缓存首条 name。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_endpoints(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             # 断言：业务码为成功
@@ -85,13 +85,13 @@ class TestEcOpenapiEndpointsV2:
     @pytest.mark.order(2)
     def test_get_endpoints(self, ec_service, public_params, api_cache):
         """查询指定 Endpoints，断言成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
         ep_name = api_cache.get("endpoints_name")
 
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_endpoints(
-                cell_code=cell_code, sys_code=sys_code, name=ep_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=ep_name,
             )
 
             # 断言：业务码为成功

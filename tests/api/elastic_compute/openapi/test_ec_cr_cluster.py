@@ -5,11 +5,15 @@ Cluster 级别 CustomResource 接口测试
 测试内容：针对 Cluster 级别 CR 增删改查进行测试（查询、创建、列表、PUT 更新、PATCH 更新、删除）
 """
 import json
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    ClusterCustomResourceEntity,
+    ClusterCustomResourcePatchEntity,
+    CrClusterPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -34,75 +38,11 @@ class TestEcOpenapiCrCluster:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> CrClusterPublicParams:
         """提取 Cluster CR 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode"),
-            "cr_group": "test.example.com",
-            "cr_version": "v1",
-            "cr_kind": "Apple",
-            "cr_name": "test-apple",
-        }
-
-    # ==================== Helper 方法 ====================
-
-    @staticmethod
-    def _build_cr_create_payload(
-        group: str, version: str, kind: str, name: str,
-    ) -> Dict[str, Any]:
-        """构造 Cluster 级别 CR 创建请求体。"""
-        return {
-            "apiVersion": f"{group}/{version}",
-            "kind": kind,
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "name": name,
-                    "kind": kind,
-                },
-            },
-            "spec": {
-                "message": "I have an apple!",
-                "replicas": 1,
-            },
-        }
-
-    @staticmethod
-    def _build_cr_update_payload(
-        group: str, version: str, kind: str, name: str,
-    ) -> Dict[str, Any]:
-        """构造 Cluster 级别 CR PUT 全量更新请求体。"""
-        return {
-            "apiVersion": f"{group}/{version}",
-            "kind": kind,
-            "metadata": {
-                "name": name,
-                "labels": {
-                    "name": name,
-                    "kind": kind,
-                    "test": "update",
-                },
-            },
-            "spec": {
-                "message": "I have two apple!",
-                "replicas": 2,
-            },
-        }
-
-    @staticmethod
-    def _build_cr_patch_payload() -> Dict[str, Any]:
-        """构造 Cluster 级别 CR PATCH 增量更新请求体。"""
-        return {
-            "metadata": {
-                "labels": {
-                    "test": "patch-update",
-                },
-            },
-            "spec": {
-                "replicas": 3,
-            },
-        }
+        return CrClusterPublicParams(cell_code=api_env.get("cellCode"))
 
     # ==================== 测试方法 ====================
 
@@ -113,35 +53,27 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_cr_and_cleanup(self, ec_service, public_params, api_cache):
         """查询指定 Cluster CR，若已存在则删除，确保测试环境干净。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_cluster_custom_resource(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
-                name=cr_name,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                name=public_params.cr_name,
             )
             ec_get_code = get_resp.get("code")
 
-            # 断言：接口返回正常（2000=存在，4004=不存在，两者均为正常）
             assert ec_get_code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
                 f"查询 Cluster CR 返回异常 code: {ec_get_code}, 响应: {get_resp}"
             )
 
-            # 若已存在，先删除以保证幂等
             if ec_get_code == ApiCode.SUCCESS:
                 del_resp = ec_service.delete_cluster_custom_resource(
-                    cell_code=cell_code,
-                    group=cr_group,
-                    version=cr_version,
-                    kind=cr_kind,
-                    name=cr_name,
+                    cell_code=public_params.cell_code,
+                    group=public_params.cr_group,
+                    version=public_params.cr_version,
+                    kind=public_params.cr_kind,
+                    name=public_params.cr_name,
                 )
                 assert del_resp.get("code") == ApiCode.SUCCESS, (
                     f"删除已存在的 Cluster CR 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
@@ -156,25 +88,23 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_cluster_cr(self, ec_service, public_params, api_cache):
         """创建 Cluster CR，断言创建成功。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
-            create_payload = self._build_cr_create_payload(
-                group=cr_group, version=cr_version, kind=cr_kind, name=cr_name,
+            custom_resource = ClusterCustomResourceEntity(
+                name=public_params.cr_name,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                message="I have an apple!",
+                replicas=1,
             )
             create_resp = ec_service.create_cluster_custom_resource(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
-                payload=create_payload,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                custom_resource=custom_resource,
             )
 
-            # 断言：业务码为成功
             assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 Cluster CR 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
@@ -188,30 +118,22 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_cluster_crs(self, ec_service, public_params):
         """查询 Cluster CR 列表，断言包含目标 CR。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
-            label_selector = f"name={cr_name},kind=Pod"
+            label_selector = f"name={public_params.cr_name},kind=Pod"
             list_resp = ec_service.list_cluster_custom_resources(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
                 label_selector=label_selector,
             )
 
-            # 断言：业务码为成功
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cluster CR 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
-            # 断言：列表中包含目标 CR 名称
             resp_str = json.dumps(list_resp, ensure_ascii=False)
-            assert cr_name in resp_str, (
-                f"Cluster CR 列表中未找到 {cr_name}, 响应: {list_resp}"
+            assert public_params.cr_name in resp_str, (
+                f"Cluster CR 列表中未找到 {public_params.cr_name}, 响应: {list_resp}"
             )
 
     @pytest.mark.dependency(name="cr_cluster_put", depends=["cr_cluster_create"])
@@ -221,26 +143,25 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_put_update_cluster_cr(self, ec_service, public_params):
         """PUT 全量更新 Cluster CR，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
-            put_payload = self._build_cr_update_payload(
-                group=cr_group, version=cr_version, kind=cr_kind, name=cr_name,
+            custom_resource = ClusterCustomResourceEntity(
+                name=public_params.cr_name,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                message="I have two apple!",
+                replicas=2,
+                extra_labels={"test": "update"},
             )
             put_resp = ec_service.update_cluster_custom_resource(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
-                name=cr_name,
-                payload=put_payload,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                name=public_params.cr_name,
+                custom_resource=custom_resource,
             )
 
-            # 断言：业务码为成功
             assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 Cluster CR 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
@@ -252,24 +173,20 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_update_cluster_cr(self, ec_service, public_params):
         """PATCH 增量更新 Cluster CR，断言更新成功。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
-            patch_payload = self._build_cr_patch_payload()
+            patch_entity = ClusterCustomResourcePatchEntity(
+                replicas=3,
+                labels={"test": "patch-update"},
+            )
             patch_resp = ec_service.patch_cluster_custom_resource(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
-                name=cr_name,
-                payload=patch_payload,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                name=public_params.cr_name,
+                custom_resource=patch_entity,
             )
 
-            # 断言：业务码为成功
             assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 Cluster CR 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
@@ -281,22 +198,15 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_cluster_cr(self, ec_service, public_params, api_cache):
         """删除 Cluster CR，断言删除成功并清理缓存标记。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
             del_resp = ec_service.delete_cluster_custom_resource(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
-                name=cr_name,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                name=public_params.cr_name,
             )
 
-            # 断言：业务码为成功
             assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 Cluster CR 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
@@ -310,22 +220,15 @@ class TestEcOpenapiCrCluster:
     @allure.severity(allure.severity_level.NORMAL)
     def test_verify_cluster_cr_deleted(self, ec_service, public_params):
         """删除后验证 Cluster CR 已不存在。"""
-        cell_code = public_params["cell_code"]
-        cr_group = public_params["cr_group"]
-        cr_version = public_params["cr_version"]
-        cr_kind = public_params["cr_kind"]
-        cr_name = public_params["cr_name"]
-
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_cluster_custom_resource(
-                cell_code=cell_code,
-                group=cr_group,
-                version=cr_version,
-                kind=cr_kind,
-                name=cr_name,
+                cell_code=public_params.cell_code,
+                group=public_params.cr_group,
+                version=public_params.cr_version,
+                kind=public_params.cr_kind,
+                name=public_params.cr_name,
             )
 
-            # 断言：业务码为资源不存在
             assert get_resp.get("code") == ApiCode.NOT_FOUND, (
                 f"Cluster CR 删除后仍能查询到, code: {get_resp.get('code')}, 响应: {get_resp}"
             )

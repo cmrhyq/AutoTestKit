@@ -26,9 +26,51 @@ K8s 集群级资源 / 命名空间配额：
 - RBAC_V2.jmx           （4）
 - pvc-pv.jmx（标准 K8s 路径 /persistentvolumeclaims /persistentvolumes）（12）
 """
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
+import json
 
 from base import BaseService
+from base.api.entity.elastic_compute_openapi import (
+    ClusterCustomResourceEntity,
+    ClusterCustomResourcePatchEntity,
+    ConfigMapPublicParams,
+    HarborMemberEntity,
+    HarborProjectEntity,
+    HarborReplicationPolicyEntity,
+    HelmInstallEntity,
+    HelmUpgradeEntity,
+    K8sConfigMapEntity,
+    K8sConfigMapPatchEntity,
+    K8sHpaEntity,
+    K8sLimitRangeEntity,
+    K8sPodEntity,
+    K8sPodPatchEntity,
+    K8sPodRawEntity,
+    K8sPriorityClassEntity,
+    K8sPriorityClassPatchEntity,
+    K8sPvcEntity,
+    K8sResourceQuotaEntity,
+    K8sResourceQuotaPatchEntity,
+    K8sSecretEntity,
+    K8sSecretPatchEntity,
+    K8sServiceEntity,
+    K8sServicePatchEntity,
+    NsCustomResourceEntity,
+    NsCustomResourcePatchEntity,
+    PortAllocationEntity,
+    RecoveryResourceEntity,
+    ScaledObjectEntity,
+    ScaledObjectPatchEntity,
+    TenantQuotaAllocationEntity,
+    WorkloadAppPodDeleteEntity,
+    WorkloadBatchPatchTargetEntity,
+    WorkloadBatchTargetEntity,
+    WorkloadCreateEntity,
+    WorkloadExecEntity,
+    WorkloadPatchEntity,
+    WorkloadPodDeleteEntity,
+    WorkloadUpdateEntity,
+)
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -226,7 +268,7 @@ class ElasticComputeOpenService(BaseService):
         self,
         cell_code: str,
         name: str,
-        payload: Dict[str, Any],
+        labels: Dict[str, str],
     ) -> Dict[str, Any]:
         """
         增量更新指定 Node。
@@ -237,10 +279,11 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
             name: Node 名
-            payload: patch body（strategic merge patch）
+            labels: 需要合并的 labels（strategic merge patch）
         """
         logger.info(f"Patch node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
+        payload: Dict[str, Any] = {"metadata": {"labels": labels}}
         response = self.patch(endpoint=url, json=payload)
         return response.json()
 
@@ -248,10 +291,10 @@ class ElasticComputeOpenService(BaseService):
         self,
         cell_code: str,
         name: str,
-        payload: Dict[str, Any],
+        unschedulable: bool = False,
     ) -> Dict[str, Any]:
         """
-        全量更新指定 Node。
+        全量更新指定 Node（构造最小 Node 对象）。
 
         对应 JMX：弹性计算_openapi_Node_更新指定Node
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/nodes/{name}
@@ -259,10 +302,16 @@ class ElasticComputeOpenService(BaseService):
         Args:
             cell_code: 单元编码
             name: Node 名
-            payload: 完整 Node 对象
+            unschedulable: 是否禁止调度
         """
         logger.info(f"Update node: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodes/{name}"
+        payload: Dict[str, Any] = {
+            "apiVersion": "v1",
+            "kind": "Node",
+            "metadata": {"name": name},
+            "spec": {"unschedulable": unschedulable},
+        }
         response = self.put(endpoint=url, json=payload)
         return response.json()
 
@@ -289,7 +338,7 @@ class ElasticComputeOpenService(BaseService):
         self,
         cell_code: str,
         sys_code: str,
-        payload: Dict[str, Any],
+        pvc: K8sPvcEntity,
     ) -> Dict[str, Any]:
         """
         创建 PVC。
@@ -297,13 +346,20 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_pvc-pv_创建pvc请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pvc
 
-        Args:
-            cell_code: 单元编码
-            sys_code: 系统编码
-            payload: PVC 资源定义（K8s PersistentVolumeClaim 对象）
+        接收 :class:`K8sPvcEntity`，内联构造 K8s 原生 PVC payload。
         """
-        logger.info(f"Create PVC: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create PVC: cell={cell_code}, sys={sys_code}, name={pvc.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pvc"
+        payload: Dict[str, Any] = {
+            "apiVersion": pvc.api_version,
+            "kind": pvc.kind,
+            "metadata": {"name": pvc.name},
+            "spec": {
+                "accessModes": [pvc.access_mode],
+                "resources": {"requests": {"storage": pvc.storage}},
+                "storageClassName": pvc.storage_class_name,
+            },
+        }
         response = self.post(endpoint=url, json=payload)
         return response.json()
 
@@ -406,11 +462,21 @@ class ElasticComputeOpenService(BaseService):
         return self.delete(endpoint=url).json()
 
     def create_configmap(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, configmap: K8sConfigMapEntity
     ) -> Dict[str, Any]:
-        """创建 configmap 请求。POST /.../configmaps"""
-        logger.info(f"Create configmap: cell={cell_code}, sys={sys_code}")
+        """创建 configmap 请求。POST /.../configmaps
+
+        接收 :class:`K8sConfigMapEntity`，内联构造 K8s 原生 ConfigMap payload。
+        对应 JMX ``ConfigMap.jmx`` 中"创建cm请求" sampler。
+        """
+        logger.info(f"Create configmap: cell={cell_code}, sys={sys_code}, name={configmap.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps"
+        payload: Dict[str, Any] = {
+            "apiVersion": configmap.api_version,
+            "kind": configmap.kind,
+            "metadata": {"name": configmap.name},
+            "data": dict(configmap.data),
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_configmaps_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
@@ -426,19 +492,37 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def update_configmap(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, configmap: K8sConfigMapEntity
     ) -> Dict[str, Any]:
-        """更新指定 configmap。PUT /.../configmaps/{name}"""
+        """更新指定 configmap。PUT /.../configmaps/{name}
+
+        接收 :class:`K8sConfigMapEntity`，内联构造 K8s 原生 ConfigMap payload。
+        对应 JMX ``ConfigMap.jmx`` 中"更新指定 configmap" sampler。
+        """
         logger.info(f"Update configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
+        payload: Dict[str, Any] = {
+            "apiVersion": configmap.api_version,
+            "kind": configmap.kind,
+            "metadata": {"name": configmap.name},
+            "data": dict(configmap.data),
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_configmap(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, patch: K8sConfigMapPatchEntity
     ) -> Dict[str, Any]:
-        """增量更新指定 configmap。PATCH /.../configmaps/{name}"""
+        """增量更新指定 configmap。PATCH /.../configmaps/{name}
+
+        接收 :class:`K8sConfigMapPatchEntity`，内联构造 strategic merge patch payload。
+        对应 JMX ``ConfigMap.jmx`` 中"增量更新指定 configmap" sampler。
+        """
         logger.info(f"Patch configmap: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/configmaps/{name}"
+        payload: Dict[str, Any] = {
+            "metadata": {"labels": dict(patch.labels)},
+            "data": dict(patch.data),
+        }
         return self.patch(endpoint=url, json=payload).json()
 
     # ==================== SecretV2.jmx ====================
@@ -456,11 +540,21 @@ class ElasticComputeOpenService(BaseService):
         return self.delete(endpoint=url).json()
 
     def create_secret(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, secret: K8sSecretEntity
     ) -> Dict[str, Any]:
-        """创建 Secret。POST /.../secrets"""
-        logger.info(f"Create secret: cell={cell_code}, sys={sys_code}")
+        """创建 Secret。POST /.../secrets
+
+        接收 :class:`K8sSecretEntity`，内联构造 K8s 原生 Secret payload。
+        """
+        logger.info(f"Create secret: cell={cell_code}, sys={sys_code}, name={secret.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets"
+        payload: Dict[str, Any] = {
+            "apiVersion": secret.api_version,
+            "kind": secret.kind,
+            "metadata": {"name": secret.name},
+            "type": secret.secret_type,
+            "data": dict(secret.data),
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_secrets_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
@@ -476,19 +570,36 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def update_secret(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, secret: K8sSecretEntity
     ) -> Dict[str, Any]:
-        """更新 Secret。PUT /.../secrets/{name}"""
+        """更新 Secret。PUT /.../secrets/{name}
+
+        接收 :class:`K8sSecretEntity`，内联构造 K8s 原生 Secret payload。
+        """
         logger.info(f"Update secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
+        payload: Dict[str, Any] = {
+            "apiVersion": secret.api_version,
+            "kind": secret.kind,
+            "metadata": {"name": secret.name},
+            "type": secret.secret_type,
+            "data": dict(secret.data),
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_secret(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, patch: K8sSecretPatchEntity
     ) -> Dict[str, Any]:
-        """增量更新 Secret。PATCH /.../secrets/{name}"""
+        """增量更新 Secret。PATCH /.../secrets/{name}
+
+        接收 :class:`K8sSecretPatchEntity`，内联构造 strategic merge patch payload。
+        """
         logger.info(f"Patch secret: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/secrets/{name}"
+        payload: Dict[str, Any] = {
+            "metadata": {"labels": dict(patch.labels)},
+            "data": dict(patch.data),
+        }
         return self.patch(endpoint=url, json=payload).json()
 
     # ==================== ServiceV2.jmx ====================
@@ -506,11 +617,32 @@ class ElasticComputeOpenService(BaseService):
         return self.delete(endpoint=url).json()
 
     def create_service(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, service: K8sServiceEntity
     ) -> Dict[str, Any]:
-        """创建 Service。POST /.../services"""
-        logger.info(f"Create service: cell={cell_code}, sys={sys_code}")
+        """创建 Service。POST /.../services
+
+        接收 :class:`K8sServiceEntity`，内联构造 K8s 原生 Service payload。
+        """
+        logger.info(f"Create service: cell={cell_code}, sys={sys_code}, name={service.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services"
+        payload: Dict[str, Any] = {
+            "apiVersion": service.api_version,
+            "kind": service.kind,
+            "metadata": {"name": service.name},
+            "spec": {
+                "type": service.service_type,
+                "ports": [
+                    {
+                        "port": p.port,
+                        "targetPort": p.target_port,
+                        "protocol": p.protocol,
+                        "name": p.name,
+                    }
+                    for p in service.ports
+                ],
+                "selector": dict(service.selector),
+            },
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_services_by_ns(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
@@ -526,19 +658,44 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def update_service(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, service: K8sServiceEntity
     ) -> Dict[str, Any]:
-        """更新 Service。PUT /.../services/{name}"""
+        """更新 Service。PUT /.../services/{name}
+
+        接收 :class:`K8sServiceEntity`，内联构造 K8s 原生 Service payload。
+        """
         logger.info(f"Update service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
+        payload: Dict[str, Any] = {
+            "apiVersion": service.api_version,
+            "kind": service.kind,
+            "metadata": {"name": service.name},
+            "spec": {
+                "type": service.service_type,
+                "ports": [
+                    {
+                        "port": p.port,
+                        "targetPort": p.target_port,
+                        "protocol": p.protocol,
+                        "name": p.name,
+                    }
+                    for p in service.ports
+                ],
+                "selector": dict(service.selector),
+            },
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_service(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, patch: K8sServicePatchEntity
     ) -> Dict[str, Any]:
-        """增量更新 Service。PATCH /.../services/{name}"""
+        """增量更新 Service。PATCH /.../services/{name}
+
+        接收 :class:`K8sServicePatchEntity`，内联构造 strategic merge patch payload。
+        """
         logger.info(f"Patch service: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/services/{name}"
+        payload: Dict[str, Any] = {"metadata": {"labels": dict(patch.labels)}}
         return self.patch(endpoint=url, json=payload).json()
 
     # ==================== ServiceAccountV2.jmx ====================
@@ -727,26 +884,57 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
         return self.get(endpoint=url).json()
 
-    def create_priority_class(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """创建 PriorityClass。POST /.../priorityclasses"""
-        logger.info(f"Create priority class: cell={cell_code}")
+    def create_priority_class(self, cell_code: str, priority_class: K8sPriorityClassEntity) -> Dict[str, Any]:
+        """创建 PriorityClass。POST /.../priorityclasses
+
+        接收 :class:`K8sPriorityClassEntity`，内联构造 K8s PriorityClass payload。
+        """
+        logger.info(f"Create priority class: cell={cell_code}, name={priority_class.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses"
+        payload: Dict[str, Any] = {
+            "apiVersion": priority_class.api_version,
+            "description": priority_class.description,
+            "kind": priority_class.kind,
+            "metadata": {"name": priority_class.name},
+            "value": priority_class.value,
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def update_priority_class(
-        self, cell_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, name: str, priority_class: K8sPriorityClassEntity
     ) -> Dict[str, Any]:
-        """更新 PriorityClass。PUT /.../priorityclasses/{name}"""
+        """更新 PriorityClass。PUT /.../priorityclasses/{name}
+
+        接收 :class:`K8sPriorityClassEntity`，内联构造 K8s PriorityClass payload。
+        """
         logger.info(f"Update priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
+        payload: Dict[str, Any] = {
+            "apiVersion": priority_class.api_version,
+            "description": priority_class.description,
+            "kind": priority_class.kind,
+            "metadata": {"name": priority_class.name},
+            "value": priority_class.value,
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_priority_class(
-        self, cell_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, name: str, patch: K8sPriorityClassPatchEntity
     ) -> Dict[str, Any]:
-        """增量更新 PriorityClass。PATCH /.../priorityclasses/{name}"""
+        """增量更新 PriorityClass。PATCH /.../priorityclasses/{name}
+
+        接收 :class:`K8sPriorityClassPatchEntity`，内联构造 strategic merge patch payload。
+        """
         logger.info(f"Patch priority class: cell={cell_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
+        payload: Dict[str, Any] = {
+            "description": patch.description,
+            "globalDefault": patch.global_default,
+            "metadata": {
+                "labels": dict(patch.labels),
+                "annotations": dict(patch.annotations),
+            },
+        }
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_priority_class(self, cell_code: str, name: str) -> Dict[str, Any]:
@@ -853,7 +1041,8 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def create_cluster_custom_resource(
-        self, cell_code: str, group: str, version: str, kind: str, payload: Dict[str, Any]
+        self, cell_code: str, group: str, version: str, kind: str,
+        custom_resource: ClusterCustomResourceEntity,
     ) -> Dict[str, Any]:
         """
         创建 Cluster 级别 CR。
@@ -861,20 +1050,34 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_cr-cluster_创建CR请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources
 
-        Args:
-            cell_code: 单元编码
-            group: CR group
-            version: CR version
-            kind: CR kind
-            payload: CR 资源定义
+        接收 :class:`ClusterCustomResourceEntity`，内联构造 K8s CR payload。
         """
         logger.info(
-            f"Create cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}"
+            f"Create cluster CR: cell={cell_code}, group={group}, version={version}, "
+            f"kind={kind}, name={custom_resource.name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources"
         )
+        labels: Dict[str, str] = {
+            "name": custom_resource.name,
+            "kind": custom_resource.kind,
+        }
+        if custom_resource.extra_labels:
+            labels.update(custom_resource.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": f"{custom_resource.group}/{custom_resource.version}",
+            "kind": custom_resource.kind,
+            "metadata": {
+                "name": custom_resource.name,
+                "labels": labels,
+            },
+            "spec": {
+                "message": custom_resource.message,
+                "replicas": custom_resource.replicas,
+            },
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_cluster_custom_resources(
@@ -908,7 +1111,7 @@ class ElasticComputeOpenService(BaseService):
 
     def update_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, name: str,
-        payload: Dict[str, Any],
+        custom_resource: ClusterCustomResourceEntity,
     ) -> Dict[str, Any]:
         """
         全量更新指定 Cluster 级别 CR。
@@ -916,13 +1119,7 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_cr-cluster_更新指定CR
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
 
-        Args:
-            cell_code: 单元编码
-            group: CR group
-            version: CR version
-            kind: CR kind
-            name: CR 名称
-            payload: 完整 CR 对象
+        接收 :class:`ClusterCustomResourceEntity`，内联构造 K8s CR payload。
         """
         logger.info(
             f"Update cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
@@ -931,11 +1128,29 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources/{name}"
         )
+        labels: Dict[str, str] = {
+            "name": custom_resource.name,
+            "kind": custom_resource.kind,
+        }
+        if custom_resource.extra_labels:
+            labels.update(custom_resource.extra_labels)
+        payload: Dict[str, Any] = {
+            "apiVersion": f"{custom_resource.group}/{custom_resource.version}",
+            "kind": custom_resource.kind,
+            "metadata": {
+                "name": custom_resource.name,
+                "labels": labels,
+            },
+            "spec": {
+                "message": custom_resource.message,
+                "replicas": custom_resource.replicas,
+            },
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, name: str,
-        payload: Dict[str, Any],
+        custom_resource: ClusterCustomResourcePatchEntity,
     ) -> Dict[str, Any]:
         """
         增量更新指定 Cluster 级别 CR。
@@ -943,13 +1158,8 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_cr-cluster_增量更新指定CR
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
 
-        Args:
-            cell_code: 单元编码
-            group: CR group
-            version: CR version
-            kind: CR kind
-            name: CR 名称
-            payload: 增量更新字段
+        接收 :class:`ClusterCustomResourcePatchEntity`，内联构造 K8s CR patch payload；
+        当 ``labels`` 为 ``None`` 时不写入 ``metadata`` 字段（严格对齐 JMX 原生行为）。
         """
         logger.info(
             f"Patch cluster CR: cell={cell_code}, group={group}, version={version}, kind={kind}, name={name}"
@@ -958,6 +1168,9 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/{group}/{version}"
             f"/kind/{kind}/customResources/{name}"
         )
+        payload: Dict[str, Any] = {"spec": {"replicas": custom_resource.replicas}}
+        if custom_resource.labels is not None:
+            payload["metadata"] = {"labels": custom_resource.labels}
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_cluster_custom_resource(
@@ -1129,21 +1342,30 @@ class ElasticComputeOpenService(BaseService):
 
     def create_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str,
-        payload: Dict[str, Any],
+        custom_resource: NsCustomResourceEntity,
     ) -> Dict[str, Any]:
         """
         创建 Namespace 级别 CR。
 
         对应 JMX：弹性计算_openapi_CustomResource-ns_创建CR请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources
+
+        接收 :class:`NsCustomResourceEntity`，内联构造 K8s CR payload。
         """
         logger.info(
-            f"Create ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}"
+            f"Create ns CR: cell={cell_code}, sys={sys_code}, group={group}, "
+            f"version={version}, kind={kind}, name={custom_resource.name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"{custom_resource.group}/{custom_resource.version}",
+            "kind": custom_resource.kind,
+            "metadata": {"name": custom_resource.name},
+            "spec": {"color": custom_resource.color},
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_ns_custom_resources(
@@ -1170,40 +1392,56 @@ class ElasticComputeOpenService(BaseService):
 
     def update_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str,
-        payload: Dict[str, Any],
+        custom_resource: NsCustomResourceEntity,
     ) -> Dict[str, Any]:
         """
         全量更新指定 Namespace 级别 CR。
 
         对应 JMX：弹性计算_openapi_CustomResource-ns_更新指定CR
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
+
+        接收 :class:`NsCustomResourceEntity`，内联构造 K8s CR payload。
         """
         logger.info(
-            f"Update ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
+            f"Update ns CR: cell={cell_code}, sys={sys_code}, group={group}, "
+            f"version={version}, kind={kind}, name={name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources/{name}"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"{custom_resource.group}/{custom_resource.version}",
+            "kind": custom_resource.kind,
+            "metadata": {"name": custom_resource.name},
+            "spec": {"color": custom_resource.color},
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str,
-        payload: Dict[str, Any],
+        custom_resource: NsCustomResourcePatchEntity,
     ) -> Dict[str, Any]:
         """
         增量更新指定 Namespace 级别 CR。
 
         对应 JMX：弹性计算_openapi_CustomResource-ns_增量更新指定CR
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{group}/{version}/kind/{kind}/customResources/{name}
+
+        接收 :class:`NsCustomResourcePatchEntity`，内联构造 K8s CR patch payload；
+        当 ``labels`` 为 ``None`` 时不写入 ``metadata`` 字段。
         """
         logger.info(
-            f"Patch ns CR: cell={cell_code}, sys={sys_code}, group={group}, version={version}, kind={kind}, name={name}"
+            f"Patch ns CR: cell={cell_code}, sys={sys_code}, group={group}, "
+            f"version={version}, kind={kind}, name={name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{group}/{version}/kind/{kind}/customResources/{name}"
         )
+        payload: Dict[str, Any] = {"spec": {"color": custom_resource.color}}
+        if custom_resource.labels is not None:
+            payload["metadata"] = {"labels": custom_resource.labels}
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_ns_custom_resource(
@@ -1449,21 +1687,38 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def create_hpa(
-        self, cell_code: str, sys_code: str, api_version: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, api_version: str, hpa: K8sHpaEntity
     ) -> Dict[str, Any]:
         """
         创建 HPA。
 
         对应 JMX：弹性计算_openapi_HPA_创建hpa请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas
+
+        接收 :class:`K8sHpaEntity`，内联构造 K8s HPA payload。
         """
         logger.info(
-            f"Create HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}"
+            f"Create HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={hpa.name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"autoscaling/{hpa.api_version}",
+            "kind": hpa.kind,
+            "metadata": {"name": hpa.name},
+            "spec": {
+                "scaleTargetRef": {
+                    "kind": hpa.scale_target_kind,
+                    "name": hpa.scale_target_name,
+                    "apiVersion": hpa.scale_target_api_version,
+                },
+                "minReplicas": hpa.min_replicas,
+                "maxReplicas": hpa.max_replicas,
+                "targetCPUUtilizationPercentage": hpa.target_cpu_utilization_percentage,
+            },
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_hpas_by_ns(
@@ -1497,13 +1752,15 @@ class ElasticComputeOpenService(BaseService):
 
     def update_hpa(
         self, cell_code: str, sys_code: str, api_version: str, name: str,
-        payload: Dict[str, Any],
+        hpa: K8sHpaEntity,
     ) -> Dict[str, Any]:
         """
         全量更新指定 HPA。
 
         对应 JMX：弹性计算_openapi_HPA_更新指定hpa
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
+
+        接收 :class:`K8sHpaEntity`，内联构造 K8s HPA payload。
         """
         logger.info(
             f"Update HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
@@ -1512,17 +1769,34 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas/{name}"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"autoscaling/{hpa.api_version}",
+            "kind": hpa.kind,
+            "metadata": {"name": hpa.name},
+            "spec": {
+                "scaleTargetRef": {
+                    "kind": hpa.scale_target_kind,
+                    "name": hpa.scale_target_name,
+                    "apiVersion": hpa.scale_target_api_version,
+                },
+                "minReplicas": hpa.min_replicas,
+                "maxReplicas": hpa.max_replicas,
+                "targetCPUUtilizationPercentage": hpa.target_cpu_utilization_percentage,
+            },
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_hpa(
         self, cell_code: str, sys_code: str, api_version: str, name: str,
-        payload: Dict[str, Any],
+        hpa: K8sHpaEntity,
     ) -> Dict[str, Any]:
         """
         增量更新指定 HPA。
 
         对应 JMX：弹性计算_openapi_HPA_增量更新指定hpa
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/{apiVersion}/hpas/{name}
+
+        接收 :class:`K8sHpaEntity`，内联构造 K8s HPA patch payload（结构等同于全量更新）。
         """
         logger.info(
             f"Patch HPA: cell={cell_code}, sys={sys_code}, apiVer={api_version}, name={name}"
@@ -1531,6 +1805,21 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/{api_version}/hpas/{name}"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": f"autoscaling/{hpa.api_version}",
+            "kind": hpa.kind,
+            "metadata": {"name": hpa.name},
+            "spec": {
+                "scaleTargetRef": {
+                    "kind": hpa.scale_target_kind,
+                    "name": hpa.scale_target_name,
+                    "apiVersion": hpa.scale_target_api_version,
+                },
+                "minReplicas": hpa.min_replicas,
+                "maxReplicas": hpa.max_replicas,
+                "targetCPUUtilizationPercentage": hpa.target_cpu_utilization_percentage,
+            },
+        }
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_hpa(
@@ -1620,16 +1909,25 @@ class ElasticComputeOpenService(BaseService):
         return self.delete(endpoint=url).json()
 
     def create_harbor_project_by_id(
-        self, harbor_id: int, payload: Dict[str, Any]
+        self, harbor_id: int, project: HarborProjectEntity,
     ) -> Dict[str, Any]:
         """
         创建 harbor 项目。
 
         对应 JMX：弹性计算_openapi_harbor_创建harbor项目
         POST /openapi/elastic-compute/v2/harbors/{harborId}/projects
+
+        接收 :class:`HarborProjectEntity`，内联构造 payload。``public`` 字段以
+        字符串 ``'true'``/``'false'`` 形式提交（Harbor 原生 API 契约）。
         """
-        logger.info(f"Create harbor project: harborId={harbor_id}")
+        logger.info(
+            f"Create harbor project: harborId={harbor_id}, project={project.project_name}"
+        )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects"
+        payload: Dict[str, Any] = {
+            "project_name": project.project_name,
+            "metadata": {"public": "true" if project.public else "false"},
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_harbor_projects_by_id(
@@ -1649,20 +1947,27 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url, params=params).json()
 
     def create_harbor_project_member(
-        self, harbor_id: int, project_id: int, payload: Dict[str, Any]
+        self, harbor_id: int, project_id: int, member: HarborMemberEntity,
     ) -> Dict[str, Any]:
         """
         创建 harbor 项目成员关系。
 
         对应 JMX：弹性计算_openapi_harbor_创建harbor项目成员关系
         POST /openapi/elastic-compute/v2/harbors/{harborId}/projects/{projectId}/members
+
+        接收 :class:`HarborMemberEntity`，内联构造 payload。
         """
         logger.info(
-            f"Create harbor project member: harborId={harbor_id}, projectId={project_id}"
+            f"Create harbor project member: harborId={harbor_id}, "
+            f"projectId={project_id}, username={member.username}"
         )
         url = (
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/projects/{project_id}/members"
         )
+        payload: Dict[str, Any] = {
+            "role_id": member.role_id,
+            "member_user": {"username": member.username},
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def delete_harbor_project_member(
@@ -1696,16 +2001,39 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def create_harbor_replication_policy(
-        self, harbor_id: int, payload: Dict[str, Any]
+        self, harbor_id: int, policy: HarborReplicationPolicyEntity,
     ) -> Dict[str, Any]:
         """
         添加 harbor 复制策略。
 
         对应 JMX：弹性计算_openapi_harbor_添加harbor复制策略
         POST /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies
+
+        接收 :class:`HarborReplicationPolicyEntity`，内联构造 payload。``src_registry``
+        固定为 ``None``（默认从当前 harbor 出站），``filters`` 按 ``{project}/**`` 通配匹配。
         """
-        logger.info(f"Create harbor replication policy: harborId={harbor_id}")
+        logger.info(
+            f"Create harbor replication policy: harborId={harbor_id}, name={policy.name}"
+        )
         url = f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies"
+        payload: Dict[str, Any] = {
+            "name": policy.name,
+            "description": policy.description if policy.description is not None else policy.name,
+            "src_registry": None,
+            "dest_registry": {"id": policy.target_id},
+            "dest_namespace": policy.project_name,
+            "trigger": {
+                "type": policy.trigger_type,
+                "trigger_settings": {"cron": policy.trigger_cron},
+            },
+            "filters": [
+                {"type": "name", "value": f"{policy.project_name}/**"},
+            ],
+            "deletion": policy.deletion,
+            "override": policy.override,
+            "enabled": policy.enabled,
+            "speed": policy.speed,
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_harbor_replication_policies(
@@ -1744,13 +2072,16 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def update_harbor_replication_policy(
-        self, harbor_id: int, policy_id: int, payload: Dict[str, Any]
+        self, harbor_id: int, policy_id: int,
+        policy: HarborReplicationPolicyEntity,
     ) -> Dict[str, Any]:
         """
         更新 harbor 复制/备份策略。
 
         对应 JMX：弹性计算_openapi_harbor_更新复制/备份策略
         PUT /openapi/elastic-compute/v2/harbors/{harborId}/replication/policies/{policyId}
+
+        接收 :class:`HarborReplicationPolicyEntity`，内联构造 payload（等同 create）。
         """
         logger.info(
             f"Update harbor replication policy: harborId={harbor_id}, policyId={policy_id}"
@@ -1758,6 +2089,24 @@ class ElasticComputeOpenService(BaseService):
         url = (
             f"/openapi/elastic-compute/v2/harbors/{harbor_id}/replication/policies/{policy_id}"
         )
+        payload: Dict[str, Any] = {
+            "name": policy.name,
+            "description": policy.description if policy.description is not None else policy.name,
+            "src_registry": None,
+            "dest_registry": {"id": policy.target_id},
+            "dest_namespace": policy.project_name,
+            "trigger": {
+                "type": policy.trigger_type,
+                "trigger_settings": {"cron": policy.trigger_cron},
+            },
+            "filters": [
+                {"type": "name", "value": f"{policy.project_name}/**"},
+            ],
+            "deletion": policy.deletion,
+            "override": policy.override,
+            "enabled": policy.enabled,
+            "speed": policy.speed,
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def delete_harbor_replication_policy(
@@ -2002,16 +2351,31 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url)
 
     def helm_install(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, install: HelmInstallEntity,
     ) -> Dict[str, Any]:
         """
         Helm Install。
 
         对应 JMX：弹性计算_openapi_helm-chart_Helm Install请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/install
+
+        接收 :class:`HelmInstallEntity`，内联构造 payload。``values`` 字段以
+        JSON 字符串形式提交（对齐 JMX 原生行为）。
         """
-        logger.info(f"Helm install: cell={cell_code}, sys={sys_code}")
+        logger.info(
+            f"Helm install: cell={cell_code}, sys={sys_code}, release={install.release_name}"
+        )
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/install"
+        values: Dict[str, Any] = {
+            "image": {"repository": install.image_repository, "tag": install.image_tag},
+            "replicaCount": install.replica_count,
+        }
+        payload: Dict[str, Any] = {
+            "name": install.release_name,
+            "chart": install.chart_name,
+            "version": install.chart_version,
+            "values": json.dumps(values, ensure_ascii=False),
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def helm_uninstall(
@@ -2076,19 +2440,31 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def helm_upgrade(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, name: str, upgrade: HelmUpgradeEntity,
     ) -> Dict[str, Any]:
         """
         Helm Upgrade。
 
         对应 JMX：弹性计算_openapi_helm-chart_Helm Upgrade请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/upgrade
+
+        接收 :class:`HelmUpgradeEntity`，内联构造 payload。``values`` 字段以
+        JSON 字符串形式提交（对齐 JMX 原生行为）。
         """
         logger.info(f"Helm upgrade: cell={cell_code}, sys={sys_code}, name={name}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/helm/release/{name}/upgrade"
         )
+        values: Dict[str, Any] = {
+            "image": {"repository": upgrade.image_repository, "tag": upgrade.image_tag},
+            "replicaCount": upgrade.replica_count,
+        }
+        payload: Dict[str, Any] = {
+            "chart": upgrade.chart_name,
+            "version": upgrade.chart_version,
+            "values": json.dumps(values, ensure_ascii=False),
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_helm_history(
@@ -2224,57 +2600,130 @@ class ElasticComputeOpenService(BaseService):
     # ==================== LimitRange.jmx v2 无 name 版本（namespace 级别唯一） ====================
 
     def create_limitrange_ns(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, limit_range: K8sLimitRangeEntity,
     ) -> Dict[str, Any]:
         """
         创建 LimitRange（namespace 级唯一，路径无 name）。
 
         对应 JMX：弹性计算_openapi_LimitRange_创建LimitRang
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+
+        接收 :class:`K8sLimitRangeEntity`，内联构造 K8s LimitRange payload。
         """
         logger.info(
-            f"Create limitRange (ns): cell={cell_code}, sys={sys_code}"
+            f"Create limitRange (ns): cell={cell_code}, sys={sys_code}, name={limit_range.name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": limit_range.api_version,
+            "kind": limit_range.kind,
+            "metadata": {"name": limit_range.name},
+            "spec": {
+                "limits": [
+                    {
+                        "default": {
+                            "cpu": limit_range.default_cpu,
+                            "memory": limit_range.default_memory,
+                        },
+                        "defaultRequest": {
+                            "cpu": limit_range.default_request_cpu,
+                            "memory": limit_range.default_request_memory,
+                        },
+                        "type": limit_range.limit_type,
+                    }
+                ]
+            },
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def update_limitrange_ns(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, limit_range: K8sLimitRangeEntity,
     ) -> Dict[str, Any]:
         """
         全量更新 LimitRange（namespace 级唯一，路径无 name）。
 
         对应 JMX：弹性计算_openapi_LimitRange_更新LimitRange
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+
+        接收 :class:`K8sLimitRangeEntity`，内联构造 K8s LimitRange payload。
         """
         logger.info(
-            f"Update limitRange (ns): cell={cell_code}, sys={sys_code}"
+            f"Update limitRange (ns): cell={cell_code}, sys={sys_code}, name={limit_range.name}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
+        payload: Dict[str, Any] = {
+            "apiVersion": limit_range.api_version,
+            "kind": limit_range.kind,
+            "metadata": {"name": limit_range.name},
+            "spec": {
+                "limits": [
+                    {
+                        "default": {
+                            "cpu": limit_range.default_cpu,
+                            "memory": limit_range.default_memory,
+                        },
+                        "defaultRequest": {
+                            "cpu": limit_range.default_request_cpu,
+                            "memory": limit_range.default_request_memory,
+                        },
+                        "type": limit_range.limit_type,
+                    }
+                ]
+            },
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_limitrange_ns(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str,
+        limit_range: Optional[K8sLimitRangeEntity] = None,
     ) -> Dict[str, Any]:
         """
         增量更新 LimitRange（namespace 级唯一，路径无 name）。
 
         对应 JMX：弹性计算_openapi_LimitRange_增量更新LimitRange
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
+
+        接收可选的 :class:`K8sLimitRangeEntity`。当 ``limit_range`` 为 ``None`` 时，
+        提交空对象 ``{}``（JMX 原生行为，触发服务端默认 patch 逻辑）；否则内联
+        构造 K8s LimitRange payload。
         """
         logger.info(
-            f"Patch limitRange (ns): cell={cell_code}, sys={sys_code}"
+            f"Patch limitRange (ns): cell={cell_code}, sys={sys_code}, "
+            f"has_body={limit_range is not None}"
         )
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/limitRanges"
         )
+        if limit_range is None:
+            payload: Dict[str, Any] = {}
+        else:
+            payload = {
+                "apiVersion": limit_range.api_version,
+                "kind": limit_range.kind,
+                "metadata": {"name": limit_range.name},
+                "spec": {
+                    "limits": [
+                        {
+                            "default": {
+                                "cpu": limit_range.default_cpu,
+                                "memory": limit_range.default_memory,
+                            },
+                            "defaultRequest": {
+                                "cpu": limit_range.default_request_cpu,
+                                "memory": limit_range.default_request_memory,
+                            },
+                            "type": limit_range.limit_type,
+                        }
+                    ]
+                },
+            }
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_limitrange_ns(
@@ -2357,7 +2806,7 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def create_pod(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, pod: K8sPodEntity,
     ) -> Dict[str, Any]:
         """
         创建 Pod。
@@ -2365,13 +2814,33 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_pod_创建Pod请求
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods
 
-        Args:
-            cell_code: 单元编码
-            sys_code: 系统编码
-            payload: Pod 对象 JSON
+        接收 :class:`K8sPodEntity`，内联构造 K8s Pod payload（单容器 + 单端口）。
         """
-        logger.info(f"Create Pod: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create Pod: cell={cell_code}, sys={sys_code}, name={pod.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods"
+        payload: Dict[str, Any] = {
+            "apiVersion": pod.api_version,
+            "kind": pod.kind,
+            "metadata": {
+                "name": pod.name,
+                "labels": {"name": pod.name, "kind": pod.kind},
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": pod.image,
+                        "name": pod.container_name,
+                        "ports": [
+                            {
+                                "containerPort": pod.container_port,
+                                "name": pod.port_name,
+                                "protocol": pod.port_protocol,
+                            }
+                        ],
+                    }
+                ]
+            },
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def delete_pod(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
@@ -2477,7 +2946,7 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def update_pod(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, name: str, pod: K8sPodRawEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Pod。
@@ -2485,18 +2954,15 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_pod_更新指定Pod
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}
 
-        Args:
-            cell_code: 单元编码
-            sys_code: 系统编码
-            name: Pod 名称
-            payload: 更新后的 Pod 完整对象
+        接收 :class:`K8sPodRawEntity`，其 ``body`` 字段即完整的 K8s Pod 对象
+        （由前置 GET 请求获得并局部修改后回传）。
         """
         logger.info(f"Update Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
-        return self.put(endpoint=url, json=payload).json()
+        return self.put(endpoint=url, json=pod.body).json()
 
     def patch_pod(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, name: str, pod: K8sPodPatchEntity,
     ) -> Dict[str, Any]:
         """
         PATCH 增量更新指定 Pod。
@@ -2504,14 +2970,11 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_pod_增量更新指定Pod
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/pods/{name}
 
-        Args:
-            cell_code: 单元编码
-            sys_code: 系统编码
-            name: Pod 名称
-            payload: 增量更新 Patch 对象
+        接收 :class:`K8sPodPatchEntity`，内联构造 ``metadata.labels`` patch payload。
         """
         logger.info(f"Patch Pod: cell={cell_code}, sys={sys_code}, name={name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/pods/{name}"
+        payload: Dict[str, Any] = {"metadata": {"labels": pod.labels}}
         return self.patch(endpoint=url, json=payload).json()
 
     # ==================== port-nodeport Port/NodePort 接口 ====================
@@ -2545,7 +3008,7 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/nodeports/{nodeport}"
         return self.get(endpoint=url).json()
 
-    def allocate_ports(self, cell_code: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def allocate_ports(self, cell_code: str, allocation: PortAllocationEntity) -> Dict[str, Any]:
         """
         租户 NodePort 端口范围分配 (Admin)。
 
@@ -2554,10 +3017,15 @@ class ElasticComputeOpenService(BaseService):
 
         Args:
             cell_code: 单元编码
-            payload: 分配请求体（kind, tenantCode, ports）
+            allocation: :class:`PortAllocationEntity` 端口分配实体
         """
         logger.info(f"Allocate ports: cell={cell_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/ports"
+        payload: Dict[str, Any] = {
+            "kind": allocation.kind,
+            "tenantCode": allocation.tenant_code,
+            "ports": [allocation.ports],
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def list_ports_by_cell(self, cell_code: str) -> Dict[str, Any]:
@@ -2598,7 +3066,7 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/quota"
         return self.get(endpoint=url).json()
 
-    def batch_query_tenant_quotas(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def batch_query_tenant_quotas(self, tenant_codes: List[str]) -> Dict[str, Any]:
         """
         批量查询多租户资源配额总览列表。
 
@@ -2606,14 +3074,15 @@ class ElasticComputeOpenService(BaseService):
         POST /openapi/elastic-compute/v2/tenants/quota/batch
 
         Args:
-            payload: 包含 tenantCodeList 的请求体
+            tenant_codes: 待批量查询的租户 code 列表
         """
-        logger.info("Batch query tenant quotas")
+        logger.info(f"Batch query tenant quotas, tenants={tenant_codes}")
         url = "/openapi/elastic-compute/v2/tenants/quota/batch"
+        payload: Dict[str, Any] = {"tenantCodeList": list(tenant_codes)}
         return self.post(endpoint=url, json=payload).json()
 
     def allocate_tenant_quota(
-        self, cell_code: str, tenant_code: str, payload: Dict[str, Any],
+        self, cell_code: str, tenant_code: str, allocation: TenantQuotaAllocationEntity,
     ) -> Dict[str, Any]:
         """
         租户资源配额分配。
@@ -2621,17 +3090,22 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_租户资源配额分配
         POST /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/allocate
 
-        Args:
-            cell_code: 单元编码
-            tenant_code: 租户编码
-            payload: 分配请求体
+        接收 :class:`TenantQuotaAllocationEntity`，未设置的字段不会写入 payload
+        （对应 JMX 中的空 body 场景）。
         """
         logger.info(f"Allocate tenant quota: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/allocate"
+        payload: Dict[str, Any] = {}
+        if allocation.cpu is not None:
+            payload["cpu"] = allocation.cpu
+        if allocation.memory is not None:
+            payload["memory"] = allocation.memory
+        if allocation.extras is not None:
+            payload.update(allocation.extras)
         return self.post(endpoint=url, json=payload).json()
 
     def scale_tenant_quota(
-        self, cell_code: str, tenant_code: str, payload: Dict[str, Any],
+        self, cell_code: str, tenant_code: str, allocation: TenantQuotaAllocationEntity,
     ) -> Dict[str, Any]:
         """
         租户资源配额调整（扩缩容）。
@@ -2639,13 +3113,17 @@ class ElasticComputeOpenService(BaseService):
         对应 JMX：弹性计算_openapi_quota-manager-admin_租户资源配额调整（扩缩容）
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/scale
 
-        Args:
-            cell_code: 单元编码
-            tenant_code: 租户编码
-            payload: 调整请求体
+        接收 :class:`TenantQuotaAllocationEntity`，未设置的字段不会写入 payload。
         """
         logger.info(f"Scale tenant quota: cell={cell_code}, tenant={tenant_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}/quota/scale"
+        payload: Dict[str, Any] = {}
+        if allocation.cpu is not None:
+            payload["cpu"] = allocation.cpu
+        if allocation.memory is not None:
+            payload["memory"] = allocation.memory
+        if allocation.extras is not None:
+            payload.update(allocation.extras)
         return self.put(endpoint=url, json=payload).json()
 
     def get_system_quota_overview(self, tenant_code: str, sys_code: str) -> Dict[str, Any]:
@@ -2764,7 +3242,8 @@ class ElasticComputeOpenService(BaseService):
     # ==================== quota-manager-tenant 配额管理（租户管理员）接口 ====================
 
     def allocate_system_quota(
-        self, cell_code: str, tenant_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, tenant_code: str, sys_code: str,
+        username: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         租户管理员审批通过系统资源申请时调用。
@@ -2779,10 +3258,13 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
             f"/systems/{sys_code}/quota/allocate"
         )
+        payload: Dict[str, Any] = {}
+        if username is not None:
+            payload["username"] = username
         return self.post(endpoint=url, json=payload).json()
 
     def scale_system_quota(
-        self, cell_code: str, tenant_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, tenant_code: str, sys_code: str,
     ) -> Dict[str, Any]:
         """
         针对系统资源配额进行扩缩容。
@@ -2797,7 +3279,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/tenants/{tenant_code}"
             f"/systems/{sys_code}/quota/scale"
         )
-        return self.put(endpoint=url, json=payload).json()
+        return self.put(endpoint=url, json={}).json()
 
     # ==================== ScaledObject.jmx ====================
 
@@ -2818,25 +3300,43 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def create_scaled_object(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, scaled_object: ScaledObjectEntity,
     ) -> Dict[str, Any]:
         """
         创建 ScaledObject。
 
         对应 JMX：弹性计算_openapi_ScaledObject_创建ScaledObject
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject
+
+        接收 :class:`ScaledObjectEntity`，内联构造 payload（snake_case → camelCase 转换）。
         """
-        logger.info(f"Create ScaledObject: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create ScaledObject: cell={cell_code}, sys={sys_code}, name={scaled_object.name}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/scaledObject"
+        payload: Dict[str, Any] = {
+            "name": scaled_object.name,
+            "workloadKind": scaled_object.workload_kind,
+            "workloadName": scaled_object.workload_name,
+            "pollingInterval": scaled_object.polling_interval,
+            "cooldownPeriod": scaled_object.cooldown_period,
+            "minReplicaCount": scaled_object.min_replica_count,
+            "maxReplicaCount": scaled_object.max_replica_count,
+            "restoreToOriginalReplicaCount": scaled_object.restore_to_original_replica_count,
+            "timezone": scaled_object.timezone,
+            "start": scaled_object.start,
+            "end": scaled_object.end,
+            "desiredReplicas": scaled_object.desired_replicas,
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def update_scaled_object(
-        self, cell_code: str, sys_code: str, name: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, name: str, patch: ScaledObjectPatchEntity,
     ) -> Dict[str, Any]:
         """
         更新 ScaledObject。
 
         对应 JMX：弹性计算_openapi_ScaledObject_更新ScaledObject
+
+        接收 :class:`ScaledObjectPatchEntity`，内联构造 payload。
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/scaledObject/{name}
         """
         logger.info(f"Update ScaledObject: cell={cell_code}, sys={sys_code}, name={name}")
@@ -2844,6 +3344,7 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/scaledObject/{name}"
         )
+        payload: Dict[str, Any] = {"start": patch.start, "end": patch.end}
         return self.put(endpoint=url, json=payload).json()
 
     def delete_scaled_object(
@@ -2880,50 +3381,84 @@ class ElasticComputeOpenService(BaseService):
         ).json()
 
     def create_recovery_resources(
-        self, cell_code: str, sys_code: str, payload: Any,
+        self, cell_code: str, sys_code: str, resources: List[RecoveryResourceEntity],
     ) -> Dict[str, Any]:
         """
         创建容灾组件资源（批量，body 为数组）。
 
         对应 JMX：弹性计算_openapi_recovery-resource_创建资源
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources
+
+        接收 :class:`RecoveryResourceEntity` 列表，内联构造数组 payload。
         """
-        logger.info(f"Create recovery resources: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Create recovery resources: cell={cell_code}, sys={sys_code}, count={len(resources)}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resources"
         )
+        payload: List[Dict[str, Any]] = [
+            {
+                "name": r.name,
+                "appName": r.app_name,
+                "kind": r.kind,
+                "image": r.image,
+                "tenantCode": r.tenant_code,
+                "appCode": r.app_code,
+                "planeCode": r.plane_code,
+                "unitCode": r.unit_code,
+                "envCode": r.env_code,
+                "username": r.username,
+            }
+            for r in resources
+        ]
         return self.post(endpoint=url, json=payload).json()
 
     def delete_recovery_resources(
-        self, cell_code: str, sys_code: str, payload: Any,
+        self, cell_code: str, sys_code: str, resource_names: List[str],
     ) -> Dict[str, Any]:
         """
-        删除容灾组件资源（批量，body 为数组）。
+        删除容灾组件资源（批量，body 为名称数组）。
 
         对应 JMX：弹性计算_openapi_recovery-resource_删除资源
         DELETE /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources/delete
         """
-        logger.info(f"Delete recovery resources: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Delete recovery resources: cell={cell_code}, sys={sys_code}, names={resource_names}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resources/delete"
         )
-        return self.delete(endpoint=url, json=payload).json()
+        return self.delete(endpoint=url, json=list(resource_names)).json()
 
     def apply_recovery_resources(
-        self, cell_code: str, sys_code: str, payload: Any,
+        self, cell_code: str, sys_code: str, resources: List[RecoveryResourceEntity],
     ) -> Dict[str, Any]:
         """
         Apply 容灾组件资源。
 
         对应 JMX：弹性计算_openapi_recovery-resource_Apply资源
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resources/apply
+
+        接收 :class:`RecoveryResourceEntity` 列表，内联构造数组 payload。
         """
-        logger.info(f"Apply recovery resources: cell={cell_code}, sys={sys_code}")
+        logger.info(f"Apply recovery resources: cell={cell_code}, sys={sys_code}, count={len(resources)}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/resources/apply"
         )
+        payload: List[Dict[str, Any]] = [
+            {
+                "name": r.name,
+                "appName": r.app_name,
+                "kind": r.kind,
+                "image": r.image,
+                "tenantCode": r.tenant_code,
+                "appCode": r.app_code,
+                "planeCode": r.plane_code,
+                "unitCode": r.unit_code,
+                "envCode": r.env_code,
+                "username": r.username,
+            }
+            for r in resources
+        ]
         return self.post(endpoint=url, json=payload).json()
 
     # ==================== ReplicaSetV2.jmx ====================
@@ -2972,29 +3507,35 @@ class ElasticComputeOpenService(BaseService):
     # ==================== resourcequota.jmx (NS-level, no name) ====================
 
     def update_resource_quotas_ns(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, quota: K8sResourceQuotaEntity,
     ) -> Dict[str, Any]:
         """
         PUT 全量更新命名空间级 ResourceQuota（无 name 参数）。
 
         对应 JMX：弹性计算_openapi_resourcequota_PUT更新ResourceQuota
         PUT /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
+
+        接收 :class:`K8sResourceQuotaEntity`，内联构造 K8s spec.hard payload。
         """
         logger.info(f"Update resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
+        payload: Dict[str, Any] = {"spec": {"hard": dict(quota.hard)}}
         return self.put(endpoint=url, json=payload).json()
 
     def patch_resource_quotas_ns(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any],
+        self, cell_code: str, sys_code: str, patch: K8sResourceQuotaPatchEntity,
     ) -> Dict[str, Any]:
         """
         PATCH 增量更新命名空间级 ResourceQuota（无 name 参数）。
 
         对应 JMX：弹性计算_openapi_resourcequota_PATCH更新ResourceQuota
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/resourceQuotas
+
+        接收 :class:`K8sResourceQuotaPatchEntity`，内联构造 strategic merge patch payload。
         """
         logger.info(f"Patch resourceQuotas (ns-level): cell={cell_code}, sys={sys_code}")
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
+        payload: Dict[str, Any] = {"spec": {"hard": dict(patch.hard)}}
         return self.patch(endpoint=url, json=payload).json()
 
     def delete_resource_quotas_ns(
@@ -3199,7 +3740,8 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def create_workload(
-        self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, app_code: str,
+        workload: WorkloadCreateEntity,
     ) -> Dict[str, Any]:
         """创建工作负载。POST /.../apps/{appCode}/workloads?paas-app-service-version=v1"""
         logger.info(
@@ -3209,13 +3751,62 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/apps/{app_code}/workloads?paas-app-service-version=v1"
         )
+        payload: Dict[str, Any] = {
+            "workload": {
+                "apiVersion": "apps/v1",
+                "kind": workload.kind,
+                "metadata": {
+                    "name": workload.name,
+                    "labels": {
+                        "name": workload.name,
+                        "kind": workload.kind,
+                    },
+                },
+                "spec": {
+                    "replicas": workload.replicas,
+                    "selector": {
+                        "matchLabels": {
+                            "name": workload.name,
+                            "kind": workload.kind,
+                        },
+                    },
+                    "template": {
+                        "metadata": {
+                            "labels": {
+                                "name": workload.name,
+                                "kind": workload.kind,
+                            },
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "image": workload.image,
+                                    "name": "container0",
+                                    "ports": [
+                                        {
+                                            "containerPort": 8080,
+                                            "name": "port0",
+                                            "protocol": "TCP",
+                                        }
+                                    ],
+                                }
+                            ],
+                        },
+                    },
+                },
+            }
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def update_workload(
         self, cell_code: str, sys_code: str, kind: str, name: str,
-        payload: Dict[str, Any],
+        workload: WorkloadUpdateEntity,
     ) -> Dict[str, Any]:
-        """全量更新工作负载。PUT /.../kinds/{kind}/workloads/{name}"""
+        """全量更新工作负载。PUT /.../kinds/{kind}/workloads/{name}
+
+        JMX 规则：replicas += 1、containerPort=8090、containers 增加 imagePullPolicy=Always、
+        labels 追加 test=update。
+        """
         logger.info(
             f"Update workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
@@ -3223,13 +3814,63 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads/{name}"
         )
+        payload: Dict[str, Any] = {
+            "workload": {
+                "apiVersion": "apps/v1",
+                "kind": workload.kind,
+                "metadata": {
+                    "name": workload.name,
+                    "labels": {
+                        "name": workload.name,
+                        "kind": workload.kind,
+                        "test": "update",
+                    },
+                },
+                "spec": {
+                    "replicas": workload.replicas + 1,
+                    "selector": {
+                        "matchLabels": {
+                            "name": workload.name,
+                            "kind": workload.kind,
+                        },
+                    },
+                    "template": {
+                        "metadata": {
+                            "labels": {
+                                "name": workload.name,
+                                "kind": workload.kind,
+                            },
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "image": workload.image,
+                                    "imagePullPolicy": "Always",
+                                    "name": "container0",
+                                    "ports": [
+                                        {
+                                            "containerPort": 8090,
+                                            "name": "port0",
+                                            "protocol": "TCP",
+                                        }
+                                    ],
+                                }
+                            ],
+                        },
+                    },
+                },
+            }
+        }
         return self.put(endpoint=url, json=payload).json()
 
     def patch_workload(
         self, cell_code: str, sys_code: str, kind: str, name: str,
-        payload: Dict[str, Any],
+        workload: WorkloadPatchEntity,
     ) -> Dict[str, Any]:
-        """增量更新工作负载。PATCH /.../kinds/{kind}/workloads/{name}"""
+        """增量更新工作负载。PATCH /.../kinds/{kind}/workloads/{name}
+
+        JMX 规则：labels 追加 test=patch-update，容器 container0 增加 port1(8010)。
+        """
         logger.info(
             f"Patch workload: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}"
         )
@@ -3237,6 +3878,31 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/kinds/{kind}/workloads/{name}"
         )
+        payload: Dict[str, Any] = {
+            "metadata": {
+                "labels": {
+                    "test": "patch-update",
+                },
+            },
+            "spec": {
+                "replicas": workload.replicas,
+                "template": {
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "container0",
+                                "ports": [
+                                    {
+                                        "containerPort": 8010,
+                                        "name": "port1",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        }
         return self.patch(
             endpoint=url, json=payload
         ).json()
@@ -3269,7 +3935,8 @@ class ElasticComputeOpenService(BaseService):
         return self.delete(endpoint=url).json()
 
     def batch_query_workload_status(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str,
+        applications: List[WorkloadBatchTargetEntity],
     ) -> Dict[str, Any]:
         """批量查询工作负载状态。POST /.../workloads/status/batch"""
         logger.info(
@@ -3279,17 +3946,60 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/status/batch"
         )
+        payload: Dict[str, Any] = {
+            "applications": [
+                {"appName": app.name, "kind": app.kind}
+                for app in applications
+            ]
+        }
         return self.post(endpoint=url, json=payload).json()
 
     def batch_patch_workloads(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str,
+        applications: List[WorkloadBatchPatchTargetEntity],
     ) -> Dict[str, Any]:
-        """批量增量更新工作负载。PATCH /.../workloads/batch"""
+        """批量增量更新工作负载。PATCH /.../workloads/batch
+
+        JMX 规则：labels 追加 test=batch-patch-update，容器 container0 增加 port2(8020)。
+        """
         logger.info(f"Batch patch workloads: cell={cell_code}, sys={sys_code}")
         url = (
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/batch"
         )
+        payload: Dict[str, Any] = {
+            "applications": [
+                {
+                    "appName": app.name,
+                    "kind": app.kind,
+                    "patch": {
+                        "metadata": {
+                            "labels": {
+                                "test": "batch-patch-update",
+                            },
+                        },
+                        "spec": {
+                            "template": {
+                                "spec": {
+                                    "containers": [
+                                        {
+                                            "name": "container0",
+                                            "ports": [
+                                                {
+                                                    "containerPort": 8020,
+                                                    "name": "port2",
+                                                }
+                                            ],
+                                        }
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                }
+                for app in applications
+            ]
+        }
         return self.patch(
             endpoint=url, json=payload
         ).json()
@@ -3312,7 +4022,8 @@ class ElasticComputeOpenService(BaseService):
         ).json()
 
     def batch_workload_rolling(
-        self, cell_code: str, sys_code: str, action: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, action: str,
+        applications: List[WorkloadBatchTargetEntity],
     ) -> Dict[str, Any]:
         """批量工作负载滚动操作。POST /.../workloads/rolling/batch?action={action}"""
         logger.info(
@@ -3322,6 +4033,13 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/rolling/batch?action={action}"
         )
+        payload: Dict[str, Any] = {
+            "applications": [
+                {"appName": app.name, "kind": app.kind}
+                for app in applications
+            ],
+            "action": action,
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()
@@ -3372,7 +4090,8 @@ class ElasticComputeOpenService(BaseService):
         ).json()
 
     def batch_stop_workloads(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str,
+        applications: List[WorkloadBatchTargetEntity],
     ) -> Dict[str, Any]:
         """批量停止工作负载。POST /.../workloads/stop/batch"""
         logger.info(f"Batch stop workloads: cell={cell_code}, sys={sys_code}")
@@ -3380,12 +4099,19 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/stop/batch"
         )
+        payload: Dict[str, Any] = {
+            "applications": [
+                {"appName": app.name, "kind": app.kind}
+                for app in applications
+            ]
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()
 
     def batch_start_workloads(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str,
+        applications: List[WorkloadBatchTargetEntity],
     ) -> Dict[str, Any]:
         """批量启动工作负载。POST /.../workloads/start/batch"""
         logger.info(f"Batch start workloads: cell={cell_code}, sys={sys_code}")
@@ -3393,12 +4119,19 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/start/batch"
         )
+        payload: Dict[str, Any] = {
+            "applications": [
+                {"appName": app.name, "kind": app.kind}
+                for app in applications
+            ]
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()
 
     def batch_restart_workloads(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str,
+        applications: List[WorkloadBatchTargetEntity],
     ) -> Dict[str, Any]:
         """批量重启工作负载。POST /.../workloads/restart/batch"""
         logger.info(f"Batch restart workloads: cell={cell_code}, sys={sys_code}")
@@ -3406,12 +4139,19 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/restart/batch"
         )
+        payload: Dict[str, Any] = {
+            "applications": [
+                {"appName": app.name, "kind": app.kind}
+                for app in applications
+            ]
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()
 
     def workload_exec(
-        self, cell_code: str, sys_code: str, app_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str, app_code: str,
+        exec_entity: WorkloadExecEntity,
     ) -> Dict[str, Any]:
         """工作负载 Pod 执行命令。POST /.../apps/{appCode}/exec"""
         logger.info(
@@ -3421,6 +4161,12 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/apps/{app_code}/exec"
         )
+        payload: Dict[str, Any] = {
+            "podName": exec_entity.pod_name,
+            "containerName": exec_entity.container_name,
+            "timeout": exec_entity.timeout,
+            "command": exec_entity.command,
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()
@@ -3442,7 +4188,8 @@ class ElasticComputeOpenService(BaseService):
         return self.get(endpoint=url).json()
 
     def batch_delete_workload_pods(
-        self, cell_code: str, sys_code: str, payload: Dict[str, Any]
+        self, cell_code: str, sys_code: str,
+        pod_delete: WorkloadPodDeleteEntity,
     ) -> Dict[str, Any]:
         """批量删除工作负载 Pod。POST /.../workloads/pods/delete/batch"""
         logger.info(
@@ -3452,14 +4199,31 @@ class ElasticComputeOpenService(BaseService):
             f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}"
             f"/workloads/pods/delete/batch"
         )
+        payload: Dict[str, Any] = {
+            "pods": [pod_delete.pod_name],
+            "appCode": pod_delete.app_code,
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()
 
-    def batch_delete_app_pods(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def batch_delete_app_pods(
+        self, pods: List[WorkloadAppPodDeleteEntity]
+    ) -> Dict[str, Any]:
         """批量删除应用 Pod。POST /.../applications/pods/delete/batch"""
         logger.info("Batch delete app pods")
         url = "/openapi/elastic-compute/v2/applications/pods/delete/batch"
+        payload: Dict[str, Any] = {
+            "pods": [
+                {
+                    "podName": pod.pod_name,
+                    "appCode": pod.app_code,
+                    "cellCode": pod.cell_code,
+                    "sysCode": pod.sys_code,
+                }
+                for pod in pods
+            ]
+        }
         return self.post(
             endpoint=url, json=payload
         ).json()

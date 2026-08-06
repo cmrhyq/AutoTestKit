@@ -10,6 +10,7 @@ from typing import Dict
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import ClusterPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -32,6 +33,11 @@ class TestEcOpenapiCluster:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
+    @pytest.fixture(scope="class")
+    def public_params(self) -> ClusterPublicParams:
+        """Cluster 接口无入参，返回占位 dataclass 保持 SOP 契约一致。"""
+        return ClusterPublicParams()
 
     @allure.title("v1 查询集群列表")
     @allure.description("使用 v1 接口查询 paas 系统下的集群列表")

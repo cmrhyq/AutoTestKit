@@ -7,13 +7,13 @@ RBAC 管理接口测试
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import RbacPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
 
-# 顶部常量抽取
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -32,13 +32,14 @@ class TestEcOpenapiRbac:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> RbacPublicParams:
         """提取 RBAC 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            "sys_code": api_env.get("sysCode", "test"),
-        }
+        return RbacPublicParams(
+            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=api_env.get("sysCode", "test"),
+        )
 
     # -------------------- 测试用例 --------------------
 
@@ -49,11 +50,11 @@ class TestEcOpenapiRbac:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_roles(self, ec_service, public_params, api_cache):
         """查询 Role 列表，缓存首条名称。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_rbac_roles(cell_code=cell_code, sys_code=sys_code)
+            resp = ec_service.list_rbac_roles(
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+            )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Role 列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -71,13 +72,13 @@ class TestEcOpenapiRbac:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_role(self, ec_service, public_params, api_cache):
         """查询指定 Role 详情。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
         role_name = api_cache.get("rbac_role_name", "test")
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_rbac_role(
-                cell_code=cell_code, sys_code=sys_code, name=role_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=role_name,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -91,11 +92,11 @@ class TestEcOpenapiRbac:
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_role_bindings(self, ec_service, public_params, api_cache):
         """查询 RoleBinding 列表，缓存首条名称。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_rbac_role_bindings(cell_code=cell_code, sys_code=sys_code)
+            resp = ec_service.list_rbac_role_bindings(
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+            )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 RoleBinding 列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -113,13 +114,13 @@ class TestEcOpenapiRbac:
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_role_binding(self, ec_service, public_params, api_cache):
         """查询指定 RoleBinding 详情。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
         role_binding_name = api_cache.get("rbac_role_binding_name", "test")
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_rbac_role_binding(
-                cell_code=cell_code, sys_code=sys_code, name=role_binding_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=role_binding_name,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (

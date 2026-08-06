@@ -8,11 +8,13 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import ReplicaSetPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -34,13 +36,14 @@ class TestEcOpenapiReplicaSet:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> ReplicaSetPublicParams:
         """提取 ReplicaSet 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "TEST"),
-            "sys_code": api_env.get("sysCode", "istio-ingress"),
-        }
+        return ReplicaSetPublicParams(
+            cell_code=api_env.get("cellCode", "TEST"),
+            sys_code=api_env.get("sysCode", "istio-ingress"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -51,10 +54,8 @@ class TestEcOpenapiReplicaSet:
     @pytest.mark.order(1)
     def test_list_replica_sets_by_cell(self, ec_service, public_params):
         """查询全集群 ReplicaSet 列表，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            list_resp = ec_service.list_replica_sets_by_cell(cell_code=cell_code)
+            list_resp = ec_service.list_replica_sets_by_cell(cell_code=public_params.cell_code)
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 ReplicaSet 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
@@ -69,12 +70,10 @@ class TestEcOpenapiReplicaSet:
     @pytest.mark.order(2)
     def test_list_replica_sets_by_ns(self, ec_service, public_params, api_cache):
         """查询命名空间下 ReplicaSet 列表，提取第一个名称。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             list_resp = ec_service.list_replica_sets_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert list_resp.get("code") == ApiCode.SUCCESS, (
@@ -105,13 +104,13 @@ class TestEcOpenapiReplicaSet:
     @pytest.mark.order(3)
     def test_get_replica_set(self, ec_service, public_params, api_cache):
         """查询指定 ReplicaSet，断言返回成功。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
         rs_name = api_cache.get("ec_replicaset_name")
 
         with AllureHelper.api_test(ec_service):
             get_resp = ec_service.get_replica_set(
-                cell_code=cell_code, sys_code=sys_code, name=rs_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=rs_name,
             )
 
             assert get_resp.get("code") == ApiCode.SUCCESS, (

@@ -8,6 +8,9 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    ResourceCollectionPublicParams,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
@@ -33,6 +36,12 @@ class TestEcOpenapiResourceCollection:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
+    @pytest.fixture(scope="class")
+    def public_params(self) -> ResourceCollectionPublicParams:
+        """资源采集接口无入参，返回占位 dataclass 保持 SOP 契约一致。"""
+        return ResourceCollectionPublicParams()
+
     # ---------------------------- Test cases ----------------------------
 
     @allure.title("查询集群配额信息")

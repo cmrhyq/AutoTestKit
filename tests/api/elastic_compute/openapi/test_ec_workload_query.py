@@ -8,11 +8,13 @@
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import WorkloadQueryPublicParams
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
 from core.constants import ApiCode, Tenant
 from core.reporting.allure_helper import AllureHelper
+
 
 @pytest.mark.api
 @pytest.mark.openapi
@@ -33,16 +35,17 @@ class TestEcOpenapiWorkloadQuery:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> WorkloadQueryPublicParams:
         """提取工作负载查询测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode", "test"),
-            "sys_code": api_env.get("sysCode", "test-sys"),
-            "kind": api_env.get("nativeHpaWorkloadKind", "Deployment"),
-            "app_code": api_env.get("appCodeDeploy", "test-probe-deploy1"),
-            "workload_name": api_env.get("nativeHpaWorkloadName", "test-hpa-workload-0001"),
-        }
+        return WorkloadQueryPublicParams(
+            cell_code=api_env.get("cellCode", "test"),
+            sys_code=api_env.get("sysCode", "test-sys"),
+            kind=api_env.get("nativeHpaWorkloadKind", "Deployment"),
+            app_code=api_env.get("appCodeDeploy", "test-probe-deploy1"),
+            workload_name=api_env.get("nativeHpaWorkloadName", "test-hpa-workload-0001"),
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -53,13 +56,11 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(1)
     def test_list_workloads_by_ns_kind(self, ec_service, public_params):
         """按命名空间+Kind 查询工作负载列表。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_ns_kind(
-                cell_code=cell_code, sys_code=sys_code, kind=kind,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                kind=public_params.kind,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -73,12 +74,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(2)
     def test_list_workloads_by_ns(self, ec_service, public_params):
         """按命名空间查询工作负载列表。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -92,12 +91,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(3)
     def test_list_workloads_by_cell_kind(self, ec_service, public_params):
         """按集群+Kind 查询工作负载列表。"""
-        cell_code = public_params["cell_code"]
-        kind = public_params["kind"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_cell_kind(
-                cell_code=cell_code, kind=kind,
+                cell_code=public_params.cell_code,
+                kind=public_params.kind,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -111,12 +108,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(4)
     def test_list_workloads_by_sys_kind(self, ec_service, public_params):
         """按系统+Kind 查询工作负载列表。"""
-        sys_code = public_params["sys_code"]
-        kind = public_params["kind"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_workloads_by_sys_kind(
-                sys_code=sys_code, kind=kind,
+                sys_code=public_params.sys_code,
+                kind=public_params.kind,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -130,10 +125,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(5)
     def test_list_workloads_by_cell(self, ec_service, public_params):
         """按集群查询工作负载列表。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_workloads_by_cell(cell_code=cell_code)
+            resp = ec_service.list_workloads_by_cell(cell_code=public_params.cell_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Cell 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
@@ -146,10 +139,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(6)
     def test_list_workloads_by_sys(self, ec_service, public_params):
         """按系统查询工作负载列表。"""
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_workloads_by_sys(sys_code=sys_code)
+            resp = ec_service.list_workloads_by_sys(sys_code=public_params.sys_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Sys 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
@@ -162,10 +153,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(7)
     def test_list_workloads_by_kind(self, ec_service, public_params):
         """按 Kind 查询工作负载列表。"""
-        kind = public_params["kind"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_workloads_by_kind(kind=kind)
+            resp = ec_service.list_workloads_by_kind(kind=public_params.kind)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"按 Kind 查询工作负载失败, code: {resp.get('code')}, 响应: {resp}"
@@ -192,15 +181,12 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(9)
     def test_get_workload_topology_with_app(self, ec_service, public_params):
         """查询工作负载拓扑信息（含 appCode）。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        app_code = public_params["app_code"]
-        name = public_params["workload_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_workload_topology_with_app(
-                cell_code=cell_code, sys_code=sys_code,
-                app_code=app_code, name=name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                app_code=public_params.app_code,
+                name=public_params.workload_name,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -214,13 +200,11 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(10)
     def test_get_workload_topology(self, ec_service, public_params):
         """查询工作负载拓扑信息。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        name = public_params["workload_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_workload_topology(
-                cell_code=cell_code, sys_code=sys_code, name=name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.workload_name,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -234,13 +218,11 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(11)
     def test_get_ns_topology_with_app(self, ec_service, public_params):
         """查询命名空间拓扑信息（含 appCode）。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        app_code = public_params["app_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_ns_topology_with_app(
-                cell_code=cell_code, sys_code=sys_code, app_code=app_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                app_code=public_params.app_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -254,12 +236,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(12)
     def test_get_ns_topology(self, ec_service, public_params):
         """查询命名空间拓扑信息。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_ns_topology(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -273,12 +253,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(13)
     def test_list_deployments_by_ns(self, ec_service, public_params):
         """查询命名空间下 Deployment 列表。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_deployments_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -292,10 +270,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(14)
     def test_list_deployments_by_cell(self, ec_service, public_params):
         """查询集群下 Deployment 列表。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_deployments_by_cell(cell_code=cell_code)
+            resp = ec_service.list_deployments_by_cell(cell_code=public_params.cell_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cell Deployment 列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -308,12 +284,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(15)
     def test_list_statefulsets_by_ns(self, ec_service, public_params):
         """查询命名空间下 StatefulSet 列表。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_statefulsets_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -327,10 +301,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(16)
     def test_list_statefulsets_by_cell(self, ec_service, public_params):
         """查询集群下 StatefulSet 列表。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_statefulsets_by_cell(cell_code=cell_code)
+            resp = ec_service.list_statefulsets_by_cell(cell_code=public_params.cell_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cell StatefulSet 列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -343,12 +315,10 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(17)
     def test_list_daemonsets_by_ns(self, ec_service, public_params):
         """查询命名空间下 DaemonSet 列表。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_daemonsets_by_ns(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
 
             assert resp.get("code") == ApiCode.SUCCESS, (
@@ -362,10 +332,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(18)
     def test_list_daemonsets_by_cell(self, ec_service, public_params):
         """查询集群下 DaemonSet 列表。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_daemonsets_by_cell(cell_code=cell_code)
+            resp = ec_service.list_daemonsets_by_cell(cell_code=public_params.cell_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Cell DaemonSet 列表失败, code: {resp.get('code')}, 响应: {resp}"
@@ -378,10 +346,8 @@ class TestEcOpenapiWorkloadQuery:
     @pytest.mark.order(19)
     def test_list_workload_events(self, ec_service, public_params):
         """查询集群工作负载事件列表。"""
-        cell_code = public_params["cell_code"]
-
         with AllureHelper.api_test(ec_service):
-            resp = ec_service.list_workload_events(cell_code=cell_code)
+            resp = ec_service.list_workload_events(cell_code=public_params.cell_code)
 
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询工作负载事件失败, code: {resp.get('code')}, 响应: {resp}"

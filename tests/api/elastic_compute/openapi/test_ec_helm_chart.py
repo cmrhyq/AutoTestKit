@@ -8,15 +8,19 @@
 import json
 import os
 import time
-from typing import Any, Dict
 
 import allure
 import pytest
 
+from base.api.entity.elastic_compute_openapi import (
+    HelmInstallEntity,
+    HelmOpenapiPublicParams,
+    HelmUpgradeEntity,
+)
 from base.api.services.elastic_compute_open_service import (
     ElasticComputeOpenService,
 )
-from core.constants import ApiCode, HttpStatus, Tenant
+from core.constants import ApiCode, HelmConst, HttpStatus, Tenant
 from core.reporting.allure_helper import AllureHelper
 
 
@@ -47,58 +51,21 @@ class TestEcOpenapiHelmChart:
     def ec_service(self, service_factory):
         with service_factory(ElasticComputeOpenService, self.TENANT) as svc:
             yield svc
+
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, api_env) -> HelmOpenapiPublicParams:
         """提取 Helm Chart 测试所需的公共参数。"""
-        return {
-            "cell_code": api_env.get("cellCode"),
-            "sys_code": api_env.get("sysCode"),
-            "release_name": "auto-test-helm-release-0001",
-            "chart_name": "nginx",
-            "chart_version": "1.0.0",
-            "chart_file_path": api_env.get("helmChartFilePath"),
-            "image": api_env.get("nginxImageRepo"),
-            "image_tag": api_env.get("nginxImageTag"),
-            "interval_seconds": 3,
-        }
-
-    # ---------------- Body helpers（对应 JMX POST 请求体，从 XML 实体还原） ----------------
-
-    @staticmethod
-    def _build_helm_install_payload(
-        release_name: str, chart_name: str, chart_version: str,
-        image: str, image_tag: str,
-    ) -> Dict[str, Any]:
-        """
-        构造 Helm Install 请求体（来源 JMX Helm Install sampler）。
-        - values 采用 JSON string 传递，兼容 JMX 原始格式
-        """
-        values = {
-            "image": {"repository": image, "tag": image_tag},
-            "replicaCount": 1,
-        }
-        return {
-            "name": release_name,
-            "chart": chart_name,
-            "version": chart_version,
-            "values": json.dumps(values, ensure_ascii=False),
-        }
-
-    @staticmethod
-    def _build_helm_upgrade_payload(
-        chart_name: str, chart_version: str,
-        image: str, image_tag: str,
-    ) -> Dict[str, Any]:
-        """构造 Helm Upgrade 请求体（来源 JMX Helm Upgrade sampler）。"""
-        values = {
-            "image": {"repository": image, "tag": image_tag},
-            "replicaCount": 2,
-        }
-        return {
-            "chart": chart_name,
-            "version": chart_version,
-            "values": json.dumps(values, ensure_ascii=False),
-        }
+        return HelmOpenapiPublicParams(
+            cell_code=api_env.get("cellCode"),
+            sys_code=api_env.get("sysCode"),
+            release_name="auto-test-helm-release-0001",
+            chart_name="nginx",
+            chart_version="1.0.0",
+            chart_file_path=api_env.get("helmChartFilePath"),
+            image=api_env.get("nginxImageRepo"),
+            image_tag=api_env.get("nginxImageTag"),
+            interval_seconds=3,
+        )
 
     # ---------------------------- Test cases ----------------------------
 
@@ -109,14 +76,14 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(1)
     def test_upload_chart(self, ec_service, public_params):
         """上传 Chart 到指定 cell。"""
-        cell_code = public_params["cell_code"]
-        chart_path = public_params["chart_file_path"]
+        chart_path = public_params.chart_file_path
         if not chart_path or not os.path.exists(chart_path):
             pytest.skip(f"Chart 包不存在，跳过上传: {chart_path}")
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.upload_helm_chart(
-                cell_code=cell_code, chart_file_path=chart_path,
+                cell_code=public_params.cell_code,
+                chart_file_path=chart_path,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"上传 Chart 失败, code: {resp.get('code')}, 响应: {resp}"
@@ -129,19 +96,17 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(2)
     def test_list_charts(self, ec_service, public_params):
         """查询 Chart 列表。"""
-        cell_code = public_params["cell_code"]
-        chart_name = public_params["chart_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_helm_charts(
-                cell_code=cell_code, keyword=chart_name,
+                cell_code=public_params.cell_code,
+                keyword=public_params.chart_name,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Chart 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
             resp_str = json.dumps(resp, ensure_ascii=False)
-            assert chart_name in resp_str, (
-                f"Chart 列表未找到 {chart_name}, 响应: {resp}"
+            assert public_params.chart_name in resp_str, (
+                f"Chart 列表未找到 {public_params.chart_name}, 响应: {resp}"
             )
 
     @allure.title("下载 Helm Chart")
@@ -151,14 +116,11 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(3)
     def test_download_chart(self, ec_service, public_params):
         """下载 Chart。"""
-        cell_code = public_params["cell_code"]
-        chart_name = public_params["chart_name"]
-        chart_version = public_params["chart_version"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.download_helm_chart(
-                cell_code=cell_code, chart_name=chart_name,
-                chart_version=chart_version,
+                cell_code=public_params.cell_code,
+                chart_name=public_params.chart_name,
+                chart_version=public_params.chart_version,
             )
             assert resp.status_code == HttpStatus.OK, (
                 f"下载 Chart 状态码异常: {resp.status_code}"
@@ -172,24 +134,24 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(4)
     def test_helm_install(self, ec_service, public_params):
         """执行 Helm Install。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-
         with AllureHelper.api_test(ec_service):
-            payload = self._build_helm_install_payload(
-                release_name=public_params["release_name"],
-                chart_name=public_params["chart_name"],
-                chart_version=public_params["chart_version"],
-                image=public_params["image"],
-                image_tag=public_params["image_tag"],
+            install = HelmInstallEntity(
+                release_name=public_params.release_name,
+                chart_name=public_params.chart_name,
+                chart_version=public_params.chart_version,
+                image_repository=public_params.image,
+                image_tag=public_params.image_tag,
+                replica_count=1,
             )
             resp = ec_service.helm_install(
-                cell_code=cell_code, sys_code=sys_code, payload=payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                install=install,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Install 失败, code: {resp.get('code')}, 响应: {resp}"
             )
-            time.sleep(public_params["interval_seconds"])
+            time.sleep(public_params.interval_seconds)
 
     @allure.title("Helm Manifest 详情")
     @allure.description("查询指定 Helm Release 的 Manifest 详情，验证业务码为成功")
@@ -198,13 +160,11 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(5)
     def test_helm_manifest(self, ec_service, public_params):
         """查询 Helm Manifest。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_helm_manifest(
-                cell_code=cell_code, sys_code=sys_code, name=release_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.release_name,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Manifest 失败, code: {resp.get('code')}, 响应: {resp}"
@@ -217,20 +177,17 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(6)
     def test_helm_list_releases(self, ec_service, public_params):
         """查询 Helm Release 列表。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_helm_releases(
-                cell_code=cell_code, sys_code=sys_code,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Release 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
             resp_str = json.dumps(resp, ensure_ascii=False)
-            assert release_name in resp_str, (
-                f"Release 列表未找到 {release_name}, 响应: {resp}"
+            assert public_params.release_name in resp_str, (
+                f"Release 列表未找到 {public_params.release_name}, 响应: {resp}"
             )
 
     @allure.title("Helm Release 关联 Apps 状态列表")
@@ -240,13 +197,11 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(7)
     def test_helm_release_apps(self, ec_service, public_params):
         """查询 Helm Release 关联 Apps。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_helm_release_apps(
-                cell_code=cell_code, sys_code=sys_code, name=release_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.release_name,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm Release Apps 失败, code: {resp.get('code')}, 响应: {resp}"
@@ -259,25 +214,24 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(8)
     def test_helm_upgrade(self, ec_service, public_params):
         """执行 Helm Upgrade。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
-            payload = self._build_helm_upgrade_payload(
-                chart_name=public_params["chart_name"],
-                chart_version=public_params["chart_version"],
-                image=public_params["image"],
-                image_tag=public_params["image_tag"],
+            upgrade = HelmUpgradeEntity(
+                chart_name=public_params.chart_name,
+                chart_version=public_params.chart_version,
+                image_repository=public_params.image,
+                image_tag=public_params.image_tag,
+                replica_count=2,
             )
             resp = ec_service.helm_upgrade(
-                cell_code=cell_code, sys_code=sys_code,
-                name=release_name, payload=payload,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.release_name,
+                upgrade=upgrade,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Upgrade 失败, code: {resp.get('code')}, 响应: {resp}"
             )
-            time.sleep(public_params["interval_seconds"])
+            time.sleep(public_params.interval_seconds)
 
     @allure.title("Helm 历史版本列表")
     @allure.description("查询 Helm Release 历史版本列表，验证业务码为成功")
@@ -286,13 +240,11 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(9)
     def test_helm_history(self, ec_service, public_params):
         """查询 Helm History。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_helm_history(
-                cell_code=cell_code, sys_code=sys_code, name=release_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.release_name,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Helm History 失败, code: {resp.get('code')}, 响应: {resp}"
@@ -305,19 +257,17 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(10)
     def test_helm_rollback(self, ec_service, public_params):
         """执行 Helm Rollback。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.helm_rollback(
-                cell_code=cell_code, sys_code=sys_code,
-                name=release_name, revision=1,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.release_name,
+                revision=HelmConst.DEFAULT_ROLLBACK_REVISION,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Rollback 失败, code: {resp.get('code')}, 响应: {resp}"
             )
-            time.sleep(public_params["interval_seconds"])
+            time.sleep(public_params.interval_seconds)
 
     @allure.title("Helm Uninstall")
     @allure.description("卸载 Helm Release，验证业务码为成功")
@@ -326,18 +276,16 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(11)
     def test_helm_uninstall(self, ec_service, public_params):
         """执行 Helm Uninstall。"""
-        cell_code = public_params["cell_code"]
-        sys_code = public_params["sys_code"]
-        release_name = public_params["release_name"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.helm_uninstall(
-                cell_code=cell_code, sys_code=sys_code, name=release_name,
+                cell_code=public_params.cell_code,
+                sys_code=public_params.sys_code,
+                name=public_params.release_name,
             )
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"Helm Uninstall 失败, code: {resp.get('code')}, 响应: {resp}"
             )
-            time.sleep(public_params["interval_seconds"])
+            time.sleep(public_params.interval_seconds)
 
     @allure.title("删除 Helm Chart")
     @allure.description("清理阶段：删除测试期间上传的 Chart，验证业务码为成功或不存在")
@@ -346,13 +294,11 @@ class TestEcOpenapiHelmChart:
     @pytest.mark.order(12)
     def test_delete_chart(self, ec_service, public_params):
         """收尾：删除 Chart。"""
-        cell_code = public_params["cell_code"]
-        chart_name = public_params["chart_name"]
-        chart_version = public_params["chart_version"]
-
         with AllureHelper.api_test(ec_service):
             resp = ec_service.delete_helm_chart_by_name(
-                cell_code=cell_code, chart_name=chart_name, version=chart_version,
+                cell_code=public_params.cell_code,
+                chart_name=public_params.chart_name,
+                version=public_params.chart_version,
             )
             code = resp.get("code")
             assert code in (ApiCode.SUCCESS, ApiCode.NOT_FOUND), (
