@@ -165,7 +165,7 @@ class TestEcOpenapiWorkload:
     @pytest.mark.dependency(name="workload_put", depends=["workload_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 Workload")
-    @allure.description("使用 PUT 方法全量更新 Deployment 配置，验证更新成功")
+    @allure.description("全量更新 Deployment 配置，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_workload(self, ec_service, public_params):
         """PUT 全量更新 Workload，断言更新成功。"""
@@ -236,7 +236,7 @@ class TestEcOpenapiWorkload:
     @pytest.mark.dependency(name="workload_patch", depends=["workload_rolling_pause"])
     @pytest.mark.order(7)
     @allure.title("PATCH 增量更新 Workload")
-    @allure.description("使用 PATCH 方法增量更新 Workload labels 和 spec，验证更新成功")
+    @allure.description("增量更新 Workload labels 和 spec，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_workload(self, ec_service, public_params):
         """PATCH 增量更新 Workload，断言更新成功。"""
@@ -396,7 +396,7 @@ class TestEcOpenapiWorkload:
     @pytest.mark.dependency(name="workload_batch_patch", depends=["workload_batch_pause"])
     @pytest.mark.order(14)
     @allure.title("批量增量更新 Workload")
-    @allure.description("批量 PATCH 更新 Workload，验证接口返回成功")
+    @allure.description("批量 更新 Workload，验证接口返回成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_patch_workloads(self, ec_service, public_params):
         """批量增量更新 Workload。"""

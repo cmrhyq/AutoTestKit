@@ -153,7 +153,7 @@ class TestEcNativeService:
     @pytest.mark.dependency(name="svc_update", depends=["svc_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 Service")
-    @allure.description("使用 PUT 方法全量更新 Service（新增 test:update 标签），验证更新成功")
+    @allure.description("全量更新 Service（新增 test:update 标签），验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_svc(self, native_service, public_params):
         """PUT 全量更新 Service，断言更新成功。"""

@@ -53,7 +53,7 @@ class TestEcOpenapiResourceCollection:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_cluster_quota()
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询集群配额信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
@@ -71,7 +71,7 @@ class TestEcOpenapiResourceCollection:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_tenant_quota()
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询租户配额信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
@@ -89,7 +89,7 @@ class TestEcOpenapiResourceCollection:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_cluster_resource()
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询集群资源信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
@@ -107,7 +107,7 @@ class TestEcOpenapiResourceCollection:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_middleware_info()
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询中间件信息失败, code: {resp.get('code')}, 响应: {resp}"
             )
@@ -125,7 +125,7 @@ class TestEcOpenapiResourceCollection:
         with AllureHelper.api_test(ec_service):
             resp = ec_service.list_system_quota()
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert resp.get("code") == ApiCode.SUCCESS, (
                 f"查询应用/组件系统配额信息失败, code: {resp.get('code')}, 响应: {resp}"
             )

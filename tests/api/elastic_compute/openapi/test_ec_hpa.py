@@ -162,7 +162,7 @@ class TestEcOpenapiHpa:
             )
 
     @allure.title("PUT 全量更新 HPA")
-    @allure.description("使用 PUT 全量更新 HPA 的 maxReplicas，验证更新成功")
+    @allure.description("使用 全量更新 HPA 的 maxReplicas，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="hpa_put", depends=["hpa_create"])
     @pytest.mark.order(5)
@@ -187,7 +187,7 @@ class TestEcOpenapiHpa:
             )
 
     @allure.title("PATCH 增量更新 HPA")
-    @allure.description("使用 PATCH 增量更新 HPA 的 maxReplicas，验证更新成功")
+    @allure.description("使用 增量更新 HPA 的 maxReplicas，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="hpa_patch", depends=["hpa_put"])
     @pytest.mark.order(6)

@@ -34,7 +34,6 @@ class TestOperationsQuery:
             yield svc
 
     @allure.title("查询最近3小时指定告警数量")
-    @allure.description("查询最近告警数量")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_alarms_number_three(self, operation_service, api_cache):
         with AllureHelper.api_test(operation_service):
@@ -47,7 +46,6 @@ class TestOperationsQuery:
                     f"resultCode 应为 000000，实际为 {response_json.get('resultCode')}"
 
     @allure.title("查询接口拨测日志详情")
-    @allure.description("查询接口拨测日志")
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_interface_synthetic_log(self, operation_service, api_env, api_cache):
         with AllureHelper.api_test(operation_service):
@@ -61,7 +59,6 @@ class TestOperationsQuery:
                 # JMX 中断言 response_data contains（test_type=2）但未指定具体值
 
     @allure.title("查询服务拨测日志详情")
-    @allure.description("查询服务拨测日志")
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_service_synthetic_log(self, operation_service, api_env, api_cache):
         with AllureHelper.api_test(operation_service):

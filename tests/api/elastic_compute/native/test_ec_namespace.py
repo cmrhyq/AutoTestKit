@@ -179,7 +179,7 @@ class TestEcNativeNamespace:
     )
     @pytest.mark.order(5)
     @allure.title("更新 ResourceQuota")
-    @allure.description("PUT 更新指定 ResourceQuota 设置，验证 HTTP 200")
+    @allure.description("更新指定 ResourceQuota 设置，验证 HTTP 200")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota(self, native_service, public_params):
         """更新指定 ResourceQuota。"""
@@ -253,7 +253,7 @@ class TestEcNativeNamespace:
     )
     @pytest.mark.order(8)
     @allure.title("更新 LimitRange")
-    @allure.description("PUT 更新指定 LimitRange 设置，验证 HTTP 200")
+    @allure.description("更新指定 LimitRange 设置，验证 HTTP 200")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range(self, native_service, public_params):
         """更新指定 LimitRange。"""
@@ -330,7 +330,7 @@ class TestEcNativeNamespace:
     )
     @pytest.mark.order(11)
     @allure.title("PUT 全量更新 Namespace")
-    @allure.description("使用 PUT 方法全量更新 Namespace，验证更新成功")
+    @allure.description("全量更新 Namespace，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_namespace(self, native_service, public_params):
         """PUT 全量更新 Namespace。"""

@@ -52,7 +52,7 @@ class TestEcExtensionsNamespaceQuota:
     @allure.description("查询指定租户和命名空间下的资源配额各集群概览信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_quota_overview(self, ec_ext_service, public_params):
-        """查询系统资源配额概览，断言业务码为成功。"""
+        """查询系统资源配额概览，断言业务码为 2000。"""
         tenant_code = public_params.tenant_code
         namespace = public_params.namespace
 
@@ -72,7 +72,7 @@ class TestEcExtensionsNamespaceQuota:
     @allure.description("查询指定集群下系统资源配额详细信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_quota_detail(self, ec_ext_service, public_params):
-        """查询系统资源配额详情，断言业务码为成功。"""
+        """查询系统资源配额详情，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         tenant_code = public_params.tenant_code
         namespace = public_params.namespace
@@ -94,7 +94,7 @@ class TestEcExtensionsNamespaceQuota:
     @allure.description("查询系统可调整的资源配额范围信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_namespace_quota_scale(self, ec_ext_service, public_params):
-        """查询系统可调整资源配额，断言业务码为成功。"""
+        """查询系统可调整资源配额，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         tenant_code = public_params.tenant_code
         namespace = public_params.namespace
@@ -116,7 +116,7 @@ class TestEcExtensionsNamespaceQuota:
     @allure.description("调整系统资源配额（扩容/缩容），传空对象验证接口可达性")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_namespace_quota_scale(self, ec_ext_service, public_params):
-        """系统资源配额调整，断言业务码为成功。"""
+        """系统资源配额调整，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         tenant_code = public_params.tenant_code
         namespace = public_params.namespace
@@ -138,7 +138,7 @@ class TestEcExtensionsNamespaceQuota:
     @allure.description("分配系统资源配额，传空对象验证接口可达性")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_allocate_namespace_quota(self, ec_ext_service, public_params):
-        """系统资源配额分配，断言业务码为成功。"""
+        """系统资源配额分配，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         tenant_code = public_params.tenant_code
         namespace = public_params.namespace

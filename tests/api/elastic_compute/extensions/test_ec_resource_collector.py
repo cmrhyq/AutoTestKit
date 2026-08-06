@@ -41,7 +41,7 @@ class TestEcExtensionsResourceCollector:
     @allure.description("获取弹性计算所纳管集群中各个集群节点信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_nodes(self, ec_ext_service):
-        """查询全量集群节点列表，断言业务码为成功。"""
+        """查询全量集群节点列表，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_nodes()
 
@@ -51,10 +51,9 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(2)
     @allure.title("查询全量应用服务列表")
-    @allure.description("获取全量应用服务列表信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_workloads(self, ec_ext_service):
-        """查询全量应用服务列表，断言业务码为成功。"""
+        """查询全量应用服务列表，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_workloads()
 
@@ -64,10 +63,9 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(3)
     @allure.title("查询裸金属主机列表")
-    @allure.description("查询裸金属主机列表信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_physical_hosts(self, ec_ext_service):
-        """查询裸金属主机列表，断言业务码为成功。"""
+        """查询裸金属主机列表，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_physical_hosts()
 
@@ -77,10 +75,9 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(4)
     @allure.title("查询裸金属主机数量")
-    @allure.description("查询裸金属主机数量统计")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_physical_host_number(self, ec_ext_service):
-        """查询裸金属主机数量，断言业务码为成功。"""
+        """查询裸金属主机数量，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_physical_host_number()
 
@@ -90,10 +87,9 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(5)
     @allure.title("查询集群资源信息")
-    @allure.description("查询集群资源使用情况")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_cluster_resource(self, ec_ext_service):
-        """查询集群资源信息，断言业务码为成功。"""
+        """查询集群资源信息，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_cluster_resource()
 
@@ -103,10 +99,9 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(6)
     @allure.title("查询集群配额信息")
-    @allure.description("查询集群配额分配情况")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_cluster_quota(self, ec_ext_service):
-        """查询集群配额信息，断言业务码为成功。"""
+        """查询集群配额信息，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_cluster_quota()
 
@@ -116,10 +111,9 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(7)
     @allure.title("查询租户配额信息")
-    @allure.description("查询租户级别的配额信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_tenant_quota(self, ec_ext_service):
-        """查询租户配额信息，断言业务码为成功。"""
+        """查询租户配额信息，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_tenant_quota()
 
@@ -132,7 +126,7 @@ class TestEcExtensionsResourceCollector:
     @allure.description("查询应用和组件系统级别的配额信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_system_quota(self, ec_ext_service):
-        """查询应用/组件系统配额信息，断言业务码为成功。"""
+        """查询应用/组件系统配额信息，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_system_quota()
 
@@ -145,7 +139,7 @@ class TestEcExtensionsResourceCollector:
     @allure.description("查询容器存储软件版本及配置信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_container_storage_software(self, ec_ext_service):
-        """查询容器存储软件信息，断言业务码为成功。"""
+        """查询容器存储软件信息，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_container_storage_software()
 
@@ -158,7 +152,7 @@ class TestEcExtensionsResourceCollector:
     @allure.description("查询容器编排软件版本及配置信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_container_orchestration_software(self, ec_ext_service):
-        """查询容器编排软件信息，断言业务码为成功。"""
+        """查询容器编排软件信息，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_metrics_container_orchestration_software()
 

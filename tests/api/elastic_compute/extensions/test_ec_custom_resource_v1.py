@@ -158,7 +158,7 @@ class TestEcExtensionsCustomResourceV1:
     @pytest.mark.dependency(name="cr_update", depends=["cr_list"])
     @pytest.mark.order(4)
     @allure.title("更新 CR 实例")
-    @allure.description("PUT 全量更新自定义资源实例，验证更新成功")
+    @allure.description("全量更新自定义资源实例，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_custom_resource(self, ec_ext_service, public_params):
         """更新 CR 实例，断言 HTTP status 为 200。"""

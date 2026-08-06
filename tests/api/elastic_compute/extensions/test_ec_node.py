@@ -52,13 +52,10 @@ class TestEcExtensionsNode:
 
     @pytest.mark.order(1)
     @allure.title("查询节点污点列表")
-    @allure.description(
-        "通过 nodeName query 参数查询指定节点污点列表，断言业务码为成功。"
-        "对应 JMX：GET /elastic-compute/v2/cells/{cellCode}/nodes/taints?nodeName=..."
-    )
+    @allure.description("通过 nodeName query 参数查询指定节点污点列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_node_taints(self, ec_ext_service, public_params):
-        """查询节点污点列表，断言业务码为成功。"""
+        """查询节点污点列表，断言业务码为 2000。"""
         cell_code = public_params.cell_code
         node_name = public_params.node_name
 

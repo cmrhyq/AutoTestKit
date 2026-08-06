@@ -103,7 +103,7 @@ class TestEcOpenapiConfigmap:
                 configmap=configmap,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert create_resp.get("code") == ApiCode.SUCCESS, (
                 f"创建 ConfigMap 失败, code: {create_resp.get('code')}, 响应: {create_resp}"
             )
@@ -128,7 +128,7 @@ class TestEcOpenapiConfigmap:
                 sys_code=public_params.sys_code,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Namespace ConfigMap 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
@@ -148,7 +148,7 @@ class TestEcOpenapiConfigmap:
         with AllureHelper.api_test(ec_service):
             all_list_resp = ec_service.list_configmaps_by_cell(cell_code=public_params.cell_code)
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert all_list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询全集群 ConfigMap 列表失败, code: {all_list_resp.get('code')}, 响应: {all_list_resp}"
             )
@@ -159,7 +159,7 @@ class TestEcOpenapiConfigmap:
             )
 
     @allure.title("PUT 全量更新 ConfigMap")
-    @allure.description("使用 PUT 方法全量更新 ConfigMap 的 data 字段，验证更新成功")
+    @allure.description("全量更新 ConfigMap 的 data 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="configmap_put", depends=["configmap_create"])
     @pytest.mark.order(5)
@@ -177,7 +177,7 @@ class TestEcOpenapiConfigmap:
                 configmap=configmap,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert put_resp.get("code") == ApiCode.SUCCESS, (
                 f"PUT 更新 ConfigMap 失败, code: {put_resp.get('code')}, 响应: {put_resp}"
             )
@@ -188,7 +188,7 @@ class TestEcOpenapiConfigmap:
             )
 
     @allure.title("PATCH 增量更新 ConfigMap")
-    @allure.description("使用 PATCH 方法增量更新 ConfigMap 的 labels 和 data 字段，验证更新成功")
+    @allure.description("增量更新 ConfigMap 的 labels 和 data 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="configmap_patch", depends=["configmap_put"])
     @pytest.mark.order(6)
@@ -203,7 +203,7 @@ class TestEcOpenapiConfigmap:
                 patch=patch,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert patch_resp.get("code") == ApiCode.SUCCESS, (
                 f"PATCH 增量更新 ConfigMap 失败, code: {patch_resp.get('code')}, 响应: {patch_resp}"
             )
@@ -227,7 +227,7 @@ class TestEcOpenapiConfigmap:
                 name=public_params.cm_name,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert del_resp.get("code") == ApiCode.SUCCESS, (
                 f"删除 ConfigMap 失败, code: {del_resp.get('code')}, 响应: {del_resp}"
             )
@@ -248,7 +248,7 @@ class TestEcOpenapiConfigmap:
                 name=public_params.cm_name,
             )
 
-            # 断言：业务码为资源不存在
+            # 断言：业务码为 4004
             assert get_resp.get("code") == ApiCode.NOT_FOUND, (
                 f"ConfigMap 删除后仍能查询到, code: {get_resp.get('code')}, 响应: {get_resp}"
             )

@@ -84,7 +84,7 @@ class TestEcOpenapiImagePullSecret:
             time.sleep(Timing.IMAGEPULLSECRET_WAIT_SECONDS)
 
     @allure.title("删除 ImagePullSecret 对应 Secret")
-    @allure.description("使用创建阶段缓存的 secretName 删除 Secret，验证业务码为成功")
+    @allure.description("使用创建阶段缓存的 secretName 删除 Secret，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(depends=["ips_create"])
     @pytest.mark.order(2)

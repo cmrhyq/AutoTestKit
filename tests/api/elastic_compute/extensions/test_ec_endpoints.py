@@ -49,7 +49,7 @@ class TestEcExtensionsEndpoints:
     @allure.description("查询指定单元下全集群的 Endpoints 列表信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_endpoints(self, ec_ext_service, public_params):
-        """查询全集群 Endpoints 列表，断言业务码为成功。"""
+        """查询全集群 Endpoints 列表，断言业务码为 2000。"""
         cell_code = public_params.cell_code
 
         with AllureHelper.api_test(ec_ext_service):

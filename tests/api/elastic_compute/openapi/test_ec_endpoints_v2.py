@@ -61,7 +61,7 @@ class TestEcOpenapiEndpointsV2:
                 sys_code=public_params.sys_code,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert list_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询 Endpoints 列表失败, code: {list_resp.get('code')}, 响应: {list_resp}"
             )
@@ -94,7 +94,7 @@ class TestEcOpenapiEndpointsV2:
                 name=ep_name,
             )
 
-            # 断言：业务码为成功
+            # 断言：业务码为 2000
             assert get_resp.get("code") == ApiCode.SUCCESS, (
                 f"查询指定 Endpoints 失败, code: {get_resp.get('code')}, 响应: {get_resp}"
             )

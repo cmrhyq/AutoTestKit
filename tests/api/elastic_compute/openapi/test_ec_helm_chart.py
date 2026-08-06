@@ -70,7 +70,7 @@ class TestEcOpenapiHelmChart:
     # ---------------------------- Test cases ----------------------------
 
     @allure.title("上传 Helm Chart")
-    @allure.description("上传本地 Chart 包，验证业务码为成功。若无本地包则跳过。")
+    @allure.description("上传本地 Chart 包，验证业务码为 2000。若无本地包则跳过。")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="helm_upload")
     @pytest.mark.order(1)
@@ -128,7 +128,7 @@ class TestEcOpenapiHelmChart:
             assert resp.content, "下载 Chart 响应体为空"
 
     @allure.title("Helm Install")
-    @allure.description("执行 Helm Install，验证业务码为成功")
+    @allure.description("执行 Helm Install，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="helm_install", depends=["helm_download"])
     @pytest.mark.order(4)
@@ -154,7 +154,7 @@ class TestEcOpenapiHelmChart:
             time.sleep(public_params.interval_seconds)
 
     @allure.title("Helm Manifest 详情")
-    @allure.description("查询指定 Helm Release 的 Manifest 详情，验证业务码为成功")
+    @allure.description("查询指定 Helm Release 的 Manifest 详情，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="helm_manifest", depends=["helm_install"])
     @pytest.mark.order(5)
@@ -191,7 +191,7 @@ class TestEcOpenapiHelmChart:
             )
 
     @allure.title("Helm Release 关联 Apps 状态列表")
-    @allure.description("查询 Helm Release 关联应用服务状态列表，验证业务码为成功")
+    @allure.description("查询 Helm Release 关联应用服务状态列表，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="helm_release_apps", depends=["helm_list_releases"])
     @pytest.mark.order(7)
@@ -208,7 +208,7 @@ class TestEcOpenapiHelmChart:
             )
 
     @allure.title("Helm Upgrade")
-    @allure.description("执行 Helm Upgrade，验证业务码为成功")
+    @allure.description("执行 Helm Upgrade，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="helm_upgrade", depends=["helm_release_apps"])
     @pytest.mark.order(8)
@@ -234,7 +234,7 @@ class TestEcOpenapiHelmChart:
             time.sleep(public_params.interval_seconds)
 
     @allure.title("Helm 历史版本列表")
-    @allure.description("查询 Helm Release 历史版本列表，验证业务码为成功")
+    @allure.description("查询 Helm Release 历史版本列表，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="helm_history", depends=["helm_upgrade"])
     @pytest.mark.order(9)
@@ -251,7 +251,7 @@ class TestEcOpenapiHelmChart:
             )
 
     @allure.title("Helm Rollback")
-    @allure.description("回滚 Helm Release 到 revision=1，验证业务码为成功")
+    @allure.description("回滚 Helm Release 到 revision=1，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="helm_rollback", depends=["helm_history"])
     @pytest.mark.order(10)
@@ -270,7 +270,7 @@ class TestEcOpenapiHelmChart:
             time.sleep(public_params.interval_seconds)
 
     @allure.title("Helm Uninstall")
-    @allure.description("卸载 Helm Release，验证业务码为成功")
+    @allure.description("卸载 Helm Release，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="helm_uninstall", depends=["helm_rollback"])
     @pytest.mark.order(11)
@@ -288,7 +288,7 @@ class TestEcOpenapiHelmChart:
             time.sleep(public_params.interval_seconds)
 
     @allure.title("删除 Helm Chart")
-    @allure.description("清理阶段：删除测试期间上传的 Chart，验证业务码为成功或不存在")
+    @allure.description("清理阶段：删除测试期间上传的 Chart，验证业务码为 2000或不存在")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(depends=["helm_uninstall"])
     @pytest.mark.order(12)

@@ -52,7 +52,7 @@ class TestEcExtensionsDashboard:
     @allure.description("查询集群、主机、namespace、CPU、内存和PVC等资源统计信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_dashboard(self, ec_ext_service, public_params):
-        """查询资源信息统计接口，断言业务码为成功。"""
+        """查询资源信息统计接口，断言业务码为 2000。"""
         tenant_code = public_params.tenant_code
 
         with AllureHelper.api_test(ec_ext_service):
@@ -70,7 +70,7 @@ class TestEcExtensionsDashboard:
     @allure.description("查询指定时间范围内的工作负载和应用服务统计数据")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_app_dashboard(self, ec_ext_service, public_params):
-        """查询工作负载和应用服务统计接口，断言业务码为成功。"""
+        """查询工作负载和应用服务统计接口，断言业务码为 2000。"""
         tenant_code = public_params.tenant_code
         start_time = public_params.start_time
         end_time = public_params.end_time

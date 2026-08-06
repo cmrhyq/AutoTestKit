@@ -158,9 +158,7 @@ class TestEcNativeJob:
     @pytest.mark.dependency(name="job_update", depends=["job_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 Job")
-    @allure.description(
-        "先查询 Job 获取完整对象，向 labels 中追加 test=update 标签，再 PUT 更新，验证更新成功"
-    )
+    @allure.description("先查询 Job 获取完整对象，向 labels 中追加 test=update 标签，再 更新，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_job(self, native_service, public_params):
         """

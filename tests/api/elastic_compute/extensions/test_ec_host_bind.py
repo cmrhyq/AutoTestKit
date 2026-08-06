@@ -49,7 +49,7 @@ class TestEcExtensionsHostBind:
     @allure.description("查询指定单元下集群的主机列表信息")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_hosts(self, ec_ext_service, public_params):
-        """查询集群下主机列表，断言业务码为成功。"""
+        """查询集群下主机列表，断言业务码为 2000。"""
         cell_code = public_params.cell_code
 
         with AllureHelper.api_test(ec_ext_service):

@@ -149,7 +149,7 @@ class TestEcOpenapiCrNs:
             )
 
     @allure.title("PUT 全量更新 Namespace 级别 CR")
-    @allure.description("使用 PUT 方法全量更新 Namespace 级别 CR 的 spec 字段，验证更新成功")
+    @allure.description("全量更新 Namespace 级别 CR 的 spec 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="cr_ns_put", depends=["cr_ns_create"])
     @pytest.mark.order(4)
@@ -182,7 +182,7 @@ class TestEcOpenapiCrNs:
             )
 
     @allure.title("PATCH 增量更新 Namespace 级别 CR")
-    @allure.description("使用 PATCH 方法增量更新 Namespace 级别 CR 的 labels 和 spec 字段，验证更新成功")
+    @allure.description("增量更新 Namespace 级别 CR 的 labels 和 spec 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="cr_ns_patch", depends=["cr_ns_put"])
     @pytest.mark.order(5)

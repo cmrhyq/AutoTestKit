@@ -56,7 +56,7 @@ class TestEcExtensionsAppGrant:
     @allure.description("对指定应用进行用户授权，验证授权成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_grant_app(self, ec_ext_service, public_params):
-        """应用授权，断言业务码为成功。"""
+        """应用授权，断言业务码为2000。"""
         with AllureHelper.api_test(ec_ext_service):
             grant = AppGrantEntity(
                 users=[public_params.grant_user],
@@ -77,7 +77,7 @@ class TestEcExtensionsAppGrant:
     @allure.description("解除指定应用的用户授权，验证解除成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_remove_grant_app(self, ec_ext_service, public_params):
-        """解除应用授权，断言业务码为成功。"""
+        """解除应用授权，断言业务码为2000。"""
         with AllureHelper.api_test(ec_ext_service):
             remove = AppRemoveGrantEntity(users=[public_params.grant_user])
             response_json = ec_ext_service.remove_grant_app(

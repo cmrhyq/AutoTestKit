@@ -150,7 +150,7 @@ class TestEcOpenapiSecret:
             )
 
     @allure.title("PUT 全量更新 Secret")
-    @allure.description("使用 PUT 方法全量更新 Secret 的 data 字段，验证更新成功")
+    @allure.description("全量更新 Secret 的 data 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="secret_put", depends=["secret_create"])
     @pytest.mark.order(5)
@@ -173,7 +173,7 @@ class TestEcOpenapiSecret:
             )
 
     @allure.title("PATCH 增量更新 Secret")
-    @allure.description("使用 PATCH 方法增量更新 Secret 的 labels 和 data 字段，验证更新成功")
+    @allure.description("增量更新 Secret 的 labels 和 data 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="secret_patch", depends=["secret_put"])
     @pytest.mark.order(6)

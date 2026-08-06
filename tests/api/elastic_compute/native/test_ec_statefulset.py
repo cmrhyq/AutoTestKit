@@ -154,7 +154,7 @@ class TestEcNativeStatefulSet:
     @pytest.mark.dependency(name="sts_update", depends=["sts_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 StatefulSet")
-    @allure.description("使用 PUT 方法全量更新 StatefulSet（含 replicas 与 test 标签变更），验证更新成功")
+    @allure.description("全量更新 StatefulSet（含 replicas 与 test 标签变更），验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_sts(self, native_service, public_params):
         """PUT 全量更新 StatefulSet，断言更新成功。"""

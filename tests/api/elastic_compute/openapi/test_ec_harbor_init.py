@@ -45,7 +45,7 @@ class TestEcOpenapiHarborInit:
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.order(1)
     def test_refresh_harbor_version(self, ec_service, public_params):
-        """调用 refreshHarborVersion 接口，断言业务码为成功。"""
+        """调用 refreshHarborVersion 接口，断言业务码为2000。"""
         with AllureHelper.api_test(ec_service):
             resp = ec_service.refresh_harbor_version(
                 harbor_id=public_params.harbor_id

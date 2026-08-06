@@ -75,10 +75,7 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(0)
     @allure.title("预清理 Workload")
-    @allure.description(
-        "对齐 JMX 中 IfController 双分支：先 GET 查询 Workload 状态，"
-        "若 code==2000 则 DELETE 预清理，若 code==4004 则表示不存在，直接跳过。"
-    )
+    @allure.description("查询 Workload，若存在则预清理，不存在则跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_00_pre_cleanup_workload(self, ec_ext_service, public_params):
         """Workload 预清理：GET 若存在则 DELETE，否则跳过。"""
@@ -110,10 +107,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(1)
     @allure.title("创建 Workload")
-    @allure.description("POST 创建 Workload，body 含 name/kind/replicas/image/appCode/labels 等字段")
+    @allure.description("创建 Workload，body 含 name/kind/replicas/image/appCode/labels 等字段")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_workload(self, ec_ext_service, public_params):
-        """创建 Workload，断言业务码为成功。"""
+        """创建 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workload = WorkloadEntity.from_public_params(public_params)
             response_json = ec_ext_service.create_workload(
@@ -130,10 +127,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(2)
     @allure.title("查询 Workload 状态")
-    @allure.description("GET workload status，断言业务码为成功")
+    @allure.description("查询 Workload 运行状态，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_workload_status(self, ec_ext_service, public_params):
-        """查询 Workload 状态，断言业务码为成功。"""
+        """查询 Workload 状态，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_workload_status(
                 cell_code=public_params.cell_code,
@@ -149,7 +146,7 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(3)
     @allure.title("查询 Workload 的 Pod 实例列表")
-    @allure.description("GET Pod 列表并提取 data[0].podName 到 api_cache，供后续 pod 事件/日志用例使用")
+    @allure.description("查询 Workload 关联的 Pod 实例列表，提取 data[0].podName 到 api_cache，供后续 pod 事件/日志用例使用")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_workload_pods(self, ec_ext_service, public_params, api_cache):
         """查询 Pod 列表，提取 podName 到 api_cache。"""
@@ -221,10 +218,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(6)
     @allure.title("更新指定 Workload（PUT）")
-    @allure.description("PUT 全量更新 Workload，body 沿用创建 payload，断言业务码为成功")
+    @allure.description("全量更新 Workload，body 沿用创建 payload，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_workload(self, ec_ext_service, public_params):
-        """更新 Workload（PUT），断言业务码为成功。"""
+        """更新 Workload（PUT），断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workload = WorkloadEntity.from_public_params(public_params)
             response_json = ec_ext_service.update_workload(
@@ -242,10 +239,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(7)
     @allure.title("查询 Workload 的挂载存储列表")
-    @allure.description("GET 挂载存储列表，断言业务码为成功")
+    @allure.description("查询 Workload 挂载的存储列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_volume_mounts(self, ec_ext_service, public_params):
-        """查询挂载存储列表，断言业务码为成功。"""
+        """查询挂载存储列表，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_workload_volume_mounts(
                 cluster_id=public_params.cluster_id,
@@ -261,10 +258,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(8)
     @allure.title("查询 Workload 的 HPA")
-    @allure.description("GET HPA 配置，断言业务码为成功")
+    @allure.description("查询 Workload 的 HPA 配置，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_hpa(self, ec_ext_service, public_params):
-        """查询 HPA，断言业务码为成功。"""
+        """查询 HPA，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_workload_hpa(
                 cluster_id=public_params.cluster_id,
@@ -280,10 +277,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(9)
     @allure.title("更新 Workload 副本数")
-    @allure.description("POST 更新副本数为 replicas+1，断言业务码为成功")
+    @allure.description("更新副本数为 replicas+1，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_replicas(self, ec_ext_service, public_params):
-        """更新副本数，断言业务码为成功。"""
+        """更新副本数，断言业务码为 2000。"""
         new_replicas = int(public_params.replicas) + 1
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_workload_replicas(
@@ -304,7 +301,7 @@ class TestEcExtensionsWorkload:
     @allure.description("更新副本数后再次查询 HPA，验证接口幂等性")
     @allure.severity(allure.severity_level.MINOR)
     def test_list_hpa_after(self, ec_ext_service, public_params):
-        """再次查询 HPA，断言业务码为成功。"""
+        """再次查询 HPA，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_workload_hpa(
                 cluster_id=public_params.cluster_id,
@@ -320,10 +317,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(11)
     @allure.title("增量更新 Workload（PATCH）")
-    @allure.description("PATCH 增量更新 Workload，body 使用 labels 局部字段")
+    @allure.description("增量更新 Workload，body 使用 labels 局部字段")
     @allure.severity(allure.severity_level.NORMAL)
     def test_patch_workload(self, ec_ext_service, public_params):
-        """PATCH 增量更新，断言业务码为成功。"""
+        """PATCH 增量更新，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             patch = WorkloadPatchEntity(labels={"test": "update"})
             response_json = ec_ext_service.patch_workload(
@@ -341,10 +338,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(12)
     @allure.title("停止 Workload")
-    @allure.description("POST 停止 Workload，断言业务码为成功")
+    @allure.description("停止 Workload，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_stop_workload(self, ec_ext_service, public_params):
-        """停止 Workload，断言业务码为成功。"""
+        """停止 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.stop_workload(
                 cluster_id=public_params.cluster_id,
@@ -360,10 +357,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(13)
     @allure.title("启动 Workload")
-    @allure.description("POST 启动 Workload，断言业务码为成功")
+    @allure.description("启动 Workload，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_start_workload(self, ec_ext_service, public_params):
-        """启动 Workload，断言业务码为成功。"""
+        """启动 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.start_workload(
                 cluster_id=public_params.cluster_id,
@@ -379,10 +376,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(14)
     @allure.title("重启 Workload")
-    @allure.description("POST 重启 Workload，断言业务码为成功")
+    @allure.description("重启 Workload，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_restart_workload(self, ec_ext_service, public_params):
-        """重启 Workload，断言业务码为成功。"""
+        """重启 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.restart_workload(
                 cluster_id=public_params.cluster_id,
@@ -398,10 +395,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(15)
     @allure.title("查询 Workload 关联的 Service")
-    @allure.description("GET Workload 关联 Service 列表，断言业务码为成功")
+    @allure.description("Workload 关联 Service 列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_workload_services(self, ec_ext_service, public_params):
-        """查询 Workload 关联 Service，断言业务码为成功。"""
+        """查询 Workload 关联 Service，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_workload_services(
                 cluster_id=public_params.cluster_id,
@@ -417,10 +414,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(16)
     @allure.title("更新 Workload 关联的 Service")
-    @allure.description("PUT 更新 Workload 关联 Service，body 含 name/type/ports 等字段")
+    @allure.description("更新 Workload 关联 Service，body 含 name/type/ports 等字段")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_workload_services(self, ec_ext_service, public_params):
-        """更新 Workload 关联 Service，断言业务码为成功。"""
+        """更新 Workload 关联 Service，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             services = [WorkloadServiceEntity(name=public_params.name)]
             response_json = ec_ext_service.update_workload_services(
@@ -438,10 +435,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(17)
     @allure.title("通过 Service 反查 Workload")
-    @allure.description("GET /services/{name}/workloads，断言业务码为成功")
+    @allure.description("通过 Service 反查关联的 Workload 列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.MINOR)
     def test_get_services_workloads(self, ec_ext_service, public_params):
-        """通过 Service 反查 Workload，断言业务码为成功。"""
+        """通过 Service 反查 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_services_workloads(
                 cluster_id=public_params.cluster_id,
@@ -456,10 +453,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(18)
     @allure.title("删除 Workload（单实例清理）")
-    @allure.description("DELETE 删除单实例 Workload，为后续批量测试腾出干净环境")
+    @allure.description("删除单实例 Workload，为后续批量测试腾出干净环境")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_workload(self, ec_ext_service, public_params):
-        """删除单实例 Workload，断言业务码为成功。"""
+        """删除单实例 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.delete_workload(
                 cluster_id=public_params.cluster_id,
@@ -475,10 +472,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(20)
     @allure.title("批量创建 Workload")
-    @allure.description("POST /applications/batch，body 含 workloadList，断言业务码为成功")
+    @allure.description("批量创建 Workload，body 含 workloadList，断言业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_batch_create_workloads(self, ec_ext_service, public_params):
-        """批量创建 Workload，断言业务码为成功。"""
+        """批量创建 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workloads = [WorkloadEntity.from_public_params(public_params)]
             response_json = ec_ext_service.batch_create_workloads(
@@ -492,10 +489,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(21)
     @allure.title("批量更新 Workload")
-    @allure.description("PUT /applications/batch，body 含 workloadList，断言业务码为成功")
+    @allure.description("批量更新 Workload，body 含 workloadList，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_update_workloads(self, ec_ext_service, public_params):
-        """批量更新 Workload，断言业务码为成功。"""
+        """批量更新 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workloads = [WorkloadEntity.from_public_params(public_params)]
             response_json = ec_ext_service.batch_update_workloads(
@@ -509,10 +506,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(22)
     @allure.title("批量停止 Workload")
-    @allure.description("POST /applications/stop/batch，body 含 kind/name，断言业务码为成功")
+    @allure.description("批量停止 Workload，body 含 kind/name，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_stop_workloads(self, ec_ext_service, public_params):
-        """批量停止 Workload，断言业务码为成功。"""
+        """批量停止 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workloads = [WorkloadEntity.from_public_params(public_params)]
             response_json = ec_ext_service.batch_stop_workloads(
@@ -526,10 +523,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(23)
     @allure.title("批量启动 Workload")
-    @allure.description("POST /applications/start/batch，body 含 kind/name，断言业务码为成功")
+    @allure.description("批量启动 Workload，body 含 kind/name，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_start_workloads(self, ec_ext_service, public_params):
-        """批量启动 Workload，断言业务码为成功。"""
+        """批量启动 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workloads = [WorkloadEntity.from_public_params(public_params)]
             response_json = ec_ext_service.batch_start_workloads(
@@ -543,10 +540,10 @@ class TestEcExtensionsWorkload:
 
     @pytest.mark.order(24)
     @allure.title("批量删除 Workload")
-    @allure.description("DELETE /applications/batch，body 含 kind/name，断言业务码为成功")
+    @allure.description("批量删除 Workload，body 含 kind/name，断言业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_batch_delete_workloads(self, ec_ext_service, public_params):
-        """批量删除 Workload，断言业务码为成功。"""
+        """批量删除 Workload，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             workloads = [WorkloadEntity.from_public_params(public_params)]
             response_json = ec_ext_service.batch_delete_workloads(

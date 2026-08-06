@@ -67,10 +67,9 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(1)
     @allure.title("集群配额概览查询")
-    @allure.description("GET /v1/clusters/{clusterId}/quota，断言业务码为成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cluster_quota(self, ec_ext_service, public_params):
-        """集群配额概览查询，断言业务码为成功。"""
+        """集群配额概览查询，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_cluster_quota(
                 cluster_id=public_params.cluster_id,
@@ -83,10 +82,9 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(2)
     @allure.title("租户资源配额总览")
-    @allure.description("GET /v1/tenants/{tenantCode}/quota，断言业务码为成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_overview(self, ec_ext_service, public_params):
-        """租户资源配额总览，断言业务码为成功。"""
+        """租户资源配额总览，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_tenant_quota_overview(
                 tenant_code=public_params.tenant_code,
@@ -99,10 +97,9 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(3)
     @allure.title("租户资源配额详情")
-    @allure.description("GET /v1/clusters/{clusterId}/tenants/{tenantCode}/quota/detail，断言业务码为成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_detail(self, ec_ext_service, public_params):
-        """租户资源配额详情，断言业务码为成功。"""
+        """租户资源配额详情，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_tenant_quota_detail(
                 cluster_id=public_params.cluster_id,
@@ -116,10 +113,9 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(4)
     @allure.title("租户资源配额单集群总览")
-    @allure.description("GET /v1/clusters/{clusterId}/tenants/{tenantCode}/quota，断言业务码为成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_cluster_quota(self, ec_ext_service, public_params):
-        """租户资源配额单集群总览，断言业务码为成功。"""
+        """租户资源配额单集群总览，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_tenant_cluster_quota(
                 cluster_id=public_params.cluster_id,
@@ -133,10 +129,9 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(5)
     @allure.title("租户可调整资源配额查询")
-    @allure.description("GET /v1/clusters/{clusterId}/tenants/{tenantCode}/quota/scale，断言业务码为成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_scale(self, ec_ext_service, public_params):
-        """租户可调整资源配额查询，断言业务码为成功。"""
+        """租户可调整资源配额查询，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_tenant_quota_scale(
                 cluster_id=public_params.cluster_id,
@@ -150,10 +145,10 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(6)
     @allure.title("租户资源配额分配（POST 空 body）")
-    @allure.description("POST /v1/clusters/{clusterId}/tenants/{tenantCode}/quota/allocate，body={}，断言业务码为成功")
+    @allure.description("以空 body 分配租户资源配额，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_allocate_tenant_quota(self, ec_ext_service, public_params):
-        """租户资源配额分配（POST 空 body），断言业务码为成功。"""
+        """租户资源配额分配（POST 空 body），断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.allocate_tenant_quota(
                 cluster_id=public_params.cluster_id,
@@ -167,10 +162,10 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(7)
     @allure.title("租户资源配额调整（PUT 空 body）")
-    @allure.description("PUT /v1/clusters/{clusterId}/tenants/{tenantCode}/quota/scale，body={}，断言业务码为成功")
+    @allure.description("以空 body 调整租户资源配额，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_tenant_quota_scale(self, ec_ext_service, public_params):
-        """租户资源配额调整（PUT 空 body），断言业务码为成功。"""
+        """租户资源配额调整（PUT 空 body），断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.update_tenant_quota_scale(
                 cluster_id=public_params.cluster_id,
@@ -184,13 +179,10 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(8)
     @allure.title("批量查询租户资源配额概览（admin 头覆盖）")
-    @allure.description(
-        "POST /v1/tenants/quota/batch，body 含 tenantCodeList；对齐 JMX 中局部 "
-        "HeaderManager 场景，使用 adminUsername/adminTenantCode 头调用"
-    )
+    @allure.description("批量查询租户资源配额概览，body 含 tenantCodeList，使用 adminUsername/adminTenantCode 头覆盖调用")
     @allure.severity(allure.severity_level.NORMAL)
     def test_batch_query_tenant_quota(self, ec_ext_service, public_params):
-        """批量查询租户资源配额概览（admin 头），断言业务码为成功。"""
+        """批量查询租户资源配额概览（admin 头），断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             batch = TenantQuotaBatchEntity(tenant_codes=[public_params.tenant_code])
             response_json = ec_ext_service.batch_query_tenant_quota(

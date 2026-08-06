@@ -118,7 +118,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("按 chartName 关键字过滤查询 Chart 列表，验证响应包含目标 Chart 名称与版本")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_helm_charts(self, ec_ext_service, public_params):
-        """查询 Chart 列表，断言业务码为成功且响应包含 chartName / chartVersion。"""
+        """查询 Chart 列表，断言业务码为 2000且响应包含 chartName / chartVersion。"""
         cluster_id = public_params.cluster_id
         chart_name = public_params.chart_name
         chart_version = public_params.chart_version
@@ -208,10 +208,10 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_manifest", depends=["helm_install"])
     @pytest.mark.order(5)
     @allure.title("查询 Helm Release Manifest")
-    @allure.description("查询指定 Helm Release 的 Manifest 详情，验证业务码为成功")
+    @allure.description("查询指定 Helm Release 的 Manifest 详情，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_helm_manifest(self, ec_ext_service, public_params):
-        """查询 Helm Manifest，断言业务码为成功。"""
+        """查询 Helm Manifest，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -235,7 +235,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("查询指定命名空间下的 Helm Release 列表，验证包含目标 release 名称")
     @allure.severity(allure.severity_level.NORMAL)
     def test_helm_list_releases(self, ec_ext_service, public_params):
-        """查询 Helm Release 列表，断言业务码为成功且包含目标 release name。"""
+        """查询 Helm Release 列表，断言业务码为 2000且包含目标 release name。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -262,7 +262,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("升级指定 Helm Release，追加 labels.test=update 后验证升级成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_upgrade(self, ec_ext_service, public_params):
-        """Helm Upgrade，断言业务码为成功。"""
+        """Helm Upgrade，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -285,10 +285,10 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_history", depends=["helm_upgrade"])
     @pytest.mark.order(8)
     @allure.title("查询 Helm Release 历史版本")
-    @allure.description("查询指定 Helm Release 的版本升级历史，验证业务码为成功")
+    @allure.description("查询指定 Helm Release 的版本升级历史，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_helm_history(self, ec_ext_service, public_params):
-        """查询 Helm History，断言业务码为成功。"""
+        """查询 Helm History，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -309,10 +309,10 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_rollback", depends=["helm_history"])
     @pytest.mark.order(9)
     @allure.title("回滚 Helm Release 到指定版本")
-    @allure.description("通过 revision query 参数将 Helm Release 回滚至初始版本，验证业务码为成功")
+    @allure.description("通过 revision query 参数将 Helm Release 回滚至初始版本，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_rollback(self, ec_ext_service, public_params):
-        """Helm Rollback，断言业务码为成功。"""
+        """Helm Rollback，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -337,7 +337,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("卸载指定 Helm Release，为后续批量测试腾出干净环境")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_uninstall(self, ec_ext_service, public_params, api_cache):
-        """Helm Uninstall，断言业务码为成功。"""
+        """Helm Uninstall，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -404,10 +404,10 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_batch_upgrade_v1", depends=["helm_batch_install_v1"])
     @pytest.mark.order(12)
     @allure.title("批量升级 Helm Release（v1）")
-    @allure.description("通过 v1 批量接口升级 Helm Release，验证 code==2000 且 data[0].isSuccess=true")
+    @allure.description("通过 v1 批量接口升级 Helm Release，验证业务码为 2000 且 data[0].isSuccess=true")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_upgrade_v1(self, ec_ext_service, public_params):
-        """Helm Batch Upgrade v1，断言业务码为成功且第一个条目升级成功。"""
+        """Helm Batch Upgrade v1，断言业务码为 2000且第一个条目升级成功。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
 
@@ -431,7 +431,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("通过 v1 批量接口卸载 Helm Release，为 v2 批量测试腾出干净环境")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_uninstall_v1(self, ec_ext_service, public_params):
-        """Helm Batch Uninstall v1，断言业务码为成功且第一个条目卸载成功。"""
+        """Helm Batch Uninstall v1，断言业务码为 2000且第一个条目卸载成功。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         release_name = public_params.release_name
@@ -499,10 +499,10 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_batch_upgrade_v2", depends=["helm_batch_install_v2"])
     @pytest.mark.order(15)
     @allure.title("批量升级 Helm Release（v2）")
-    @allure.description("通过 v2 批量接口升级 Helm Release，验证 code==2000 且 data[0].isSuccess=true")
+    @allure.description("通过 v2 批量接口升级 Helm Release，验证业务码为 2000 且 data[0].isSuccess=true")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_upgrade_v2(self, ec_ext_service, public_params):
-        """Helm Batch Upgrade v2，断言业务码为成功且第一个条目升级成功。"""
+        """Helm Batch Upgrade v2，断言业务码为 2000且第一个条目升级成功。"""
         cell_code = public_params.cell_code
         sys_code = public_params.sys_code
 
@@ -526,7 +526,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("通过 v2 批量接口卸载 Helm Release，为最终 Chart 删除腾出干净环境")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_helm_batch_uninstall_v2(self, ec_ext_service, public_params):
-        """Helm Batch Uninstall v2，断言业务码为成功且第一个条目卸载成功。"""
+        """Helm Batch Uninstall v2，断言业务码为 2000且第一个条目卸载成功。"""
         cell_code = public_params.cell_code
         sys_code = public_params.sys_code
         release_name = public_params.release_name
@@ -550,10 +550,9 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_chart_delete", depends=["helm_batch_uninstall_v2"])
     @pytest.mark.order(17)
     @allure.title("删除指定 Chart")
-    @allure.description("对齐 JMX 最终清理步骤：按 chartName + version 删除已上传的 Chart")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_helm_chart(self, ec_ext_service, public_params):
-        """删除 Chart，断言业务码为成功。"""
+        """删除 Chart，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         chart_name = public_params.chart_name
         chart_version = public_params.chart_version

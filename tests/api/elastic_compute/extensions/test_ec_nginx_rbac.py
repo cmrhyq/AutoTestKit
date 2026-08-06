@@ -64,10 +64,7 @@ class TestEcExtensionsNginxRbac:
     @pytest.mark.dependency(name="nginx_rbac_pre_cleanup")
     @pytest.mark.order(0)
     @allure.title("查询 Nginx RBAC 并在存在时预删除")
-    @allure.description(
-        "先 GET 查询 RBAC，若 code==2000 则 DELETE 预清理，"
-        "若 code==4004 则表示不存在，直接跳过；确保后续 create 测试从干净状态开始"
-    )
+    @allure.description("先查询 RBAC，若存在则预清理，不存在则跳过；确保后续 create 测试从干净状态开始")
     @allure.severity(allure.severity_level.NORMAL)
     def test_00_pre_cleanup_nginx_rbac(self, ec_ext_service, public_params):
         """前置清理：GET 查询，若存在则 DELETE，否则 skip 清理动作。"""
@@ -102,10 +99,10 @@ class TestEcExtensionsNginxRbac:
     @pytest.mark.dependency(name="nginx_rbac_create", depends=["nginx_rbac_pre_cleanup"])
     @pytest.mark.order(1)
     @allure.title("创建 Nginx RBAC 模板")
-    @allure.description("POST 创建指定 code 的 Nginx RBAC 模板，断言 code==2000")
+    @allure.description("创建指定 code 的 Nginx RBAC 模板，断言业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_nginx_rbac(self, ec_ext_service, public_params):
-        """创建 Nginx RBAC，断言业务码为成功。"""
+        """创建 Nginx RBAC，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         code = public_params.code
@@ -126,10 +123,10 @@ class TestEcExtensionsNginxRbac:
     @pytest.mark.dependency(name="nginx_rbac_delete", depends=["nginx_rbac_create"])
     @pytest.mark.order(2)
     @allure.title("删除 Nginx RBAC 模板")
-    @allure.description("DELETE 删除刚创建的 Nginx RBAC 模板，断言 code==2000")
+    @allure.description("删除刚创建的 Nginx RBAC 模板，断言业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_nginx_rbac(self, ec_ext_service, public_params):
-        """删除 Nginx RBAC，断言业务码为成功。"""
+        """删除 Nginx RBAC，断言业务码为 2000。"""
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace
         code = public_params.code

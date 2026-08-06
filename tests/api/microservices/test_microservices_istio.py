@@ -88,7 +88,6 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("查询入口网关实例信息 分页展示")
-    @allure.description("分页查询入口网关实例列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
@@ -137,7 +136,6 @@ class TestMicroservicesIstio:
     # ==================== 网关规则 ====================
 
     @allure.title("新增网关规则")
-    @allure.description("为指定网关新增路由规则")
     @allure.severity(allure.severity_level.NORMAL)
     def test_add_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
@@ -185,7 +183,6 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("更新网关规则")
-    @allure.description("更新指定网关规则的配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
@@ -250,7 +247,6 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("更新虚拟服务")
-    @allure.description("更新指定虚拟服务的配置")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
@@ -284,7 +280,6 @@ class TestMicroservicesIstio:
     # ==================== 清理操作 ====================
 
     @allure.title("删除虚拟服务")
-    @allure.description("删除指定的虚拟服务")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_virtual_service(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
@@ -298,7 +293,6 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("删除网关规则")
-    @allure.description("删除指定的网关规则")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_gateway_rule(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):
@@ -313,7 +307,6 @@ class TestMicroservicesIstio:
                 assert "code" in response_json
 
     @allure.title("删除入口网关实例")
-    @allure.description("删除指定的入口网关实例")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_gateway_instance(self, istio_service, public_params):
         with AllureHelper.api_test(istio_service):

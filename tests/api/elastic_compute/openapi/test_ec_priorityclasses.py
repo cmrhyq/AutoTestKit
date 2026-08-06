@@ -120,7 +120,7 @@ class TestEcOpenapiPriorityClasses:
     @pytest.mark.dependency(name="pc_update", depends=["pc_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 PriorityClass")
-    @allure.description("使用 PUT 方法全量更新 PriorityClass，验证响应包含资源名称")
+    @allure.description("全量更新 PriorityClass，验证响应包含资源名称")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_priorityclass(self, ec_service, public_params):
         """PUT 全量更新 PriorityClass，断言更新成功。"""
@@ -144,7 +144,7 @@ class TestEcOpenapiPriorityClasses:
     @pytest.mark.dependency(name="pc_patch", depends=["pc_update"])
     @pytest.mark.order(5)
     @allure.title("PATCH 增量更新 PriorityClass")
-    @allure.description("使用 PATCH 方法增量更新 PriorityClass 的 description 和 metadata，验证更新成功")
+    @allure.description("增量更新 PriorityClass 的 description 和 metadata，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_priorityclass(self, ec_service, public_params):
         """PATCH 增量更新 PriorityClass，断言更新成功。"""

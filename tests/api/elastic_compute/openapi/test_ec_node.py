@@ -73,7 +73,7 @@ class TestEcOpenapiNode:
                 assert "code" in response_json, "响应缺少 code 字段"
 
     @allure.title("增量更新指定 Node")
-    @allure.description("以 strategic merge patch 方式增量更新指定 Node")
+    @allure.description("以 strategic merge 方式增量更新指定 Node")
     @allure.severity(allure.severity_level.NORMAL)
     def test_patch_node(self, ec_service, public_params):
         with AllureHelper.api_test(ec_service):

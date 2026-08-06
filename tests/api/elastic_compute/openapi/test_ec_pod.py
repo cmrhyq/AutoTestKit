@@ -224,7 +224,7 @@ class TestEcOpenapiPod:
     @pytest.mark.dependency(name="pod_update", depends=["pod_get_after_create"])
     @pytest.mark.order(8)
     @allure.title("PUT 全量更新 Pod")
-    @allure.description("使用查询到的 Pod 对象（修改 labels）进行 PUT 全量更新，验证更新成功")
+    @allure.description("使用查询到的 Pod 对象（修改 labels）进行 全量更新，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_pod(self, ec_service, public_params, api_cache):
         """PUT 全量更新 Pod，断言更新成功。"""
@@ -246,7 +246,7 @@ class TestEcOpenapiPod:
     @pytest.mark.dependency(name="pod_patch", depends=["pod_update"])
     @pytest.mark.order(9)
     @allure.title("PATCH 增量更新 Pod")
-    @allure.description("使用 PATCH 方法增量更新 Pod 的 labels 字段，验证更新成功")
+    @allure.description("增量更新 Pod 的 labels 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_pod(self, ec_service, public_params):
         """PATCH 增量更新 Pod，断言更新成功。"""

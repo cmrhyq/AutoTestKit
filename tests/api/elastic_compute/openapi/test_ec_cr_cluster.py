@@ -139,7 +139,7 @@ class TestEcOpenapiCrCluster:
     @pytest.mark.dependency(name="cr_cluster_put", depends=["cr_cluster_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 Cluster CR")
-    @allure.description("使用 PUT 方法全量更新 Cluster CR 的 labels 和 spec 字段，验证更新成功")
+    @allure.description("全量更新 Cluster CR 的 labels 和 spec 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_put_update_cluster_cr(self, ec_service, public_params):
         """PUT 全量更新 Cluster CR，断言更新成功。"""
@@ -169,7 +169,7 @@ class TestEcOpenapiCrCluster:
     @pytest.mark.dependency(name="cr_cluster_patch", depends=["cr_cluster_put"])
     @pytest.mark.order(5)
     @allure.title("PATCH 增量更新 Cluster CR")
-    @allure.description("使用 PATCH 方法增量更新 Cluster CR 的 labels 和 replicas，验证更新成功")
+    @allure.description("增量更新 Cluster CR 的 labels 和 replicas，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_patch_update_cluster_cr(self, ec_service, public_params):
         """PATCH 增量更新 Cluster CR，断言更新成功。"""

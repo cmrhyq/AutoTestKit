@@ -41,7 +41,7 @@ class TestEcExtensionsFuzzyQuery:
     @allure.description("调用 Helm 应用模糊查询服务接口，验证返回成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_search_helm_app(self, ec_ext_service):
-        """Helm 应用模糊查询，断言业务码为成功。"""
+        """Helm 应用模糊查询，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.search_helm_app()
 
@@ -54,7 +54,7 @@ class TestEcExtensionsFuzzyQuery:
     @allure.description("调用应用模糊查询接口，验证返回成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_search_app_fuzzy(self, ec_ext_service):
-        """应用模糊查询，断言业务码为成功。"""
+        """应用模糊查询，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.search_app_fuzzy()
 

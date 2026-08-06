@@ -132,7 +132,7 @@ class TestEcOpenapiHarbor:
             api_cache.set("ec_harbor_project_created", False)
 
     @allure.title("创建 harbor 项目")
-    @allure.description("创建 harbor 项目，验证业务码为成功")
+    @allure.description("创建 harbor 项目，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="harbor_project_create", depends=["harbor_project_query_and_cleanup"]
@@ -189,7 +189,7 @@ class TestEcOpenapiHarbor:
             api_cache.set("ec_harbor_project_id", project_id)
 
     @allure.title("创建 harbor 项目成员")
-    @allure.description("为 harbor 项目创建成员关系，验证业务码为成功")
+    @allure.description("为 harbor 项目创建成员关系，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="harbor_member_create", depends=["harbor_project_list"]
@@ -219,7 +219,7 @@ class TestEcOpenapiHarbor:
                 api_cache.set("ec_harbor_member_id", member_id)
 
     @allure.title("删除 harbor 项目成员")
-    @allure.description("删除 harbor 项目成员，验证业务码为成功或成员不存在")
+    @allure.description("删除 harbor 项目成员，验证业务码为 2000或成员不存在")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_member_delete", depends=["harbor_member_create"]
@@ -265,7 +265,7 @@ class TestEcOpenapiHarbor:
             api_cache.set("ec_harbor_target_id", target_id)
 
     @allure.title("添加 harbor 复制策略")
-    @allure.description("添加 harbor 复制策略，验证业务码为成功并缓存策略 ID")
+    @allure.description("添加 harbor 复制策略，验证业务码为 2000并缓存策略 ID")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="harbor_policy_create", depends=["harbor_registry_query"]
@@ -328,7 +328,7 @@ class TestEcOpenapiHarbor:
             api_cache.set("ec_harbor_policy_id", policy_id)
 
     @allure.title("更新 harbor 复制/备份策略")
-    @allure.description("PUT 更新复制策略，验证业务码为成功")
+    @allure.description("更新复制策略，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_policy_update", depends=["harbor_policy_list"]
@@ -357,7 +357,7 @@ class TestEcOpenapiHarbor:
             )
 
     @allure.title("查询 harbor 复制策略详情")
-    @allure.description("GET 查询复制策略详情，验证业务码为成功")
+    @allure.description("查询复制策略详情，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_policy_detail", depends=["harbor_policy_update"]
@@ -378,7 +378,7 @@ class TestEcOpenapiHarbor:
             )
 
     @allure.title("启动 harbor 复制策略执行")
-    @allure.description("触发复制策略执行，验证业务码为成功并缓存 execution_id")
+    @allure.description("触发复制策略执行，验证业务码为 2000并缓存 execution_id")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="harbor_execution_start", depends=["harbor_policy_detail"]
@@ -409,7 +409,7 @@ class TestEcOpenapiHarbor:
             time.sleep(10)
 
     @allure.title("查询 harbor 复制策略执行列表")
-    @allure.description("查询复制策略执行列表，验证业务码为成功并回填 execution_id")
+    @allure.description("查询复制策略执行列表，验证业务码为 2000并回填 execution_id")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_execution_list", depends=["harbor_execution_start"]
@@ -439,7 +439,7 @@ class TestEcOpenapiHarbor:
                     api_cache.set("ec_harbor_execution_id", first_id)
 
     @allure.title("查询 harbor 复制执行任务列表")
-    @allure.description("查询指定执行的任务列表，验证业务码为成功并回填 task_id")
+    @allure.description("查询指定执行的任务列表，验证业务码为 2000并回填 task_id")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_task_list", depends=["harbor_execution_list"]
@@ -467,7 +467,7 @@ class TestEcOpenapiHarbor:
                     api_cache.set("ec_harbor_task_id", task_id)
 
     @allure.title("查询 harbor 复制执行任务日志")
-    @allure.description("查询任务日志，验证业务码为成功或任务不存在")
+    @allure.description("查询任务日志，验证业务码为 2000或任务不存在")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_task_log", depends=["harbor_task_list"]
@@ -494,7 +494,7 @@ class TestEcOpenapiHarbor:
             )
 
     @allure.title("查询 harbor 镜像仓库列表")
-    @allure.description("查询指定项目下镜像仓库列表，验证业务码为成功")
+    @allure.description("查询指定项目下镜像仓库列表，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_repo_list", depends=["harbor_task_log"]
@@ -515,7 +515,7 @@ class TestEcOpenapiHarbor:
 
     @allure.title("查询 harbor 镜像库 artifacts")
     @allure.description(
-        "查询指定项目/仓库下 artifacts 列表，验证业务码为成功或仓库为空"
+        "查询指定项目/仓库下 artifacts 列表，验证业务码为 2000或仓库为空"
     )
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
@@ -538,7 +538,7 @@ class TestEcOpenapiHarbor:
             )
 
     @allure.title("获取指定的 harbor 镜像仓库")
-    @allure.description("查询指定 harbor 镜像仓库详情，验证业务码为成功或仓库不存在")
+    @allure.description("查询指定 harbor 镜像仓库详情，验证业务码为 2000或仓库不存在")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_repo_detail", depends=["harbor_artifact_list"]
@@ -558,7 +558,7 @@ class TestEcOpenapiHarbor:
             )
 
     @allure.title("删除 harbor 复制策略")
-    @allure.description("清理阶段：删除复制策略，验证业务码为成功或策略不存在")
+    @allure.description("清理阶段：删除复制策略，验证业务码为 2000或策略不存在")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(
         name="harbor_policy_delete", depends=["harbor_repo_detail"]

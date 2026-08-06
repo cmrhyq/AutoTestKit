@@ -146,7 +146,7 @@ class TestEcNativeHpa:
     @pytest.mark.dependency(name="native_hpa_update", depends=["native_hpa_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 HPA")
-    @allure.description("使用 PUT 方法全量更新 HPA（CPU 阈值 50→80，追加 test:update 标签），验证更新成功")
+    @allure.description("全量更新 HPA（CPU 阈值 50→80，追加 test:update 标签），验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_hpa(self, native_service, public_params):
         """PUT 全量更新 HPA，断言更新成功。"""

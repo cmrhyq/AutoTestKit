@@ -134,7 +134,7 @@ class TestEcNativeIngress:
     @pytest.mark.dependency(name="ingress_update", depends=["ingress_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 Ingress")
-    @allure.description("使用 PUT 方法全量更新 Ingress，验证更新成功")
+    @allure.description("全量更新 Ingress，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_ingress(self, native_service, public_params):
         """PUT 全量更新 Ingress，断言更新成功。"""

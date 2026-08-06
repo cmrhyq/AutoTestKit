@@ -139,7 +139,7 @@ class TestEcNativeConfigmap:
     @pytest.mark.dependency(name="native_cm_update", depends=["native_cm_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 ConfigMap")
-    @allure.description("使用 PUT 方法全量更新 ConfigMap 的 data 和 labels 字段，验证更新成功")
+    @allure.description("全量更新 ConfigMap 的 data 和 labels 字段，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_configmap(self, native_service, public_params):
         """PUT 全量更新 ConfigMap，断言更新成功。"""

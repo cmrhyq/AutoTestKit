@@ -61,7 +61,6 @@ class TestMicroservicesUbm:
     # ==================== UBM 查询接口 ====================
 
     @allure.title("查询平面单元列表")
-    @allure.description("查询微服务平面单元列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cells(self, ubm_service):
         with AllureHelper.api_test(ubm_service):

@@ -84,10 +84,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(1)
     @allure.title("创建 ResourceQuota（托管集群）")
-    @allure.description("在托管集群下创建 ResourceQuota，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("在托管集群下创建 ResourceQuota，断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_resource_quota(self, ec_ext_service, public_params):
-        """创建 ResourceQuota（仅托管集群），断言业务码为成功。"""
+        """创建 ResourceQuota（仅托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -102,10 +102,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(2)
     @allure.title("获取 ResourceQuota（托管集群）")
-    @allure.description("在托管集群下查询 ResourceQuota，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("在托管集群下查询 ResourceQuota，断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_quota(self, ec_ext_service, public_params):
-        """获取 ResourceQuota（仅托管集群），断言业务码为成功。"""
+        """获取 ResourceQuota（仅托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -119,10 +119,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(3)
     @allure.title("更新 ResourceQuota（托管集群，PUT 空 body）")
-    @allure.description("对齐 JMX PUT 空 body 场景更新 ResourceQuota，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota(self, ec_ext_service, public_params):
-        """更新 ResourceQuota（托管集群），断言业务码为成功。"""
+        """更新 ResourceQuota（托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -139,10 +139,7 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(4)
     @allure.title("预清理 LimitRange（托管集群）")
-    @allure.description(
-        "对齐 JMX 中 defaultValues=5000 的等价预删除逻辑："
-        "尝试 DELETE 已存在的 LimitRange，忽略失败结果；标准集群 env 跳过"
-    )
+    @allure.description("忽略失败结果；标准集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_pre_cleanup_limit_range(self, ec_ext_service, public_params):
         """预清理 LimitRange：调用 DELETE 忽略返回码。"""
@@ -157,10 +154,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(5)
     @allure.title("创建 LimitRange（托管集群）")
-    @allure.description("在托管集群下创建 LimitRange，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("在托管集群下创建 LimitRange，断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_limit_range(self, ec_ext_service, public_params):
-        """创建 LimitRange（仅托管集群），断言业务码为成功。"""
+        """创建 LimitRange（仅托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -175,10 +172,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(6)
     @allure.title("获取 LimitRange（托管集群）")
-    @allure.description("在托管集群下查询 LimitRange，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("在托管集群下查询 LimitRange，断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_limit_range(self, ec_ext_service, public_params):
-        """获取 LimitRange（仅托管集群），断言业务码为成功。"""
+        """获取 LimitRange（仅托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -192,10 +189,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(7)
     @allure.title("更新 LimitRange（托管集群）")
-    @allure.description("在托管集群下 PUT 更新 LimitRange，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("在托管集群下更新 LimitRange，断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range(self, ec_ext_service, public_params):
-        """更新 LimitRange（托管集群），断言业务码为成功。"""
+        """更新 LimitRange（托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -210,10 +207,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(8)
     @allure.title("删除 LimitRange（托管集群）")
-    @allure.description("在托管集群下删除 LimitRange，断言业务码为成功；标准集群 env 跳过")
+    @allure.description("在托管集群下删除 LimitRange，断言业务码为 2000；标准集群 env 跳过")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_limit_range(self, ec_ext_service, public_params):
-        """删除 LimitRange（托管集群），断言业务码为成功。"""
+        """删除 LimitRange（托管集群），断言业务码为 2000。"""
         self._skip_if_not_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -229,7 +226,7 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(11)
     @allure.title("获取 ResourceQuota（标准集群）")
-    @allure.description("标准集群下查询 ResourceQuota，断言业务码为成功；托管集群 env 跳过")
+    @allure.description("标准集群下查询 ResourceQuota，断言业务码为 2000；托管集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_resource_quota_standard(self, ec_ext_service, public_params):
         """标准集群 ResourceQuota 查询。"""
@@ -246,7 +243,7 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(12)
     @allure.title("更新 ResourceQuota（标准集群，PUT 空 body）")
-    @allure.description("标准集群下 PUT 空 body 更新 ResourceQuota，断言业务码为成功；托管集群 env 跳过")
+    @allure.description("标准集群下以空 body 更新 ResourceQuota，断言业务码为 2000；托管集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota_standard(self, ec_ext_service, public_params):
         """标准集群 ResourceQuota 更新（PUT 空 body 对齐 JMX）。"""
@@ -264,7 +261,7 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(13)
     @allure.title("获取 LimitRange（标准集群）")
-    @allure.description("标准集群下查询 LimitRange，断言业务码为成功；托管集群 env 跳过")
+    @allure.description("标准集群下查询 LimitRange，断言业务码为 2000；托管集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_limit_range_standard(self, ec_ext_service, public_params):
         """标准集群 LimitRange 查询。"""
@@ -281,7 +278,7 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(14)
     @allure.title("更新 LimitRange（标准集群，PUT 空 body）")
-    @allure.description("标准集群下 PUT 空 body 更新 LimitRange，断言业务码为成功；托管集群 env 跳过")
+    @allure.description("标准集群下以空 body 更新 LimitRange，断言业务码为 2000；托管集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range_standard(self, ec_ext_service, public_params):
         """标准集群 LimitRange 更新（PUT 空 body 对齐 JMX）。"""
@@ -301,13 +298,10 @@ class TestEcExtensionsPartitionsApi:
 
     @pytest.mark.order(20)
     @allure.title("查询节点信息（admin 头覆盖）")
-    @allure.description(
-        "共同分支：使用 adminUsername / adminTenantCode 头覆盖调用 /v1/clusters/{clusterId}/nodes，"
-        "断言业务码为成功。对齐 JMX 中局部 HeaderManager 场景。"
-    )
+    @allure.description("共同分支：使用 adminUsername / adminTenantCode 头覆盖调用，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_partition_nodes(self, ec_ext_service, public_params):
-        """查询节点信息（admin 头），断言业务码为成功。"""
+        """查询节点信息（admin 头），断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_partition_nodes(
                 cluster_id=public_params.cluster_id,

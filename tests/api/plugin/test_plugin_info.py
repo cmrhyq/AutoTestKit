@@ -33,7 +33,6 @@ class TestPluginInfo:
             yield svc
 
     @allure.title("查询指定插件的安装信息")
-    @allure.description("查询指定插件的安装信息")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_info(self, plugin_open_service, api_env, api_cache):
         with AllureHelper.api_test(plugin_open_service):

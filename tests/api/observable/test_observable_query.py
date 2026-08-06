@@ -38,7 +38,6 @@ class TestObservableQuery:
             yield svc
 
     @allure.title("查询模型列表")
-    @allure.description("分页查询可观测模型列表")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_models(self, observable_service, api_cache):
         with AllureHelper.api_test(observable_service):

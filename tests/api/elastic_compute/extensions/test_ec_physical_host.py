@@ -95,7 +95,7 @@ class TestEcExtensionsPhysicalHost:
     @pytest.mark.dependency(name="physical_host_bind", depends=["physical_host_search"])
     @pytest.mark.order(2)
     @allure.title("主机绑定租户(门户)")
-    @allure.description("将 hostId 绑定到管理员租户（adminTenantCode），断言业务码为成功")
+    @allure.description("将 hostId 绑定到管理员租户（adminTenantCode），断言业务码为2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_bind_physical_host_tenant(
         self,
@@ -103,7 +103,7 @@ class TestEcExtensionsPhysicalHost:
         public_params,
         api_cache,
     ):
-        """主机绑定租户，断言业务码为成功。"""
+        """主机绑定租户，断言业务码为2000。"""
         host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
         tenant_code = public_params.admin_tenant_code
 
@@ -121,10 +121,10 @@ class TestEcExtensionsPhysicalHost:
     @pytest.mark.dependency(name="physical_host_list", depends=["physical_host_bind"])
     @pytest.mark.order(3)
     @allure.title("获取当前租户的裸金属主机列表")
-    @allure.description("查询当前租户下已绑定的裸金属主机列表，断言业务码为成功")
+    @allure.description("查询当前租户下已绑定的裸金属主机列表，断言业务码为2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_list_current_tenant_hosts(self, ec_ext_service):
-        """获取当前租户主机列表，断言业务码为成功。"""
+        """获取当前租户主机列表，断言业务码为2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_current_tenant_hosts()
             assert response_json.get("code") == ApiCode.SUCCESS, (
@@ -136,12 +136,10 @@ class TestEcExtensionsPhysicalHost:
     @pytest.mark.dependency(name="physical_host_resource", depends=["physical_host_list"])
     @pytest.mark.order(4)
     @allure.title("获取指定裸金属主机信息(admin 头覆盖)")
-    @allure.description(
-        "对齐 JMX 中局部 HeaderManager 场景，使用 adminUsername/adminTenantCode 头调用 /v2/hostResource/{hostId}"
-    )
+    @allure.description("使用 adminUsername/adminTenantCode 头覆盖调用，查询指定主机资源信息，断言业务码为2000。")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_host_resource(self, ec_ext_service, public_params, api_cache):
-        """获取指定主机信息（admin 头），断言业务码为成功。"""
+        """获取指定主机信息（admin 头），断言业务码为2000。"""
         host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
 
         with AllureHelper.api_test(ec_ext_service):
@@ -155,10 +153,10 @@ class TestEcExtensionsPhysicalHost:
     @pytest.mark.dependency(name="physical_host_connect", depends=["physical_host_resource"])
     @pytest.mark.order(5)
     @allure.title("获取指定裸金属主机连接信息")
-    @allure.description("查询指定主机的连接信息，断言业务码为成功")
+    @allure.description("查询指定主机的连接信息，断言业务码为2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_host_connect_info(self, ec_ext_service, public_params, api_cache):
-        """获取主机连接信息，断言业务码为成功。"""
+        """获取主机连接信息，断言业务码为 2000。"""
         host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
 
         with AllureHelper.api_test(ec_ext_service):
@@ -172,9 +170,7 @@ class TestEcExtensionsPhysicalHost:
     @pytest.mark.dependency(name="physical_host_unbind", depends=["physical_host_bind"])
     @pytest.mark.order(6)
     @allure.title("主机解绑租户(门户)")
-    @allure.description(
-        "使用 bindTenantCode 参数解绑主机，断言业务码为成功。解绑与绑定使用的租户 code 可能不同，对齐 JMX 中的两个变量"
-    )
+    @allure.description("使用 bindTenantCode 参数解绑主机，断言业务码为2000；解绑与绑定使用的租户 code 可能不同")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_unbind_physical_host_tenant(
         self,
@@ -182,7 +178,7 @@ class TestEcExtensionsPhysicalHost:
         public_params,
         api_cache,
     ):
-        """主机解绑租户，断言业务码为成功。"""
+        """主机解绑租户，断言业务码为2000。"""
         host_id = api_cache.get("physical_host_id") or public_params.fallback_host_id
         tenant_code = public_params.bind_tenant_code
 

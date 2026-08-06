@@ -68,7 +68,7 @@ class TestEcOpenapiLimitRange:
     # ---------------------------- 标准集群分支 ----------------------------
 
     @allure.title("[标准集群] 查询 LimitRange 详情")
-    @allure.description("标准集群下查询命名空间 LimitRange，验证业务码为成功或不存在")
+    @allure.description("标准集群下查询命名空间 LimitRange，验证业务码为 2000或不存在")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="lr_std_query")
     @pytest.mark.order(1)
@@ -89,7 +89,7 @@ class TestEcOpenapiLimitRange:
             api_cache.set("ec_std_lr_get_code", code)
 
     @allure.title("[标准集群] 查询 LimitRange 列表")
-    @allure.description("标准集群下查询全 cell LimitRange 列表，验证业务码为成功")
+    @allure.description("标准集群下查询全 cell LimitRange 列表，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="lr_std_list", depends=["lr_std_query"])
     @pytest.mark.order(2)
@@ -107,10 +107,7 @@ class TestEcOpenapiLimitRange:
             )
 
     @allure.title("[标准集群] PUT 更新 LimitRange")
-    @allure.description(
-        "标准集群下若查询命中(code=2000)则 PUT 更新 LimitRange，"
-        "验证业务码为成功；否则跳过。"
-    )
+    @allure.description("标准集群下若查询命中(业务码为 2000)则 更新 LimitRange，验证业务码为 2000；否则跳过")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="lr_std_put", depends=["lr_std_list"])
     @pytest.mark.order(3)
@@ -133,10 +130,7 @@ class TestEcOpenapiLimitRange:
             )
 
     @allure.title("[标准集群] PATCH 增量更新 LimitRange")
-    @allure.description(
-        "标准集群下若查询命中(code=2000)则 PATCH 增量更新 LimitRange，"
-        "验证业务码为成功；否则跳过。"
-    )
+    @allure.description("标准集群下若查询命中(业务码为 2000)则 增量更新 LimitRange，验证业务码为 2000；否则跳过")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="lr_std_patch", depends=["lr_std_put"])
     @pytest.mark.order(4)
@@ -196,7 +190,7 @@ class TestEcOpenapiLimitRange:
             api_cache.set("ec_host_lr_created", False)
 
     @allure.title("[托管集群] 创建 LimitRange")
-    @allure.description("托管集群下创建 LimitRange 资源，验证业务码为成功")
+    @allure.description("托管集群下创建 LimitRange 资源，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="lr_host_create", depends=["lr_host_query_cleanup"]
@@ -223,7 +217,7 @@ class TestEcOpenapiLimitRange:
             api_cache.set("ec_host_lr_create_code", resp.get("code"))
 
     @allure.title("[托管集群] 查询 LimitRange 列表")
-    @allure.description("托管集群下查询全 cell LimitRange 列表，验证业务码为成功")
+    @allure.description("托管集群下查询全 cell LimitRange 列表，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="lr_host_list", depends=["lr_host_create"])
     @pytest.mark.order(12)
@@ -241,7 +235,7 @@ class TestEcOpenapiLimitRange:
             )
 
     @allure.title("[托管集群] PUT 更新 LimitRange")
-    @allure.description("托管集群下 PUT 全量更新 LimitRange，验证业务码为成功")
+    @allure.description("托管集群下 全量更新 LimitRange，验证业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(name="lr_host_put", depends=["lr_host_list"])
     @pytest.mark.order(13)
@@ -264,7 +258,7 @@ class TestEcOpenapiLimitRange:
             )
 
     @allure.title("[托管集群] PATCH 增量更新 LimitRange")
-    @allure.description("托管集群下 PATCH 增量更新 LimitRange，验证业务码为成功")
+    @allure.description("托管集群下 增量更新 LimitRange，验证业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.dependency(name="lr_host_patch", depends=["lr_host_put"])
     @pytest.mark.order(14)
@@ -286,7 +280,7 @@ class TestEcOpenapiLimitRange:
             )
 
     @allure.title("[托管集群] 删除 LimitRange")
-    @allure.description("托管集群清理阶段：删除 LimitRange，验证业务码为成功或不存在")
+    @allure.description("托管集群清理阶段：删除 LimitRange，验证业务码为 2000或不存在")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(depends=["lr_host_patch"])
     @pytest.mark.order(15)

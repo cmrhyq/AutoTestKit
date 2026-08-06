@@ -111,7 +111,7 @@ class TestEcNativePriorityClass:
     )
     @pytest.mark.order(3)
     @allure.title("PUT 全量更新 PriorityClass")
-    @allure.description("使用 PUT 方法全量更新 PriorityClass，验证更新成功")
+    @allure.description("全量更新 PriorityClass，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_priorityclass(self, native_service, public_params):
         """PUT 全量更新 PriorityClass，断言更新成功。"""

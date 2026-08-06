@@ -53,7 +53,7 @@ class TestEcExtensionsHarborBindCluster:
     @allure.description("将 Harbor 仓库绑定到指定集群，验证绑定成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_harbor_bind_cluster(self, ec_ext_service, public_params):
-        """Harbor 仓库绑定集群，断言业务码为成功。"""
+        """Harbor 仓库绑定集群，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             bind = HarborBindClusterEntity(
                 cluster_id=public_params.cluster_id,

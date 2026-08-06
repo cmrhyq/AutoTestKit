@@ -50,7 +50,7 @@ class TestEcExtensionsClusterManager:
     @allure.description("获取集群列表信息并缓存首个集群 ID 供后续用例使用")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_list_clusters(self, ec_ext_service, api_cache):
-        """获取集群列表，断言业务码为成功，缓存首个集群 ID。"""
+        """获取集群列表，断言业务码为 2000，缓存首个集群 ID。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.list_clusters()
 
@@ -70,7 +70,7 @@ class TestEcExtensionsClusterManager:
     @allure.description("根据集群 ID 查询集群详情信息，验证返回成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_cluster_info(self, ec_ext_service, public_params, api_cache):
-        """查询指定集群详情，断言业务码为成功。"""
+        """查询指定集群详情，断言业务码为2000。"""
         cluster_id = api_cache.get("ext_cluster_id") or public_params.cluster_id
 
         with AllureHelper.api_test(ec_ext_service):
@@ -88,7 +88,7 @@ class TestEcExtensionsClusterManager:
     @allure.description("根据集群 ID 查询集群运行状态，验证返回成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cluster_status(self, ec_ext_service, public_params, api_cache):
-        """查询集群状态，断言业务码为成功。"""
+        """查询集群状态，断言业务码为2000。"""
         cluster_id = api_cache.get("ext_cluster_id") or public_params.cluster_id
 
         with AllureHelper.api_test(ec_ext_service):
@@ -106,7 +106,7 @@ class TestEcExtensionsClusterManager:
     @allure.description("获取控制面集群信息，验证返回成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_controller_cluster(self, ec_ext_service):
-        """获取控制面集群信息，断言业务码为成功。"""
+        """获取控制面集群信息，断言业务码为2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.get_controller_cluster()
 

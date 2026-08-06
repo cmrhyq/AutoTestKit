@@ -110,7 +110,7 @@ class TestEcOpenapiScaledObject:
             )
 
     @allure.title("更新 ScaledObject")
-    @allure.description("使用 PUT 方法更新 ScaledObject 的定时伸缩参数，验证更新成功")
+    @allure.description("更新 ScaledObject 的定时伸缩参数，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="scaled_object_update", depends=["scaled_object_create"],

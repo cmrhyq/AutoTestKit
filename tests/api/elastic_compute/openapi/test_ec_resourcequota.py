@@ -85,7 +85,7 @@ class TestEcOpenapiResourceQuota:
             )
 
     @allure.title("PUT 全量更新 ResourceQuota")
-    @allure.description("使用 PUT 方法全量更新命名空间级 ResourceQuota，验证更新成功")
+    @allure.description("全量更新命名空间级 ResourceQuota，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="resourcequota_put", depends=["resourcequota_list_cell"],
@@ -106,7 +106,7 @@ class TestEcOpenapiResourceQuota:
             )
 
     @allure.title("PATCH 增量更新 ResourceQuota")
-    @allure.description("使用 PATCH 方法增量更新命名空间级 ResourceQuota，验证更新成功")
+    @allure.description("增量更新命名空间级 ResourceQuota，验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.dependency(
         name="resourcequota_patch", depends=["resourcequota_put"],

@@ -60,10 +60,9 @@ class TestEcExtensionsSystemBind:
     @pytest.mark.dependency(name="system_bind_check_quota")
     @pytest.mark.order(1)
     @allure.title("查询系统是否有配额信息")
-    @allure.description("GET /v2/tenants/{tenantCode}/sysCode/{sysCode}/ns/quota，断言业务码为成功")
     @allure.severity(allure.severity_level.NORMAL)
     def test_check_system_quota(self, ec_ext_service, public_params):
-        """查询系统配额，断言业务码为成功。"""
+        """查询系统配额，断言业务码为 2000。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.check_system_quota(
                 tenant_code=public_params.tenant_code,
@@ -78,13 +77,10 @@ class TestEcExtensionsSystemBind:
     @pytest.mark.dependency(name="system_bind_bind_user", depends=["system_bind_check_quota"])
     @pytest.mark.order(2)
     @allure.title("用户与系统绑定接口")
-    @allure.description(
-        "GET /v2/sysCode/{sysCode}/username/{username}/bindUser，"
-        "断言业务码为成功；绑定结果 code 存入 api_cache 供 unbind 判断使用"
-    )
+    @allure.description("断言业务码为 2000；绑定结果 code 存入 api_cache 供 unbind 判断使用")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_bind_system_user(self, ec_ext_service, public_params, api_cache):
-        """用户与系统绑定，断言业务码为成功；bind code 缓存到 api_cache。"""
+        """用户与系统绑定，断言业务码为 2000；bind code 缓存到 api_cache。"""
         with AllureHelper.api_test(ec_ext_service):
             response_json = ec_ext_service.bind_system_user(
                 sys_code=public_params.sys_code,
@@ -100,10 +96,6 @@ class TestEcExtensionsSystemBind:
     @pytest.mark.dependency(name="system_bind_unbind_user", depends=["system_bind_bind_user"])
     @pytest.mark.order(3)
     @allure.title("解除用户与系统绑定接口")
-    @allure.description(
-        "GET /v2/sysCode/{sysCode}/username/{username}/unbindUser；"
-        "对齐 JMX IfController：仅在 bind 成功（code==2000）时执行，否则 skip"
-    )
     @allure.severity(allure.severity_level.CRITICAL)
     def test_unbind_system_user(self, ec_ext_service, public_params, api_cache):
         """解除用户与系统绑定；仅在 bind 成功时执行。"""

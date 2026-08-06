@@ -138,7 +138,7 @@ class TestEcNativeSecret:
     @pytest.mark.dependency(name="secret_update", depends=["secret_create"])
     @pytest.mark.order(4)
     @allure.title("PUT 全量更新 Secret")
-    @allure.description("使用 PUT 方法全量更新 Secret（含 data 与 labels 变更），验证更新成功")
+    @allure.description("全量更新 Secret（含 data 与 labels 变更），验证更新成功")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_update_secret(self, native_service, public_params):
         """PUT 全量更新 Secret，断言更新成功。"""

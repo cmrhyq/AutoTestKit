@@ -50,7 +50,7 @@ class TestEcExtensionsImageApi:
     @allure.description("根据镜像仓库名和项目名查询镜像 Tag 列表")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_image_tags(self, ec_ext_service, public_params):
-        """获取镜像 tag 列表，断言业务码为成功。"""
+        """获取镜像 tag 列表，断言业务码为 2000。"""
         repo_name = public_params.repo_name
         project_name = public_params.project_name
 
