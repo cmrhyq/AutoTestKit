@@ -1,10 +1,7 @@
 """
 弹性计算 Native RoleBinding 接口测试
 
-转换自 JMeter 脚本: rolebinding.jmx
 测试内容：RoleBinding 原生接口生命周期测试（查询、创建、删除）
-
-注意：JMX 中仅包含 GET/POST/DELETE，没有 update / list 接口。
 """
 import allure
 import pytest
@@ -30,10 +27,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("RoleBinding 原生接口")
 class TestEcNativeRoleBinding:
-    """
-    对应 JMeter 脚本: rolebinding.jmx
-    线程组: Thread Group - rolebinding
-    """
 
     TENANT = Tenant.ADMIN
 

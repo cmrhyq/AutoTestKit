@@ -38,7 +38,6 @@ class TestOperationsTask:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                # JMX 中断言 test_type=16 (NOT) 包含 resultCode:000000
                 # 即验证接口不会返回错误码，允许正常响应
                 assert response_json.get("resultCode") != "000000" or "data" in response_json, \
                     "接口应返回有效响应"

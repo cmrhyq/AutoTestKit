@@ -1,7 +1,6 @@
 """
 弹性计算 Native Job 接口测试
 
-转换自 JMeter 脚本: job.jmx
 测试内容：Job 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 """
 import json
@@ -28,10 +27,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Job 原生接口")
 class TestEcNativeJob:
-    """
-    对应 JMeter 脚本: job.jmx
-    线程组: Thread Group - job
-    """
 
     TENANT = Tenant.ADMIN
 
@@ -163,8 +158,6 @@ class TestEcNativeJob:
     def test_update_job(self, native_service, public_params):
         """
         PUT 全量更新 Job，断言更新成功。
-
-        对应 JMX 中的 JSR223PostProcessor 逻辑：先 GET 拿完整对象，追加标签后 PUT。
         """
         cluster_id = public_params.cluster_id
         namespace = public_params.namespace

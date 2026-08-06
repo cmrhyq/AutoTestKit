@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI ScaledObject 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/ScaledObject.jmx
-线程组: Thread Group - ScaledObject完整生命周期
 测试内容：ScaledObject 完整生命周期（查询/清理 → 创建 → 更新 → 删除）
 """
 import allure
@@ -27,9 +25,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("ScaledObject 生命周期接口")
 class TestEcOpenapiScaledObject:
     """
-    对应 JMeter 脚本: ScaledObject.jmx
-    线程组: Thread Group - ScaledObject完整生命周期
-
     拆分为独立接口测试函数，通过 pytest-dependency 保证执行顺序和依赖关系。
     执行顺序：查询+清理 → 创建 → 更新 → 删除
     """

@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Secret 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/SecretV2.jmx
-线程组: Thread Group - secret
 测试内容：Secret 完整生命周期（查询/删除/创建/列表/全集群列表/PUT 更新/PATCH 增量更新/删除）
 """
 import json
@@ -29,9 +27,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Secret 生命周期接口")
 class TestEcOpenapiSecret:
     """
-    对应 JMeter 脚本: SecretV2.jmx
-    线程组: Thread Group - secret
-
     拆分为独立接口测试函数，通过 pytest-dependency 保证执行顺序和依赖关系。
     执行顺序：查询 → 清理已存在 → 创建 → 列表查询 → 全集群列表查询 → PUT更新 → PATCH更新 → 删除清理
     """

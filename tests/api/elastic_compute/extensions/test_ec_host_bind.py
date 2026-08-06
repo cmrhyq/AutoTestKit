@@ -1,7 +1,6 @@
 """
 托管集群主机绑定接口测试
 
-转换自 JMeter 脚本: host-bind.jmx
 测试内容：集群下的主机列表查询
 """
 
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("主机绑定接口")
 class TestEcExtensionsHostBind:
-    """
-    对应 JMeter 脚本: host-bind.jmx
-    线程组: Thread Group - 主机绑定
-    """
 
     TENANT = None
 

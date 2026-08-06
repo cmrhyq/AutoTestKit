@@ -1,10 +1,7 @@
 """
 弹性计算 OpenAPI LimitRange 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/LimitRange.jmx
-线程组: Thread Group - LimitRange
 
-JMX 顶层通过 testHostCluster 分成两个分支：
 - testHostCluster=0：标准集群，只查询 + 更新 + PATCH（在 cellCode/sysCode 命名空间内）
 - testHostCluster=1：托管集群，完整生命周期（创建/查询/更新/PATCH/删除，在 hostCellCode/hostSysCode）
 
@@ -32,9 +29,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("LimitRange 生命周期接口")
 class TestEcOpenapiLimitRange:
     """
-    对应 JMeter 脚本: LimitRange.jmx
-    线程组: Thread Group - LimitRange
-
     根据 testHostCluster 环境变量运行不同分支：
     - 0 标准集群：查询详情 → 查询列表 → PUT → PATCH（不创建/删除）
     - 1 托管集群：查询详情 → 若存在删除 → 创建 → 列表 → 更新 → PATCH → 删除
@@ -142,7 +136,6 @@ class TestEcOpenapiLimitRange:
             pytest.skip("[标准] 未命中已存在的 LimitRange, 跳过 PATCH")
 
         with AllureHelper.api_test(ec_service):
-            # JMX 中 PATCH body 是 {}，代表触发默认 patch 行为
             resp = ec_service.patch_limitrange_ns(
                 cell_code=std_params.cell_code,
                 sys_code=std_params.sys_code,

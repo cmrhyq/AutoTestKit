@@ -17,7 +17,7 @@
 新增 Entity 请：
 1. 严格遵循 dataclass 语法（必填字段在前、可选字段带默认值在后、可变默认值使用
    ``field(default_factory=...)``）。
-2. 在类顶部写一行 docstring 说明对应哪条 API 路径 / JMX sampler。
+2. 在类顶部写一行 docstring 说明对应哪条 API 路径。
 3. 追加到本模块末尾的 ``__all__``。
 """
 
@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 
-# ==================== ConfigMap（ConfigMap.jmx）====================
+# ==================== ConfigMap ====================
 
 
 @dataclass
@@ -49,7 +49,7 @@ class K8sConfigMapEntity(object):
     """
     ConfigMap 的 K8s 原生 payload 实体，用于 create / put update。
 
-    对应 JMX ``ConfigMap.jmx`` 中"创建cm请求" / "更新指定 configmap" sampler 的 body。
+    中"创建cm请求" / "更新指定 configmap" sampler 的 body。
     序列化后的 payload 形如::
 
         {
@@ -71,7 +71,7 @@ class K8sConfigMapPatchEntity(object):
     """
     ConfigMap 的 K8s strategic merge patch payload 实体。
 
-    对应 JMX ``ConfigMap.jmx`` 中"增量更新指定 configmap" sampler 的 body。
+    中"增量更新指定 configmap" sampler 的 body。
     序列化后的 payload 形如::
 
         {
@@ -84,7 +84,7 @@ class K8sConfigMapPatchEntity(object):
     data: Dict[str, str] = field(default_factory=lambda: {"test": "test2"})
 
 
-# ==================== ServiceAccount（ServiceAccountV2.jmx）====================
+# ==================== ServiceAccount ====================
 
 
 @dataclass
@@ -99,7 +99,7 @@ class ServiceAccountPublicParams(object):
     sys_code: str
 
 
-# ==================== ReplicaSet（ReplicaSetV2.jmx）====================
+# ==================== ReplicaSet ====================
 
 
 @dataclass
@@ -114,7 +114,7 @@ class ReplicaSetPublicParams(object):
     sys_code: str
 
 
-# ==================== RBAC（RBAC_V2.jmx）====================
+# ==================== RBAC ====================
 
 
 @dataclass
@@ -129,7 +129,7 @@ class RbacPublicParams(object):
     sys_code: str
 
 
-# ==================== Port / NodePort（port-nodeport.jmx）====================
+# ==================== Port / NodePort ====================
 
 
 @dataclass
@@ -153,7 +153,7 @@ class PortNodePortPublicParams(object):
 @dataclass
 class PortAllocationEntity(object):
     """
-    NodePort 端口范围分配请求实体。对应 JMX ``port-nodeport.jmx``
+    NodePort 端口范围分配请求实体。
     "租户 nodeport 端口范围分配" sampler 的 body::
 
         {"kind": "ALLOCATE", "tenantCode": <t>, "ports": [<range>]}
@@ -164,7 +164,7 @@ class PortAllocationEntity(object):
     kind: str = "ALLOCATE"
 
 
-# ==================== ResourceQuota（resourcequota.jmx）====================
+# ==================== ResourceQuota ====================
 
 
 @dataclass
@@ -180,7 +180,7 @@ class ResourceQuotaPublicParams(object):
 @dataclass
 class K8sResourceQuotaEntity(object):
     """
-    ResourceQuota PUT 全量更新实体。对应 JMX ``resourcequota.jmx`` 中
+    ResourceQuota PUT 全量更新实体。中
     PUT 更新 sampler 的 body::
 
         {"spec": {"hard": {"limits.cpu": "100", "limits.memory": "200Gi"}}}
@@ -194,7 +194,7 @@ class K8sResourceQuotaEntity(object):
 @dataclass
 class K8sResourceQuotaPatchEntity(object):
     """
-    ResourceQuota PATCH 增量更新实体。对应 JMX ``resourcequota.jmx`` 中
+    ResourceQuota PATCH 增量更新实体。中
     PATCH 更新 sampler 的 body::
 
         {"spec": {"hard": {"limits.cpu": "50"}}}
@@ -203,7 +203,7 @@ class K8sResourceQuotaPatchEntity(object):
     hard: Dict[str, str] = field(default_factory=lambda: {"limits.cpu": "50"})
 
 
-# ==================== ScaledObject（ScaledObject.jmx）====================
+# ==================== ScaledObject ====================
 
 
 @dataclass
@@ -222,7 +222,7 @@ class ScaledObjectPublicParams(object):
 @dataclass
 class ScaledObjectEntity(object):
     """
-    ScaledObject 创建实体。对应 JMX ``ScaledObject.jmx`` 中"创建 ScaledObject" sampler。
+    ScaledObject 创建实体。中"创建 ScaledObject" sampler。
     """
 
     name: str
@@ -242,7 +242,7 @@ class ScaledObjectEntity(object):
 @dataclass
 class ScaledObjectPatchEntity(object):
     """
-    ScaledObject 更新实体。对应 JMX ``ScaledObject.jmx`` 中"更新 ScaledObject" sampler
+    ScaledObject 更新实体。中"更新 ScaledObject" sampler
     的 body::
 
         {"start": "35 * * * *", "end": "45 * * * *"}
@@ -252,7 +252,7 @@ class ScaledObjectPatchEntity(object):
     end: str = "45 * * * *"
 
 
-# ==================== 容灾组件资源（recovery-resource.jmx）====================
+# ==================== 容灾组件资源 ====================
 
 
 @dataclass
@@ -279,7 +279,7 @@ class RecoveryResourcePublicParams(object):
 @dataclass
 class RecoveryResourceEntity(object):
     """
-    容灾组件单条资源实体。对应 JMX ``recovery-resource.jmx`` 中"创建资源" /
+    容灾组件单条资源实体。中"创建资源" /
     "Apply 资源" sampler body 数组元素。字段与 K8s payload 的 camelCase 对齐：
     ``name / appName / kind / image / tenantCode / appCode / planeCode / unitCode /
     envCode / username``。
@@ -297,7 +297,7 @@ class RecoveryResourceEntity(object):
     username: str
 
 
-# ==================== PVC / PV / StorageClass（pvc-pv.jmx）====================
+# ==================== PVC / PV / StorageClass ====================
 
 
 @dataclass
@@ -317,7 +317,7 @@ class PvcPvPublicParams(object):
 @dataclass
 class K8sPvcEntity(object):
     """
-    K8s PersistentVolumeClaim 创建实体。对应 JMX ``pvc-pv.jmx`` 中"创建 pvc 请求"
+    K8s PersistentVolumeClaim 创建实体。中"创建 pvc 请求"
     sampler 的 body::
 
         {
@@ -340,7 +340,7 @@ class K8sPvcEntity(object):
     kind: str = "PersistentVolumeClaim"
 
 
-# ==================== PriorityClass（PriorityClassesV2.jmx）====================
+# ==================== PriorityClass ====================
 
 
 @dataclass
@@ -357,7 +357,7 @@ class PriorityClassPublicParams(object):
 @dataclass
 class K8sPriorityClassEntity(object):
     """
-    K8s PriorityClass 创建 / PUT 更新实体。对应 JMX ``PriorityClassesV2.jmx``
+    K8s PriorityClass 创建 / PUT 更新实体。
     中"创建/更新 PriorityClass" sampler 的 body::
 
         {
@@ -378,10 +378,7 @@ class K8sPriorityClassEntity(object):
 
 @dataclass
 class K8sPriorityClassPatchEntity(object):
-    """
-    K8s PriorityClass strategic merge patch 实体。对应 JMX
-    ``PriorityClassesV2.jmx`` 中 PATCH sampler 的 body。
-    """
+    """K8s PriorityClass strategic merge patch 实体。"""
 
     description: str = "this is a patched description"
     global_default: bool = True
@@ -393,7 +390,7 @@ class K8sPriorityClassPatchEntity(object):
     )
 
 
-# ==================== Secret（SecretV2.jmx）====================
+# ==================== Secret ====================
 
 
 @dataclass
@@ -410,7 +407,7 @@ class SecretPublicParams(object):
 @dataclass
 class K8sSecretEntity(object):
     """
-    K8s Secret 创建 / PUT 更新实体。对应 JMX ``SecretV2.jmx`` 中"创建/更新 secret"
+    K8s Secret 创建 / PUT 更新实体。中"创建/更新 secret"
     sampler 的 body。
     """
 
@@ -426,14 +423,14 @@ class K8sSecretEntity(object):
 @dataclass
 class K8sSecretPatchEntity(object):
     """
-    K8s Secret strategic merge patch 实体。对应 JMX ``SecretV2.jmx`` 中 PATCH sampler 的 body。
+    K8s Secret strategic merge patch 实体。中 PATCH sampler 的 body。
     """
 
     labels: Dict[str, str] = field(default_factory=lambda: {"test": "patch-test"})
     data: Dict[str, str] = field(default_factory=lambda: {"extra": "cGF0Y2hlZA=="})
 
 
-# ==================== Service（ServiceV2.jmx）====================
+# ==================== Service ====================
 
 
 @dataclass
@@ -461,7 +458,7 @@ class K8sServicePortSpec(object):
 @dataclass
 class K8sServiceEntity(object):
     """
-    K8s Service 创建 / PUT 更新实体。对应 JMX ``ServiceV2.jmx`` 中"创建/更新 service"
+    K8s Service 创建 / PUT 更新实体。中"创建/更新 service"
     sampler 的 body。
     """
 
@@ -478,13 +475,13 @@ class K8sServiceEntity(object):
 @dataclass
 class K8sServicePatchEntity(object):
     """
-    K8s Service strategic merge patch 实体。对应 JMX ``ServiceV2.jmx`` 中 PATCH sampler 的 body。
+    K8s Service strategic merge patch 实体。中 PATCH sampler 的 body。
     """
 
     labels: Dict[str, str] = field(default_factory=lambda: {"test": "patch-test"})
 
 
-# ==================== Quota Manager (Admin)（quota-manager-admin.jmx）====================
+# ==================== Quota Manager (Admin) ====================
 
 
 @dataclass
@@ -503,7 +500,7 @@ class QuotaManagerAdminPublicParams(object):
 @dataclass
 class TenantQuotaAllocationEntity(object):
     """
-    租户资源配额分配 / 调整实体。对应 JMX ``quota-manager-admin.jmx`` 中
+    租户资源配额分配 / 调整实体。中
     "租户资源配额分配" 与 "租户资源配额调整（扩缩容）" 两个 sampler 的 body。
 
     实际请求体可为空对象 ``{}`` 或包含具体的配额字段（如 ``cpu / memory``），
@@ -515,7 +512,7 @@ class TenantQuotaAllocationEntity(object):
     extras: Optional[Dict[str, Any]] = None
 
 
-# ==================== HPA（HPA.jmx）====================
+# ==================== HPA ====================
 
 
 @dataclass
@@ -536,7 +533,7 @@ class HpaPublicParams(object):
 @dataclass
 class K8sHpaEntity(object):
     """
-    K8s HorizontalPodAutoscaler 创建 / PUT / PATCH 实体。对应 JMX ``HPA.jmx``
+    K8s HorizontalPodAutoscaler 创建 / PUT / PATCH 实体。
     中"创建/更新 hpa"sampler 的 body。默认绑定到 StatefulSet ``web``。
     """
 
@@ -551,13 +548,13 @@ class K8sHpaEntity(object):
     kind: str = "HorizontalPodAutoscaler"
 
 
-# ==================== LimitRange（LimitRange.jmx）====================
+# ==================== LimitRange ====================
 
 
 @dataclass
 class LimitrangeStandardParams(object):
     """
-    LimitRange 测试的"标准集群"公共参数。对应 JMX 顶层 ``testHostCluster=0`` 分支。
+    LimitRange 测试的"标准集群"公共参数（``testHostCluster=0`` 分支）。
     使用 ``cellCode / sysCode``。``test_host_cluster`` 字段保存的是原始 yaml
     中的 ``hostCellCode`` 值，用于分支判断。
     """
@@ -570,7 +567,7 @@ class LimitrangeStandardParams(object):
 @dataclass
 class LimitrangeHostParams(object):
     """
-    LimitRange 测试的"托管集群"公共参数。对应 JMX 顶层 ``testHostCluster=1`` 分支。
+    LimitRange 测试的"托管集群"公共参数（``testHostCluster=1`` 分支）。
     使用 ``hostCellCode / hostSysCode``。
     """
 
@@ -582,7 +579,7 @@ class LimitrangeHostParams(object):
 @dataclass
 class K8sLimitRangeEntity(object):
     """
-    K8s LimitRange 创建 / PUT 实体。对应 JMX ``LimitRange.jmx`` 中"创建/更新
+    K8s LimitRange 创建 / PUT 实体。中"创建/更新
     LimitRange"sampler 的 body。``name`` 通常取当前命名空间的 sysCode。
     """
 
@@ -596,7 +593,7 @@ class K8sLimitRangeEntity(object):
     kind: str = "LimitRange"
 
 
-# ==================== CustomResource - Namespace 级别（CustomResource-ns.jmx）====================
+# ==================== CustomResource - Namespace 级别 ====================
 
 
 @dataclass
@@ -616,7 +613,7 @@ class CrNsPublicParams(object):
 @dataclass
 class NsCustomResourceEntity(object):
     """
-    Namespace 级 CustomResource 创建 / PUT 实体。对应 JMX ``CustomResource-ns.jmx``
+    Namespace 级 CustomResource 创建 / PUT 实体。
     中"创建/更新指定 CR"sampler 的 body。默认使用 ``Apple`` 演示 CRD 的
     ``spec.color`` 字段。
     """
@@ -631,7 +628,7 @@ class NsCustomResourceEntity(object):
 @dataclass
 class NsCustomResourcePatchEntity(object):
     """
-    Namespace 级 CustomResource PATCH 实体。对应 JMX ``CustomResource-ns.jmx``
+    Namespace 级 CustomResource PATCH 实体。
     中"增量更新指定 CR"sampler 的 body。仅覆盖 ``metadata.labels`` 与
     ``spec.color`` 两个字段（增量补丁）。
     """
@@ -640,7 +637,7 @@ class NsCustomResourcePatchEntity(object):
     labels: Optional[Dict[str, str]] = None
 
 
-# ==================== CustomResource - Cluster 级别（cr-cluster.jmx）====================
+# ==================== CustomResource - Cluster 级别 ====================
 
 
 @dataclass
@@ -659,7 +656,7 @@ class CrClusterPublicParams(object):
 @dataclass
 class ClusterCustomResourceEntity(object):
     """
-    Cluster 级 CustomResource 创建 / PUT 实体。对应 JMX ``cr-cluster.jmx``
+    Cluster 级 CustomResource 创建 / PUT 实体。
     中"创建/更新指定 CR"sampler 的 body。CRD ``Apple`` 通过 ``spec.message``
     与 ``spec.replicas`` 两个字段承载业务数据；``metadata.labels`` 中会写入
     ``name / kind``（默认）以及可选的自定义标签。
@@ -677,7 +674,7 @@ class ClusterCustomResourceEntity(object):
 @dataclass
 class ClusterCustomResourcePatchEntity(object):
     """
-    Cluster 级 CustomResource PATCH 实体。对应 JMX ``cr-cluster.jmx`` 中
+    Cluster 级 CustomResource PATCH 实体。中
     "增量更新指定 CR"sampler 的 body。仅覆盖 ``metadata.labels`` 与
     ``spec.replicas`` 两个字段（增量补丁）。
     """
@@ -686,7 +683,7 @@ class ClusterCustomResourcePatchEntity(object):
     labels: Optional[Dict[str, str]] = None
 
 
-# ==================== Pod（pod.jmx）====================
+# ==================== Pod ====================
 
 
 @dataclass
@@ -705,7 +702,7 @@ class PodPublicParams(object):
 @dataclass
 class K8sPodEntity(object):
     """
-    K8s Pod 创建实体。对应 JMX ``pod.jmx`` 中"创建 Pod"sampler 的 body。
+    K8s Pod 创建实体。中"创建 Pod"sampler 的 body。
     默认为单容器 + 单端口（``containerPort=8080 / TCP``）。
     """
 
@@ -722,7 +719,7 @@ class K8sPodEntity(object):
 @dataclass
 class K8sPodPatchEntity(object):
     """
-    K8s Pod PATCH 实体。对应 JMX ``pod.jmx`` 中"增量更新指定 Pod"sampler 的 body。
+    K8s Pod PATCH 实体。中"增量更新指定 Pod"sampler 的 body。
     仅覆盖 ``metadata.labels`` 字段（增量补丁）。
     """
 
@@ -732,7 +729,7 @@ class K8sPodPatchEntity(object):
 @dataclass
 class K8sPodRawEntity(object):
     """
-    Pod PUT 全量更新实体。JMX 中该 sampler 的 body 是从 GET Pod 返回的
+    Pod PUT 全量更新实体。该 sampler 的 body 是从 GET Pod 返回的
     完整 K8s Pod 对象（含 ``resourceVersion / uid / status`` 等运行时字段），
     并对 ``metadata.labels`` 做局部修改后回传。用透传的 dict 承载。
     """
@@ -740,7 +737,7 @@ class K8sPodRawEntity(object):
     body: Dict[str, Any]
 
 
-# ==================== Helm Chart（helm-chart.jmx）====================
+# ==================== Helm Chart ====================
 
 
 @dataclass
@@ -763,9 +760,9 @@ class HelmOpenapiPublicParams(object):
 @dataclass
 class HelmInstallEntity(object):
     """
-    Helm Install 请求体实体。对应 JMX ``helm-chart.jmx`` 中"Helm Install"
+    Helm Install 请求体实体。中"Helm Install"
     sampler 的 body。注意：``values`` 字段最终以 **JSON string** 形式提交
-    （对齐 JMX 原生行为），因此内联 payload 构造时需 ``json.dumps``。
+    ，因此内联 payload 构造时需 ``json.dumps``。
     """
 
     release_name: str
@@ -779,7 +776,7 @@ class HelmInstallEntity(object):
 @dataclass
 class HelmUpgradeEntity(object):
     """
-    Helm Upgrade 请求体实体。对应 JMX ``helm-chart.jmx`` 中"Helm Upgrade"
+    Helm Upgrade 请求体实体。中"Helm Upgrade"
     sampler 的 body。``values`` 序列化规则同 :class:`HelmInstallEntity`。
     """
 
@@ -790,7 +787,7 @@ class HelmUpgradeEntity(object):
     replica_count: int = 2
 
 
-# ==================== Workload Query（workload-query.jmx，全 GET）====================
+# ==================== Workload Query ====================
 
 
 @dataclass
@@ -807,7 +804,7 @@ class WorkloadQueryPublicParams(object):
     workload_name: str
 
 
-# ==================== Harbor（harbor.jmx，4 子域）====================
+# ==================== Harbor ====================
 
 
 @dataclass
@@ -829,7 +826,7 @@ class HarborPublicParams(object):
 @dataclass
 class HarborProjectEntity(object):
     """
-    Harbor 项目创建实体。对应 JMX ``harbor.jmx`` 中"创建 harbor 项目"sampler 的 body。
+    Harbor 项目创建实体。中"创建 harbor 项目"sampler 的 body。
     默认建为公共项目（``metadata.public='true'``）。
     """
 
@@ -840,7 +837,7 @@ class HarborProjectEntity(object):
 @dataclass
 class HarborMemberEntity(object):
     """
-    Harbor 项目成员创建实体。对应 JMX ``harbor.jmx`` 中"创建 harbor 项目成员关系"
+    Harbor 项目成员创建实体。中"创建 harbor 项目成员关系"
     sampler 的 body。``role_id`` 默认为 1（项目管理员）。
     """
 
@@ -851,7 +848,7 @@ class HarborMemberEntity(object):
 @dataclass
 class HarborReplicationPolicyEntity(object):
     """
-    Harbor 复制策略创建 / 更新实体。对应 JMX ``harbor.jmx`` 中"添加/更新 harbor 复制策略"
+    Harbor 复制策略创建 / 更新实体。中"添加/更新 harbor 复制策略"
     sampler 的 body。默认使用手动触发、``speed=-1``（不限速）、启用+覆盖模式。
     """
 
@@ -867,7 +864,7 @@ class HarborReplicationPolicyEntity(object):
     speed: str = "-1"
 
 
-# ==================== Helm Chart（helm-chart.jmx）====================
+# ==================== Helm Chart ====================
 
 
 @dataclass
@@ -890,8 +887,8 @@ class HelmOpenapiPublicParams(object):
 @dataclass
 class HelmInstallEntity(object):
     """
-    Helm Install 请求实体。对应 JMX ``helm-chart.jmx`` "Helm Install"sampler
-    的 body。``values`` 字段以 JSON 字符串形式提交（保留 JMX 原生格式）。
+    Helm Install 请求实体。"Helm Install"sampler
+    的 body。``values`` 字段以 JSON 字符串形式提交。
     """
 
     release_name: str
@@ -905,7 +902,7 @@ class HelmInstallEntity(object):
 @dataclass
 class HelmUpgradeEntity(object):
     """
-    Helm Upgrade 请求实体。对应 JMX ``helm-chart.jmx`` "Helm Upgrade"sampler
+    Helm Upgrade 请求实体。"Helm Upgrade"sampler
     的 body。相比 :class:`HelmInstallEntity` 无 ``release_name``（release 名走
     路径参数），且 ``replica_count`` 默认改为 ``2``。
     """
@@ -1050,7 +1047,7 @@ class ResourceCollectionPublicParams(object):
     """
 
 
-# ==================== Workload (openapi/workload.jmx) ====================
+# ==================== Workload ====================
 
 @dataclass
 class WorkloadPublicParams(object):
@@ -1082,7 +1079,7 @@ class WorkloadPublicParams(object):
 @dataclass
 class WorkloadCreateEntity(object):
     """
-    创建 Deployment Workload 的实体。对应 JMX: 创建Deployment 请求。
+    创建 Deployment Workload 的实体。
 
     仅暴露最常用字段；其余固定值（apiVersion/containerName/containerPort/protocol）
     由 service 层内联填入。
@@ -1103,9 +1100,9 @@ class WorkloadCreateEntity(object):
 @dataclass
 class WorkloadUpdateEntity(object):
     """
-    PUT 全量更新 Deployment Workload 的实体。对应 JMX: 更新指定Deployment。
+    PUT 全量更新 Deployment Workload 的实体。
 
-    在 service 层 payload 中会自动应用 JMX 原始规则：
+    在 service 层 payload 中会自动应用的原始规则：
     ``replicas += 1``、``containerPort = 8090``、新增 ``imagePullPolicy=Always``、
     labels 追加 ``test=update``。
 
@@ -1125,7 +1122,7 @@ class WorkloadUpdateEntity(object):
 @dataclass
 class WorkloadPatchEntity(object):
     """
-    PATCH 增量更新 Workload 的实体。对应 JMX: 增量更新指定Deployment。
+    PATCH 增量更新 Workload 的实体。
 
     Attributes:
         replicas: 目标副本数
@@ -1138,7 +1135,6 @@ class WorkloadPatchEntity(object):
 class WorkloadBatchTargetEntity(object):
     """
     批量查询/滚动/生命周期操作的单个目标（applications 数组条目）。
-    对应 JMX: 批量查询Deployment状态列表 / 批量滚动 / 批量停止启动重启。
 
     Attributes:
         name: workload 名称（会序列化为 ``appName``）
@@ -1152,7 +1148,7 @@ class WorkloadBatchTargetEntity(object):
 @dataclass
 class WorkloadBatchPatchTargetEntity(object):
     """
-    批量增量更新 Workload 的单个目标。对应 JMX: 批量增量更新Deployment。
+    批量增量更新 Workload 的单个目标。
 
     payload 中固定使用 labels ``test=batch-patch-update``、``containerPort=8020``、
     ``containerName=container0``，由 service 层内联填入。
@@ -1169,11 +1165,11 @@ class WorkloadBatchPatchTargetEntity(object):
 @dataclass
 class WorkloadExecEntity(object):
     """
-    Pod exec 请求实体。对应 JMX: 应用服务Pod exec请求。
+    Pod exec 请求实体。
 
     Attributes:
         pod_name: Pod 名称
-        container_name: 容器名（默认 container0，与 JMX 一致）
+        container_name: 容器名（默认 container0）
         command: 命令（默认 ``ls``）
         timeout: 超时秒数
     """
@@ -1187,7 +1183,7 @@ class WorkloadExecEntity(object):
 @dataclass
 class WorkloadPodDeleteEntity(object):
     """
-    批量删除应用服务 Pod 实例（作用于单个应用）。对应 JMX: 批量删除应用服务Pod实例。
+    批量删除应用服务 Pod 实例（作用于单个应用）。
 
     Attributes:
         pod_name: Pod 名称
@@ -1201,7 +1197,7 @@ class WorkloadPodDeleteEntity(object):
 @dataclass
 class WorkloadAppPodDeleteEntity(object):
     """
-    批量删除 Pod 实例（跨应用，全局接口）。对应 JMX: 批量删除Pod实例。
+    批量删除 Pod 实例（跨应用，全局接口）。
 
     Attributes:
         pod_name: Pod 名称
@@ -1285,7 +1281,7 @@ __all__ = [
     "HelmUpgradeEntity",
     # Workload Query (query-only)
     "WorkloadQueryPublicParams",
-    # Harbor (harbor.jmx)
+    # Harbor
     "HarborPublicParams",
     "HarborProjectEntity",
     "HarborMemberEntity",
@@ -1301,7 +1297,7 @@ __all__ = [
     "NamespacePublicParams",
     "OidcHarborInitPublicParams",
     "ResourceCollectionPublicParams",
-    # Workload (workload.jmx)
+    # Workload
     "WorkloadPublicParams",
     "WorkloadCreateEntity",
     "WorkloadUpdateEntity",

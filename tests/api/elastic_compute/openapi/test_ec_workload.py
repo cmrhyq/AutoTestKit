@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Workload 完整生命周期接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/workload.jmx
-线程组: Thread Group - workload
 测试内容：Workload(Deployment) 完整生命周期
   查询/创建/批量查询状态/PUT更新/撤销更新/暂停更新/增量更新/恢复更新/滚动重启
   /停止/启动/重启/批量暂停/批量增量更新/批量恢复/批量撤销/批量滚动重启
@@ -40,8 +38,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Workload 生命周期接口")
 class TestEcOpenapiWorkload:
     """
-    对应 JMeter 脚本: workload.jmx
-    线程组: Thread Group - workload
     IF 控制器: Deployment 类型
 
     以 Deployment 为主要测试路径，覆盖完整生命周期。
@@ -56,7 +52,7 @@ class TestEcOpenapiWorkload:
 
     @pytest.fixture(scope="class")
     def public_params(self, api_env) -> WorkloadPublicParams:
-        """提取 Workload 测试所需的公共参数（对应 JMX 用户定义变量）。"""
+        """提取 Workload 测试所需的公共参数。"""
         return WorkloadPublicParams(
             cell_code=api_env.get("cellCode", "TEST"),
             sys_code=api_env.get("sysCode", "test-admin"),
@@ -652,7 +648,7 @@ class TestEcOpenapiWorkload:
                     container_name="container0",
                     file_path=public_params.file_path_in_pod,
                 )
-                # copy 接口 JMX 中只断言 HTTP 200，由 raise_for_status 覆盖
+                # copy 接口仅断言 HTTP 200，由 raise_for_status 覆盖
                 # 若到此未抛异常则视为成功
                 assert resp is not None, "Pod 复制文件返回为空"
 

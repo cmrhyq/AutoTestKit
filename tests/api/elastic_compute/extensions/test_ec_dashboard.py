@@ -1,7 +1,6 @@
 """
 Dashboard 资源面板接口测试
 
-转换自 JMeter 脚本: Dashboard.jmx
 测试内容：资源信息统计、工作负载和应用服务统计
 """
 
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("Dashboard 资源面板接口")
 class TestEcExtensionsDashboard:
-    """
-    对应 JMeter 脚本: Dashboard.jmx
-    线程组: Dashboard API
-    """
 
     TENANT = None
 

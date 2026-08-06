@@ -1,7 +1,6 @@
 """
 Helm & Chart 完整生命周期接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: helm-chart.jmx
 测试内容：
     1) Chart 上传/查询/下载/删除
     2) Helm 服务 Install/Manifest/List/Upgrade/History/Rollback/Uninstall
@@ -42,10 +41,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Helm/Chart 完整生命周期接口")
 class TestEcExtensionsHelmChart:
     """
-    对应 JMeter 脚本: helm-chart.jmx
-    线程组: Thread Group - helm
-
-    执行流程（对齐 JMX）：
         upload_chart → list_charts → download_chart
         → helm_install → helm_manifest → helm_list → helm_upgrade
         → helm_history → helm_rollback → helm_uninstall
@@ -67,7 +62,7 @@ class TestEcExtensionsHelmChart:
 
     @pytest.fixture(scope="class")
     def public_params(self, api_env) -> HelmChartPublicParams:
-        """提取 Helm/Chart 测试所需的公共参数（对齐 JMX 用户参数默认值）。"""
+        """提取 Helm/Chart 测试所需的公共参数。"""
         return HelmChartPublicParams(
             cluster_id=str(api_env.get("clusterId", "1")),
             namespace=api_env.get("namespace", "test-admin"),
@@ -93,7 +88,7 @@ class TestEcExtensionsHelmChart:
     @allure.description("上传本地 Chart 包到集群 Helm 仓库，作为后续 Install/List/Download 的前置")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_upload_helm_chart(self, ec_ext_service, public_params, api_env):
-        """上传 Chart 包（对应 JMX 第一步），若文件缺失则 skip 后续全部依赖用例。"""
+        """上传 Chart 包，若文件缺失则 skip 后续全部依赖用例。"""
         cluster_id = public_params.cluster_id
         chart_file_path = api_env.get("helmChartFilePath", "")
 
@@ -185,7 +180,7 @@ class TestEcExtensionsHelmChart:
             )
             install_code = response_json.get("code")
 
-            # 若发生资源冲突（4009），对齐 JMX：先卸载再重装
+            # 若发生资源冲突（4009）
             if install_code == ApiCode.CONFLICT:
                 uninstall_resp = ec_ext_service.helm_uninstall(
                     cluster_id=cluster_id, namespace=namespace, name=release_name,
@@ -378,7 +373,7 @@ class TestEcExtensionsHelmChart:
             is_success = data[0].get("isSuccess")
             error_msg = data[0].get("errorMessage") or ""
 
-            # 冲突场景：批量卸载后重新批量创建（对齐 JMX "IF 控制器 批量创建 fail" 分支）
+            # 冲突场景：批量卸载后重新批量创建
             if code == ApiCode.SUCCESS and is_success is False and HelmConst.RESOURCE_CONFLICT_MSG in error_msg:
                 uninstall = HelmBatchUninstallEntity(release_names=[release_name])
                 uninstall_resp = ec_ext_service.helm_batch_uninstall(

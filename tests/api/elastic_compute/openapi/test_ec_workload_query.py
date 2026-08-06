@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI 工作负载查询接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/workload-query.jmx
-线程组: Thread Group - workload-query
 测试内容：工作负载多维度查询（按 NS/Cell/Kind/Sys 组合查询、拓扑信息、资源类型列表、事件）
 """
 import allure
@@ -23,9 +21,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("工作负载查询接口")
 class TestEcOpenapiWorkloadQuery:
     """
-    对应 JMeter 脚本: workload-query.jmx
-    线程组: Thread Group - workload-query
-
     拆分为独立接口测试函数，覆盖 18 个工作负载查询维度接口。
     """
 

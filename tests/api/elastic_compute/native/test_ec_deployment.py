@@ -1,7 +1,6 @@
 """
 弹性计算 Native Deployment 接口测试
 
-转换自 JMeter 脚本: deployment.jmx
 测试内容：Deployment 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 """
 import json
@@ -28,10 +27,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Deployment 原生接口")
 class TestEcNativeDeployment:
-    """
-    对应 JMeter 脚本: deployment.jmx
-    线程组: Thread Group - deployment
-    """
 
     TENANT = Tenant.ADMIN
 

@@ -1,7 +1,6 @@
 """
 RBAC 管理接口测试
 
-转换自 JMeter 脚本: RBAC_V2.jmx
 测试内容：RBAC 角色查询（查询 Role 列表、查询指定 Role、查询 RoleBinding 列表、查询指定 RoleBinding）
 """
 import allure
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("RBAC 角色管理接口")
 class TestEcOpenapiRbac:
-    """
-    对应 JMeter 脚本: RBAC_V2.jmx
-    线程组: RBAC管理
-    """
 
     TENANT = Tenant.MONITOR_GROUP
 
@@ -60,7 +55,7 @@ class TestEcOpenapiRbac:
                 f"查询 Role 列表失败, code: {resp.get('code')}, 响应: {resp}"
             )
 
-            # 提取首条 Role 名称（对应 JMX JSONPostProcessor: $.data.items[0].metadata.name）
+            # 提取首条 Role 名称
             items = resp.get("data", {}).get("items", [])
             role_name = items[0]["metadata"]["name"] if items else "test"
             api_cache.set("rbac_role_name", role_name)

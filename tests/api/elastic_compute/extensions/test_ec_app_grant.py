@@ -1,7 +1,6 @@
 """
 应用授权/解除授权接口测试
 
-转换自 JMeter 脚本: app-grant.jmx
 测试内容：应用授权、解除应用授权完整流程
 """
 
@@ -25,10 +24,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("应用授权/解除授权接口")
 class TestEcExtensionsAppGrant:
-    """
-    对应 JMeter 脚本: app-grant.jmx
-    线程组: Thread Group - app grant
-    """
 
     TENANT = None
 

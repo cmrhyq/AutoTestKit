@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI 资源采集/指标信息接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/elastic-computer-resource-collection.jmx
-线程组: Thread Group - elastic-computer-resource-collection
 测试内容：集群配额/租户配额/集群资源/中间件信息/系统配额 查询接口
 """
 import allure
@@ -24,9 +22,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("资源采集/指标信息接口")
 class TestEcOpenapiResourceCollection:
     """
-    对应 JMeter 脚本: elastic-computer-resource-collection.jmx
-    线程组: Thread Group - elastic-computer-resource-collection
-
     包含 5 个独立的 GET 查询接口，无依赖关系，可独立执行。
     """
 

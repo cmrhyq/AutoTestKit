@@ -1,7 +1,6 @@
 """
 弹性计算 Native CRD (CustomResourceDefinition) 接口测试
 
-转换自 JMeter 脚本: crd.jmx
 测试内容：CustomResourceDefinition 原生接口-特权接口（查询、创建、列表、删除）
 """
 import json
@@ -28,8 +27,6 @@ logger = get_logger(__name__)
 @allure.story("CustomResourceDefinition 原生接口")
 class TestEcNativeCrd:
     """
-    对应 JMeter 脚本: crd.jmx
-    线程组: Thread Group - CustomResourceDefinition
     注意：CRD 为特权接口，使用 X-API-KEY 鉴权。
     """
 

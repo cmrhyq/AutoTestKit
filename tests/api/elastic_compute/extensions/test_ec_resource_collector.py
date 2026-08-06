@@ -1,7 +1,6 @@
 """
 弹性计算资源采集类接口测试
 
-转换自 JMeter 脚本: ElasticComputeResourceCollectorAPI.jmx
 测试内容：全量节点、工作负载、裸金属主机、集群资源、配额、容器软件等采集接口
 """
 
@@ -20,10 +19,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("资源采集类接口")
 class TestEcExtensionsResourceCollector:
-    """
-    对应 JMeter 脚本: ElasticComputeResourceCollectorAPI.jmx
-    线程组: 弹性计算资源采集类接口
-    """
 
     TENANT = None
 

@@ -1,7 +1,6 @@
 """
 集群管理接口测试
 
-转换自 JMeter 脚本: cluster-manager.jmx
 测试内容：获取集群列表、查询集群详情、查询集群状态、获取控制面集群信息
 """
 
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("集群管理接口")
 class TestEcExtensionsClusterManager:
-    """
-    对应 JMeter 脚本: cluster-manager.jmx
-    线程组: Thread Group - 集群管理
-    """
 
     TENANT = None
 
@@ -58,7 +53,7 @@ class TestEcExtensionsClusterManager:
                 f"获取集群列表失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
-            # 提取首个集群 ID（对应 JMX JSONPostProcessor: $.data[0].id）
+            # 提取首个集群 ID
             data = response_json.get("data", [])
             if data and isinstance(data, list) and len(data) > 0:
                 cluster_id = data[0].get("id")

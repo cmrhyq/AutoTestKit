@@ -1,7 +1,6 @@
 """
 弹性计算 Native ConfigMap 接口测试
 
-转换自 JMeter 脚本: configmap.jmx
 测试内容：ConfigMap 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 """
 import json
@@ -30,10 +29,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("ConfigMap 原生接口")
 class TestEcNativeConfigmap:
-    """
-    对应 JMeter 脚本: configmap.jmx
-    线程组: Thread Group - ConfigMap
-    """
 
     TENANT = Tenant.ADMIN
 

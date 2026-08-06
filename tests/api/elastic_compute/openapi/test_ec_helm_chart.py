@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Helm Chart 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/helm-chart.jmx
-线程组: Thread Group - helm-chart
 测试内容：Helm Chart 上传/查询/下载/Install/Manifest/Release 列表/Apps/Upgrade/History/Rollback/Uninstall/删除 Chart
 """
 import json
@@ -31,9 +29,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Helm Chart 生命周期接口")
 class TestEcOpenapiHelmChart:
     """
-    对应 JMeter 脚本: helm-chart.jmx
-    线程组: Thread Group - helm-chart
-
     执行顺序：
       1) 上传 Chart
       2) 查询 Chart 列表

@@ -1,11 +1,8 @@
 """
 弹性计算 OpenAPI Harbor 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/harbor.jmx
-线程组: Thread Group - harbor
 测试内容：Harbor 项目/成员/仓库/复制策略完整生命周期。
 
-JMX 中通过 IfController(harbor项目已存在 / 不存在) 分成两条对称流程，
 本文件合并为一条：查询 → 若存在先删除 → 创建 → 后续 CRUD → 收尾清理。
 """
 import time
@@ -33,9 +30,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Harbor 项目/成员/仓库/复制策略生命周期接口")
 class TestEcOpenapiHarbor:
     """
-    对应 JMeter 脚本: harbor.jmx
-    线程组: Thread Group - harbor
-
     执行顺序：
       1) 查询 harbor 列表 & 集群 harbor 地址
       2) 查询 project → 若存在则先删除
@@ -405,7 +399,7 @@ class TestEcOpenapiHarbor:
             )
             if execution_id is not None:
                 api_cache.set("ec_harbor_execution_id", execution_id)
-            # 等待执行任务生成（源自 JMX ConstantTimer 10s）
+            # 等待执行任务生成
             time.sleep(10)
 
     @allure.title("查询 harbor 复制策略执行列表")

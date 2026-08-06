@@ -1,7 +1,6 @@
 """
 PVC/PV/StorageClass 接口测试
 
-转换自 JMeter 脚本: pvc-pv.jmx
 测试内容：PVC 完整生命周期（查询、创建、列表、全集群列表、删除）+ PV 查询 + StorageClass 查询
 """
 import json
@@ -27,10 +26,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("PVC/PV/StorageClass 生命周期接口")
 class TestEcOpenapiPvcPv:
-    """
-    对应 JMeter 脚本: pvc-pv.jmx
-    线程组: Thread Group - pvc
-    """
 
     TENANT = Tenant.MONITOR_GROUP
 

@@ -1,7 +1,6 @@
 """
 弹性计算 Native Pod 接口测试
 
-转换自 JMeter 脚本: pod.jmx
 测试内容：Pod 原生接口生命周期测试（查询、创建、列表、日志、删除）
 
 注意：Pod 无 PUT 更新接口（K8s 中 Pod 是不可变的，只能重建）。
@@ -31,10 +30,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Pod 原生接口")
 class TestEcNativePod:
-    """
-    对应 JMeter 脚本: pod.jmx
-    线程组: Thread Group - pod
-    """
 
     TENANT = Tenant.ADMIN
 
@@ -163,7 +158,6 @@ class TestEcNativePod:
         """
         查询 Pod 日志。
 
-        对应 JMX：弹性计算_native_pod_查询指定Pod日志请求
         注意：Pod 可能还未就绪，日志可能为空，但只要 HTTP 200 即通过。
         """
         cluster_id = public_params.cluster_id

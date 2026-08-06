@@ -1,10 +1,9 @@
 """
 弹性计算 Native Node 接口测试
 
-转换自 JMeter 脚本: node-api.jmx
 测试内容：Node 原生接口只读测试（查询列表 + 查询指定 Node）
 
-注意：Node 是 cluster-scoped 资源。JMX 只覆盖了只读接口（list + get by name）,
+注意：Node 是 cluster-scoped 资源，本模块只覆盖只读接口（list + get by name），
       name 从 list 结果的第一项 metadata.name 提取。
 """
 import allure
@@ -28,10 +27,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Node 原生接口")
 class TestEcNativeNode:
-    """
-    对应 JMeter 脚本: node-api.jmx
-    线程组: Thread Group - Node API
-    """
 
     TENANT = Tenant.ADMIN
 
@@ -57,8 +52,6 @@ class TestEcNativeNode:
     def test_list_nodes(self, native_service, public_params, api_cache):
         """
         查询 Node 列表，断言成功并从响应中提取 items[0].metadata.name。
-
-        对应 JMX：弹性计算_native_node-api_查询node list + JSON 提取器 name=$.items[0].metadata.name
         """
         cluster_id = public_params.cluster_id
 
@@ -87,8 +80,6 @@ class TestEcNativeNode:
     def test_get_node(self, native_service, public_params, api_cache):
         """
         查询指定 Node，断言成功并验证响应结构。
-
-        对应 JMX：弹性计算_native_node-api_查询node + JSON 提取器 spec/metadata
         """
         cluster_id = public_params.cluster_id
         name = api_cache.get("ec_node_first_name")

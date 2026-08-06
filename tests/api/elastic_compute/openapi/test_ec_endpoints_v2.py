@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Endpoints 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/EndpointsV2.jmx
-线程组: Thread Group - Endpoints
 测试内容：Endpoints 查询接口（查询列表 + 查询指定 Endpoints）
 """
 import json
@@ -24,9 +22,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Endpoints 查询接口")
 class TestEcOpenapiEndpointsV2:
     """
-    对应 JMeter 脚本: EndpointsV2.jmx
-    线程组: Thread Group - Endpoints
-
     包含 2 个接口：查询 Endpoints 列表 → 从列表提取 name → 查询指定 Endpoints。
     通过 pytest-dependency 保证执行顺序。
     """
@@ -71,7 +66,7 @@ class TestEcOpenapiEndpointsV2:
                 f"查询 Endpoints 列表返回 data 为空, 响应: {list_resp}"
             )
 
-            # 提取首条 Endpoints 的 name（对应 JMX JSONPostProcessor: $.data[0].metadata.name）
+            # 提取首条 Endpoints 的 name
             ep_name = data[0].get("metadata", {}).get("name")
             assert ep_name is not None, (
                 f"Endpoints 列表首条数据缺少 metadata.name, 响应: {list_resp}"

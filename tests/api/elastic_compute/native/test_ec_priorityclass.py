@@ -1,7 +1,6 @@
 """
 弹性计算 Native PriorityClass 接口测试
 
-转换自 JMeter 脚本: priorityclass.jmx
 测试内容：PriorityClass 原生接口完成生命周期测试（查询、创建、更新、删除）
 
 注意：PriorityClass 是 cluster-scoped 资源，无 namespace，也无 list 接口。
@@ -27,10 +26,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("PriorityClass 原生接口")
 class TestEcNativePriorityClass:
-    """
-    对应 JMeter 脚本: priorityclass.jmx
-    线程组: Thread Group - PriorityClass
-    """
 
     TENANT = Tenant.ADMIN
 

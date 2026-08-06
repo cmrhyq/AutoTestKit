@@ -56,7 +56,6 @@ class TestOperationsQuery:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                # JMX 中断言 response_data contains（test_type=2）但未指定具体值
 
     @allure.title("查询服务拨测日志详情")
     @allure.severity(allure.severity_level.NORMAL)
@@ -95,6 +94,5 @@ class TestOperationsQuery:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                # JMX 中断言 test_type=16 (NOT) 包含 resultCode:000000，即验证不会失败
                 assert response_json.get("resultCode") != "000000" or "data" in response_json, \
                     "接口应返回有效数据"

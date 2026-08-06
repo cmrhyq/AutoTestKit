@@ -1,7 +1,6 @@
 """
 Endpoints 管理接口测试
 
-转换自 JMeter 脚本: Endpoints.jmx
 测试内容：查询全集群 Endpoints 列表
 """
 
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("Endpoints 管理接口")
 class TestEcExtensionsEndpoints:
-    """
-    对应 JMeter 脚本: Endpoints.jmx
-    线程组: Endpoints管理 v2
-    """
 
     TENANT = None
 

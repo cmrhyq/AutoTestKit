@@ -166,7 +166,7 @@ class PodTemplate(object):
 
 @dataclass
 class NamespacePayload(object):
-    """K8s Namespace 资源 payload（对应 namespace-api.jmx 中的 POST/PUT body）。"""
+    """K8s Namespace 资源 payload。"""
 
     name: str
     apiVersion: str = "v1"
@@ -183,7 +183,7 @@ class NamespacePayload(object):
 
 @dataclass
 class ResourceQuotaPayload(object):
-    """K8s ResourceQuota 资源 payload（对应 namespace-api.jmx 中的 POST/PUT body）。"""
+    """K8s ResourceQuota 资源 payload。"""
 
     name: str
     hard: Dict[str, str] = field(default_factory=lambda: {"pods": "110"})
@@ -219,7 +219,7 @@ class LimitRangeItem(object):
 
 @dataclass
 class LimitRangePayload(object):
-    """K8s LimitRange 资源 payload（对应 namespace-api.jmx 中的 POST/PUT body）。"""
+    """K8s LimitRange 资源 payload。"""
 
     name: str
     limits: List[LimitRangeItem] = field(default_factory=lambda: [LimitRangeItem()])
@@ -239,7 +239,7 @@ class LimitRangePayload(object):
 
 @dataclass
 class PriorityClassPayload(object):
-    """K8s PriorityClass（cluster-scoped）payload（对应 priorityclass.jmx）。"""
+    """K8s PriorityClass（cluster-scoped）payload。"""
 
     name: str
     value: int = 100000000
@@ -295,7 +295,7 @@ class IngressHttpPath(object):
 
 @dataclass
 class IngressPayload(object):
-    """K8s Ingress 资源 payload（对应 ingress-api.jmx 中的 POST/PUT body）。"""
+    """K8s Ingress 资源 payload。"""
 
     name: str
     labels: Dict[str, str] = field(default_factory=dict)
@@ -356,7 +356,7 @@ class HpaCpuUtilizationMetric(object):
 
 @dataclass
 class HpaPayload(object):
-    """K8s HorizontalPodAutoscaler 资源 payload（对应 hpa.jmx）。"""
+    """K8s HorizontalPodAutoscaler 资源 payload。"""
 
     name: str
     scale_target: HpaScaleTargetRef
@@ -390,7 +390,7 @@ class HpaPayload(object):
 
 @dataclass
 class PodPayload(object):
-    """K8s Pod 资源 payload（对应 pod.jmx）。"""
+    """K8s Pod 资源 payload。"""
 
     name: str
     containers: List[ContainerSpec]
@@ -419,8 +419,6 @@ class WorkloadPayload(object):
     - DaemonSet:  apiVersion="apps/v1", kind="DaemonSet", include_replicas=False
     - Job:        apiVersion="batch/v1", kind="Job", include_replicas=False,
                   include_selector=False, template_include_matchlabels=False
-
-    对应 JMX 中的 POST/PUT body。
     """
 
     name: str

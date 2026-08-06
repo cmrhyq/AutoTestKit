@@ -4,7 +4,7 @@
 面向磐基（PanJi）弹性计算平台的 **K8s 原生代理接口** 客户端，直接透传 K8s API Server
 资源模型（apiVersion/metadata/spec），与 `openapi` / `extensions` 系统的扁平化契约互补。
 
-业务域覆盖（对应 auto_test_pro / auto-test/files/elastic-compute/native/*.jmx）：
+业务域覆盖（elastic-compute/native）：
 - 工作负载：Deployment / StatefulSet / DaemonSet / Job / Pod
 - K8s 标准资源：ConfigMap / Secret / Service / ServiceAccount / Endpoints / Ingress
 - 权限与调度：Role / RoleBinding / ClusterRole / ClusterRoleBinding / PriorityClass
@@ -98,7 +98,7 @@ class ElasticComputeNativeService(BaseService):
             },
         )
 
-    # ==================== ServiceAccount（serviceaccount.jmx）====================
+    # ==================== ServiceAccount ====================
 
     def get_service_account(
         self, cluster_id: str, namespace: str, name: str
@@ -189,7 +189,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.delete(endpoint=url, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== DaemonSet（daemonset.jmx）====================
+    # ==================== DaemonSet ====================
 
     def get_daemonset(
         self, cluster_id: str, namespace: str, name: str
@@ -426,7 +426,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List DaemonSets failed: {e}")
             raise
 
-    # ==================== ClusterRoleBinding（clusterrolebinding.jmx）====================
+    # ==================== ClusterRoleBinding ====================
 
     def get_cluster_role_binding(
         self, cluster_id: str, name: str
@@ -519,7 +519,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.delete(endpoint=url, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== ConfigMap - Native（configmap.jmx）====================
+    # ==================== ConfigMap - Native ====================
 
     def get_native_configmap(
         self, cluster_id: str, namespace: str, name: str
@@ -692,7 +692,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Native ConfigMaps failed: {e}")
             raise
 
-    # ==================== CRD（crd.jmx）====================
+    # ==================== CRD ====================
 
     def get_crd(
         self, cluster_id: str, name: str
@@ -836,7 +836,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List CRDs failed: {e}")
             raise
 
-    # ==================== Job（job.jmx）====================
+    # ==================== Job ====================
 
     def get_job(
         self, cluster_id: str, namespace: str, name: str
@@ -1005,7 +1005,6 @@ class ElasticComputeNativeService(BaseService):
         删除指定 Job。
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/batch/v1/namespaces/{namespace}/jobs/{name}
 
-        JMX 中 DELETE 携带请求体 {"propagationPolicy": "Background"} 以级联删除关联 Pod。
 
         Args:
             cluster_id: 集群 ID
@@ -1063,7 +1062,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Jobs failed: {e}")
             raise
 
-    # ==================== Deployment（deployment.jmx）====================
+    # ==================== Deployment ====================
 
     def get_deployment(
         self, cluster_id: str, namespace: str, name: str
@@ -1302,7 +1301,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Deployments failed: {e}")
             raise
 
-    # ==================== HorizontalPodAutoscaler（hpa.jmx）====================
+    # ==================== HorizontalPodAutoscaler ====================
 
     def get_native_hpa(
         self, cluster_id: str, namespace: str, name: str
@@ -1527,7 +1526,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Native HPAs failed: {e}")
             raise
 
-    # ==================== Ingress（ingress-api.jmx）====================
+    # ==================== Ingress ====================
 
     def get_ingress(
         self, cluster_id: str, namespace: str, name: str
@@ -1748,7 +1747,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Ingresses failed: {e}")
             raise
 
-    # ==================== PriorityClass（priorityclass.jmx）====================
+    # ==================== PriorityClass ====================
 
     def get_priority_class(
         self, cluster_id: str, name: str
@@ -1866,7 +1865,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.delete(endpoint=url, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== Namespace（namespace-api.jmx）====================
+    # ==================== Namespace ====================
 
     def get_namespace(
         self, cluster_id: str, namespace: str
@@ -2012,7 +2011,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"Get Namespace Events failed: {e}")
             raise
 
-    # ==================== ResourceQuota（namespace-api.jmx）====================
+    # ==================== ResourceQuota ====================
 
     def get_resource_quota(
         self, cluster_id: str, namespace: str, name: str
@@ -2098,7 +2097,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== LimitRange（namespace-api.jmx）====================
+    # ==================== LimitRange ====================
 
     def get_limit_range(
         self, cluster_id: str, namespace: str, name: str
@@ -2206,7 +2205,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.put(endpoint=url, json=payload, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== Node（node-api.jmx）====================
+    # ==================== Node ====================
 
     def list_nodes(self, cluster_id: str) -> Dict[str, Any]:
         """
@@ -2241,7 +2240,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.get(endpoint=url, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== Pod（pod.jmx）====================
+    # ==================== Pod ====================
 
     def get_pod(
         self, cluster_id: str, namespace: str, name: str
@@ -2421,7 +2420,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"Get Pod Log failed: {e}")
             raise
 
-    # ==================== StatefulSet（statefulset.jmx）====================
+    # ==================== StatefulSet ====================
 
     def get_statefulset(
         self, cluster_id: str, namespace: str, name: str
@@ -2648,7 +2647,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List StatefulSets failed: {e}")
             raise
 
-    # ==================== PVC（pvc-pv-api.jmx）====================
+    # ==================== PVC ====================
 
     def get_pvc(
         self, cluster_id: str, namespace: str, name: str
@@ -2734,7 +2733,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.delete(endpoint=url, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== RoleBinding（rolebinding.jmx）====================
+    # ==================== RoleBinding ====================
 
     def get_role_binding(
         self, cluster_id: str, namespace: str, name: str
@@ -2824,7 +2823,7 @@ class ElasticComputeNativeService(BaseService):
         resp = self.delete(endpoint=url, headers=_get_native_headers())
         return resp.json()
 
-    # ==================== Secret（secret.jmx）====================
+    # ==================== Secret ====================
 
     def get_secret(
         self, cluster_id: str, namespace: str, name: str
@@ -2981,7 +2980,7 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Secrets failed: {e}")
             raise
 
-    # ==================== Service（service.jmx）====================
+    # ==================== Service ====================
 
     def get_service_resource(
         self, cluster_id: str, namespace: str, name: str
@@ -3177,6 +3176,6 @@ class ElasticComputeNativeService(BaseService):
             logger.error(f"List Services failed: {e}")
             raise
 
-    # ==================== ServiceAccount：新增查询/创建/删除（serviceaccount.jmx）====================
+    # ==================== ServiceAccount：新增查询/创建/删除 ====================
     # 注意：文件顶部已存在 get_service_account / create_service_account / delete_service_account
-    # 该组是 serviceaccount.jmx 的 GET/POST/DELETE 三接口，直接复用已有方法，无需追加。
+    # 说明：文件顶部已存在 get_service_account / create_service_account / delete_service_account

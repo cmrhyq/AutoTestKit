@@ -1,7 +1,6 @@
 """
 Harbor 仓库绑定集群接口测试
 
-转换自 JMeter 脚本: harbor-bindcluster.jmx
 测试内容：Harbor 仓库绑定集群
 """
 
@@ -24,10 +23,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("Harbor 仓库绑定集群接口")
 class TestEcExtensionsHarborBindCluster:
-    """
-    对应 JMeter 脚本: harbor-bindcluster.jmx
-    线程组: Thread Group - harbor仓库绑定
-    """
 
     TENANT = None
 

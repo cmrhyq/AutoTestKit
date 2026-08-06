@@ -86,7 +86,7 @@ class ObservableLogPublicParams(object):
     """
     可观测日志接口测试的公共参数集合。
 
-    对齐 observable-log.jmx 中的默认变量：包含四元组（namespace/cluster/pod/container）、
+    默认变量包含四元组（namespace/cluster/pod/container）、
     时间戳范围、日志上下文参数（log id / timestamp / offset / file_path / host_ip）等。
 
     Attributes:

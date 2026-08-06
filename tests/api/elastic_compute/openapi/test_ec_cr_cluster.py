@@ -1,7 +1,6 @@
 """
 Cluster 级别 CustomResource 接口测试
 
-转换自 JMeter 脚本: cr-cluster.jmx
 测试内容：针对 Cluster 级别 CR 增删改查进行测试（查询、创建、列表、PUT 更新、PATCH 更新、删除）
 """
 import json
@@ -27,10 +26,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("Cluster级别CustomResource生命周期接口")
 class TestEcOpenapiCrCluster:
-    """
-    对应 JMeter 脚本: cr-cluster.jmx
-    线程组: Thread Group - cluster custom resource
-    """
 
     TENANT = Tenant.MONITOR_GROUP
 

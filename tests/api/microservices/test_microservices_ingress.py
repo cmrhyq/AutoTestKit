@@ -38,7 +38,7 @@ def public_params(api_env) -> IngressPublicParams:
     )
 
 # =============================================================================
-# msingressgw.jmx — nginx 参数模板 CRUD + ingress 网关实例
+# nginx 参数模板 CRUD + ingress 网关实例
 # =============================================================================
 @pytest.mark.api
 @pytest.mark.microservice
@@ -191,7 +191,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
 # =============================================================================
-# ingressnginx.jmx — ingress 网关配置 CRUD
+# ingress 网关配置 CRUD
 # =============================================================================
 @pytest.mark.api
 @pytest.mark.microservice
@@ -307,7 +307,7 @@ class TestMsIngressNginx:
                 assert "code" in response_json
 
 # =============================================================================
-# msingressksr.jmx — ingress 网关实例启停/扩缩容
+# ingress 网关实例启停/扩缩容
 # =============================================================================
 @pytest.mark.api
 @pytest.mark.microservice
@@ -315,7 +315,7 @@ class TestMsIngressNginx:
 @allure.feature("磐基微服务OpenAPI接口")
 @allure.story("Ingress Scaling 扩容/缩容接口")
 class TestIngressScaling:
-    """msingressksr.jmx 转换（7 用例）"""
+    """Ingress Scaling 扩容/缩容接口测试（7 用例）"""
 
     TENANT = Tenant.ADMIN
 

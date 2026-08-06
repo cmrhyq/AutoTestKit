@@ -1,11 +1,9 @@
 """
 弹性计算 Native Namespace 接口测试
 
-转换自 JMeter 脚本: namespace-api.jmx
 测试内容：Namespace API 和 Namespace Event API 原生接口生命周期测试。
         涉及 4 类 K8s 资源：Namespace、ResourceQuota、LimitRange、Events。
 
-流程（参考 JMX）：
   1. 查询 ns → 若存在则删除
   2. 创建 ns
   3. 创建 ResourceQuota → 查询 → 更新
@@ -40,10 +38,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Namespace 原生接口")
 class TestEcNativeNamespace:
-    """
-    对应 JMeter 脚本: namespace-api.jmx
-    线程组: Thread Group - Namespace API
-    """
 
     TENANT = Tenant.ADMIN
 
@@ -58,7 +52,6 @@ class TestEcNativeNamespace:
         提取 Namespace 测试所需的公共参数。
 
         为避免污染业务用 namespace，此处使用独立的测试 ns 名称。
-        JMX 中 ResourceQuota / LimitRange 的 name 与 namespace 同名。
         """
         ns = "native-test-namespace"
         return NamespaceNativePublicParams(

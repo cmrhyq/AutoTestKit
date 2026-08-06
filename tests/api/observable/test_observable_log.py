@@ -26,10 +26,6 @@ from core.constants import HttpStatus, Tenant
 @allure.feature("磐基可观测OpenAPI接口")
 @allure.story("observable Log 日志接口")
 class TestObservableLog:
-    """
-    对应 JMeter 脚本: observable-log.jmx
-    线程组: 可观测接口调用
-    """
 
     TENANT = Tenant.ADMIN
 

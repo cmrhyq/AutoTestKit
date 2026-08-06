@@ -1,7 +1,6 @@
 """
 Physical Host 裸金属主机管理接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: physical-host.jmx
 测试内容：
     1) 获取主机列表（门户）：提取第一个 hostId
     2) 主机绑定租户（门户）
@@ -32,9 +31,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Physical Host 裸金属主机管理接口")
 class TestEcExtensionsPhysicalHost:
     """
-    对应 JMeter 脚本: physical-host.jmx
-    线程组: Thread Group - physical-host
-
     执行流程：
         search（提取 hostId）→ bind → list → hostResource(admin) → connectInfo → unbind
     """

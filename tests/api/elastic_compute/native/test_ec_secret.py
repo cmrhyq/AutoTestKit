@@ -1,7 +1,6 @@
 """
 弹性计算 Native Secret 接口测试
 
-转换自 JMeter 脚本: secret.jmx
 测试内容：Secret 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 
 注意：Secret 的 data 字段值需要 Base64 编码。
@@ -30,10 +29,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Secret 原生接口")
 class TestEcNativeSecret:
-    """
-    对应 JMeter 脚本: secret.jmx
-    线程组: Thread Group - secret
-    """
 
     TENANT = Tenant.ADMIN
 

@@ -1,7 +1,6 @@
 """
 Node 节点污点查询接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: Node.jmx
 测试内容：查询节点污点列表
 
 依赖：
@@ -24,10 +23,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("Node 节点污点查询接口")
 class TestEcExtensionsNode:
-    """
-    对应 JMeter 脚本: Node.jmx
-    线程组: Thread Group - Node
-    """
 
     TENANT = None
 

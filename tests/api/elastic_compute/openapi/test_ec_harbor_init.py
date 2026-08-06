@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Harbor-Init 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/harbor-init.jmx
-线程组: Thread Group - harbor_init
 测试内容：Harbor 版本信息刷新接口
 """
 import allure
@@ -22,9 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Harbor-Init 接口")
 class TestEcOpenapiHarborInit:
     """
-    对应 JMeter 脚本: harbor-init.jmx
-    线程组: Thread Group - harbor_init
-
     单接口：更新 harbor 版本信息（refreshHarborVersion），需 admin 权限。
     """
 

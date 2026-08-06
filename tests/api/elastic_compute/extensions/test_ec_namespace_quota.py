@@ -1,7 +1,6 @@
 """
 系统配额管理接口测试
 
-转换自 JMeter 脚本: namespace-quota.jmx
 测试内容：系统资源配额概览、详情、可调整查询、调整、分配
 """
 
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("系统配额管理接口")
 class TestEcExtensionsNamespaceQuota:
-    """
-    对应 JMeter 脚本: namespace-quota.jmx
-    线程组: Thread Group - 系统配额管理
-    """
 
     TENANT = None
 

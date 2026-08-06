@@ -1,7 +1,6 @@
 """
 PriorityClass 接口测试
 
-转换自 JMeter 脚本: PriorityClassesV2.jmx
 测试内容：PriorityClass 完整生命周期（查询、创建、列表、PUT更新、PATCH更新、删除）
 """
 import json
@@ -27,10 +26,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("PriorityClass 生命周期接口")
 class TestEcOpenapiPriorityClasses:
-    """
-    对应 JMeter 脚本: PriorityClassesV2.jmx
-    线程组: PriorityClass
-    """
 
     TENANT = Tenant.MONITOR_GROUP
 

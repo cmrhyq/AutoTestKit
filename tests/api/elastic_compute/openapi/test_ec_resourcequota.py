@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI ResourceQuota 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/resourcequota.jmx
-线程组: Thread Group - ResourceQuota完整生命周期
 测试内容：ResourceQuota 标准集群分支（查询命名空间列表 → 查询全集群列表 → PUT 更新 → PATCH 更新）
 """
 import allure
@@ -27,9 +25,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("ResourceQuota 生命周期接口")
 class TestEcOpenapiResourceQuota:
     """
-    对应 JMeter 脚本: resourcequota.jmx
-    线程组: Thread Group - ResourceQuota完整生命周期
-
     仅实现标准集群分支 (testHostCluster=0)。
     执行顺序：查询命名空间列表 → 查询全集群列表 → PUT 更新 → PATCH 更新
     """

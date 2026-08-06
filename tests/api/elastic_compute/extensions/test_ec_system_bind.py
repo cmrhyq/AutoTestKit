@@ -1,7 +1,6 @@
 """
 System Bind 系统绑定接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: system-bind.jmx
 测试内容：
     1) 查询系统是否有配额信息
     2) 用户与系统绑定接口
@@ -28,10 +27,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("System Bind 系统绑定接口")
 class TestEcExtensionsSystemBind:
     """
-    对应 JMeter 脚本: system-bind.jmx
-    线程组: Thread Group - system-bind
-
-    执行流程（对齐 JMX IfController）：
         check_quota → bind_user → unbind_user（bind code==2000 时执行，否则 skip）
     """
 

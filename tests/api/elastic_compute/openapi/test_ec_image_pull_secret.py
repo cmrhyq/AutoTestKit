@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI ImagePullSecret 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/imagePullSecret.jmx
-线程组: Thread Group - imagePullSecret
 测试内容：
 - 创建 ImagePullSecret
 - 删除 Secret
@@ -27,12 +25,9 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("ImagePullSecret 生命周期接口")
 class TestEcOpenapiImagePullSecret:
     """
-    对应 JMeter 脚本: imagePullSecret.jmx
-    线程组: Thread Group - imagePullSecret
-
     执行顺序：
       1) 创建 ImagePullSecret（提取响应中的 secretName）
-      2) 等待 3 秒（JMX ConstantTimer）
+      2) 等待 3 秒
       3) 删除 Secret
     """
 
@@ -80,7 +75,6 @@ class TestEcOpenapiImagePullSecret:
             )
             api_cache.set("ec_image_pull_secret_name", secret_name)
 
-            # JMX ConstantTimer 3000ms
             time.sleep(Timing.IMAGEPULLSECRET_WAIT_SECONDS)
 
     @allure.title("删除 ImagePullSecret 对应 Secret")

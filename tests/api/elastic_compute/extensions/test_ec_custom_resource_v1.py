@@ -1,7 +1,6 @@
 """
 CustomResource V1 自定义资源接口测试
 
-转换自 JMeter 脚本: CustomResourceV1.jmx
 测试内容：CR 资源的查询、创建、列表、更新、删除完整生命周期
 """
 
@@ -28,10 +27,6 @@ from core.constants import HttpStatus
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("CustomResource V1 自定义资源生命周期接口")
 class TestEcExtensionsCustomResourceV1:
-    """
-    对应 JMeter 脚本: CustomResourceV1.jmx
-    线程组: Thread Group - customResourceCreate
-    """
 
     TENANT = None
 

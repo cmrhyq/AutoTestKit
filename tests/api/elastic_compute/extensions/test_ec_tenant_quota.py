@@ -1,7 +1,6 @@
 """
 Tenant Quota 租户配额管理接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: tenant-quota.jmx
 测试内容：
     1) 集群配额概览查询
     2) 租户资源配额总览
@@ -37,11 +36,8 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Tenant Quota 租户配额管理接口")
 class TestEcExtensionsTenantQuota:
     """
-    对应 JMeter 脚本: tenant-quota.jmx
-    线程组: Thread Group - tenant-quota
-
     注意路径均不含 namespaces，与已有 namespace-quota 接口不同。
-    批量查询接口（quota/batch）使用 admin 头覆盖，对齐 JMX 中局部 HeaderManager。
+    批量查询接口（quota/batch）使用 admin 头覆盖。
     """
 
     TENANT = None

@@ -1,7 +1,6 @@
 """
 Workload 生命周期接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: workload.jmx（默认仅覆盖 Deployment 分支）
 
 测试内容：
     单实例：
@@ -34,10 +33,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("Workload 生命周期接口")
 class TestEcExtensionsWorkload:
-    """
-    对应 JMeter 脚本: workload.jmx
-    线程组: Thread Group - workload
-    """
 
     TENANT = None
 
@@ -294,7 +289,7 @@ class TestEcExtensionsWorkload:
                 f"更新副本数失败, code: {response_json.get('code')}, 响应: {response_json}"
             )
 
-    # ==================== 10) 再次查询 HPA（对齐 JMX）====================
+    # ==================== 10) 再次查询 HPA====================
 
     @pytest.mark.order(10)
     @allure.title("再次查询 Workload 的 HPA")

@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Image 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/image-api.jmx
-线程组: Thread Group - image
 测试内容：
 - 获取镜像列表
 - 获取镜像已部署应用服务列表
@@ -24,9 +22,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Image 镜像查询接口")
 class TestEcOpenapiImage:
     """
-    对应 JMeter 脚本: image-api.jmx
-    线程组: Thread Group - image
-
     覆盖 2 个接口：
       1) GET /openapi/elastic-compute/v1/images 镜像列表
       2) GET /openapi/elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/images/apps

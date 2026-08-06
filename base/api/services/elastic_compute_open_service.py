@@ -5,7 +5,7 @@
 和 `extensions`（内部扩展） 系统互补：路径统一以 `/openapi/elastic-compute/...` 开头，
 使用 Portal Bearer Token 鉴权。
 
-业务域覆盖（对应 auto_test_pro / auto-test/files/elastic-compute/openapi/*.jmx）：
+业务域覆盖（elastic-compute/openapi）：
 - 集群 / 命名空间 / 节点 / 资源采集：
   cluster、namespace-api、Node、elastic-computer-resource-collection
 - K8s 标准资源（Namespaced）：
@@ -401,7 +401,6 @@ class ElasticComputeOpenService(BaseService):
         response = self.get(endpoint=url)
         return response.json()
 
-    # ==================== ConfigMap.jmx ====================
 
     def get_configmap(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -435,7 +434,7 @@ class ElasticComputeOpenService(BaseService):
         """创建 configmap 请求。POST /.../configmaps
 
         接收 :class:`K8sConfigMapEntity`，内联构造 K8s 原生 ConfigMap payload。
-        对应 JMX ``ConfigMap.jmx`` 中"创建cm请求" sampler。
+        中"创建cm请求" sampler。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -480,7 +479,7 @@ class ElasticComputeOpenService(BaseService):
         """更新指定 configmap。PUT /.../configmaps/{name}
 
         接收 :class:`K8sConfigMapEntity`，内联构造 K8s 原生 ConfigMap payload。
-        对应 JMX ``ConfigMap.jmx`` 中"更新指定 configmap" sampler。
+        中"更新指定 configmap" sampler。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -503,7 +502,7 @@ class ElasticComputeOpenService(BaseService):
         """增量更新指定 configmap。PATCH /.../configmaps/{name}
 
         接收 :class:`K8sConfigMapPatchEntity`，内联构造 strategic merge patch payload。
-        对应 JMX ``ConfigMap.jmx`` 中"增量更新指定 configmap" sampler。
+        中"增量更新指定 configmap" sampler。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -518,7 +517,6 @@ class ElasticComputeOpenService(BaseService):
         }
         return self.patch(endpoint=url, json=payload).json()
 
-    # ==================== SecretV2.jmx ====================
 
     def get_secret(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -634,7 +632,6 @@ class ElasticComputeOpenService(BaseService):
         }
         return self.patch(endpoint=url, json=payload).json()
 
-    # ==================== ServiceV2.jmx ====================
 
     def get_service(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -769,7 +766,6 @@ class ElasticComputeOpenService(BaseService):
         payload: Dict[str, Any] = {"metadata": {"labels": dict(patch.labels)}}
         return self.patch(endpoint=url, json=payload).json()
 
-    # ==================== ServiceAccountV2.jmx ====================
 
     def list_service_accounts_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -812,7 +808,6 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.get(endpoint=url).json()
 
-    # ==================== EndpointsV2.jmx ====================
 
     def list_endpoints(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """
@@ -841,7 +836,6 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/endpoints/{name}"
         return self.get(endpoint=url).json()
 
-    # ==================== LimitRange.jmx ====================
 
     def list_limitranges_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -952,7 +946,6 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== resourcequota.jmx ====================
 
     def list_resource_quotas_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -1067,7 +1060,6 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== PriorityClassesV2.jmx ====================
 
     def list_priority_classes(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -1169,7 +1161,6 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/priorityclasses/{name}"
         return self.delete(endpoint=url).json()
 
-    # ==================== RBAC_V2.jmx ====================
 
     def list_rbac_roles(self, cell_code: str, sys_code: str) -> Dict[str, Any]:
         """
@@ -1245,7 +1236,7 @@ class ElasticComputeOpenService(BaseService):
             endpoint=f"/openapi/elastic-compute/v2/cells/{cell_code}/clusterrolebindings",
         ).json()
 
-    # ==================== cr-cluster.jmx（Cluster 级别 CustomResource） ====================
+    # ==================== cr-cluster（Cluster 级别 CustomResource） ====================
 
     def get_cluster_custom_resource(
         self, cell_code: str, group: str, version: str, kind: str, name: str
@@ -1392,7 +1383,7 @@ class ElasticComputeOpenService(BaseService):
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/{group}/{version}/kind/{kind}/customResources/{name}
 
         接收 :class:`ClusterCustomResourcePatchEntity`，内联构造 K8s CR patch payload；
-        当 ``labels`` 为 ``None`` 时不写入 ``metadata`` 字段（严格对齐 JMX 原生行为）。
+        当 ``labels`` 为 ``None`` 时不写入 ``metadata`` 字段。
         Args:
             cell_code: 单元编码
             group: CR API group
@@ -1435,7 +1426,7 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== pvc-pv.jmx（K8s 标准路径 /persistentvolumeclaims /persistentvolumes） ====================
+    # ==================== pvc-pv（K8s 标准路径 /persistentvolumeclaims /persistentvolumes） ====================
     # 说明：与上方 PVC/PV 接口（简写路径 /pvc、/pv）为两套并存的 OpenAPI，
     # 此处方法名统一使用完整 K8s 资源名以示区分。
 
@@ -1635,7 +1626,7 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/persistentvolumes/{name}"
         return self.delete(endpoint=url).json()
 
-    # ==================== CustomResource-ns.jmx（Namespace 级别 CustomResource） ====================
+    # ==================== CustomResource-ns（Namespace 级别 CustomResource） ====================
 
     def get_ns_custom_resource(
         self, cell_code: str, sys_code: str, group: str, version: str, kind: str, name: str
@@ -1809,7 +1800,7 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== helm-chart.jmx Helm Chart 接口 ====================
+    # ==================== Helm Chart 接口 ====================
 
     def get_helm_chart(self, cell_code: str, sys_code: str, name: str) -> Dict[str, Any]:
         """
@@ -1901,7 +1892,7 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helmCharts/{name}"
         return self.delete(endpoint=url).json()
 
-    # ==================== harbor.jmx / harbor-init.jmx Harbor 镜像仓库接口 ====================
+    # ==================== Harbor 镜像仓库接口 ====================
 
     def get_harbor_project(self, cell_code: str, project_name: str) -> Dict[str, Any]:
         """
@@ -2060,7 +2051,7 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/harbor/status"
         return self.get(endpoint=url).json()
 
-    # ==================== HPA.jmx HorizontalPodAutoscaler 接口 ====================
+    # ==================== HorizontalPodAutoscaler 接口 ====================
 
     def get_hpa(
         self, cell_code: str, sys_code: str, api_version: str, name: str
@@ -2254,7 +2245,7 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== harbor-init.jmx Harbor 版本刷新 ====================
+    # ==================== Harbor 版本刷新 ====================
 
     def refresh_harbor_version(self, harbor_id: int) -> Dict[str, Any]:
         """
@@ -2268,7 +2259,7 @@ class ElasticComputeOpenService(BaseService):
         params = {"clusterId": harbor_id}
         return self.post(endpoint=url, params=params).json()
 
-    # ==================== harbor.jmx Harbor 完整生命周期接口（新路径 /harbors/{harborId}/...） ====================
+    # ==================== Harbor 完整生命周期接口（新路径 /harbors/{harborId}/...） ====================
 
     def list_harbors(self) -> Dict[str, Any]:
         """
@@ -2741,7 +2732,7 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== helm-chart.jmx Helm Chart 上传/下载/生命周期接口 ====================
+    # ==================== Helm Chart 上传/下载/生命周期接口 ====================
 
     def upload_helm_chart(
         self, cell_code: str, chart_file_path: str
@@ -2808,7 +2799,7 @@ class ElasticComputeOpenService(BaseService):
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/install
 
         接收 :class:`HelmInstallEntity`，内联构造 payload。``values`` 字段以
-        JSON 字符串形式提交（对齐 JMX 原生行为）。
+        JSON 字符串形式提交。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -2906,7 +2897,7 @@ class ElasticComputeOpenService(BaseService):
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/release/{name}/upgrade
 
         接收 :class:`HelmUpgradeEntity`，内联构造 payload。``values`` 字段以
-        JSON 字符串形式提交（对齐 JMX 原生行为）。
+        JSON 字符串形式提交。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -2987,7 +2978,7 @@ class ElasticComputeOpenService(BaseService):
         params = {"version": version}
         return self.delete(endpoint=url, params=params).json()
 
-    # ==================== image-api.jmx 镜像查询接口 ====================
+    # ==================== 镜像查询接口 ====================
 
     def list_images(self) -> Dict[str, Any]:
         """
@@ -3028,7 +3019,7 @@ class ElasticComputeOpenService(BaseService):
         }
         return self.get(endpoint=url, params=params).json()
 
-    # ==================== imagePullSecret.jmx ImagePullSecret 接口 ====================
+    # ==================== ImagePullSecret 接口 ====================
 
     def create_image_pull_secret(
         self, cell_code: str, sys_code: str,
@@ -3037,7 +3028,7 @@ class ElasticComputeOpenService(BaseService):
         创建 ImagePullSecret。
         POST /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/imagePullSecrets
 
-        备注：JMX 未指定请求体（postBodyRaw=false），依赖服务端根据 cell/sys 自动生成。
+        备注：不指定请求体（postBodyRaw=false），依赖服务端根据 cell/sys 自动生成。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -3071,7 +3062,7 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== LimitRange.jmx v2 无 name 版本（namespace 级别唯一） ====================
+    # ==================== v2 无 name 版本（namespace 级别唯一） ====================
 
     def create_limitrange_ns(
         self, cell_code: str, sys_code: str, limit_range: K8sLimitRangeEntity,
@@ -3166,7 +3157,7 @@ class ElasticComputeOpenService(BaseService):
         PATCH /openapi/elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/limitRanges
 
         接收可选的 :class:`K8sLimitRangeEntity`。当 ``limit_range`` 为 ``None`` 时，
-        提交空对象 ``{}``（JMX 原生行为，触发服务端默认 patch 逻辑）；否则内联
+        提交空对象 ``{}``；否则内联
         构造 K8s LimitRange payload。
         Args:
             cell_code: 单元编码
@@ -3542,7 +3533,7 @@ class ElasticComputeOpenService(BaseService):
         POST /openapi/elastic-compute/v2/cells/{cellCode}/tenants/{tenantCode}/quota/allocate
 
         接收 :class:`TenantQuotaAllocationEntity`，未设置的字段不会写入 payload
-        （对应 JMX 中的空 body 场景）。
+        。
         Args:
             cell_code: 单元编码
             tenant_code: 租户编码
@@ -3752,7 +3743,6 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.put(endpoint=url, json={}).json()
 
-    # ==================== ScaledObject.jmx ====================
 
     def get_scaled_object(
         self, cell_code: str, sys_code: str, name: str,
@@ -3844,7 +3834,6 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.delete(endpoint=url).json()
 
-    # ==================== recovery-resource.jmx ====================
 
     def list_recovery_resources(
         self, sys_code: str, cell_code: str,
@@ -3949,7 +3938,6 @@ class ElasticComputeOpenService(BaseService):
         ]
         return self.post(endpoint=url, json=payload).json()
 
-    # ==================== ReplicaSetV2.jmx ====================
 
     def list_replica_sets_by_cell(self, cell_code: str) -> Dict[str, Any]:
         """
@@ -3995,7 +3983,7 @@ class ElasticComputeOpenService(BaseService):
         )
         return self.get(endpoint=url).json()
 
-    # ==================== resourcequota.jmx (NS-level, no name) ====================
+    # ==================== (NS-level, no name) ====================
 
     def update_resource_quotas_ns(
         self, cell_code: str, sys_code: str, quota: K8sResourceQuotaEntity,
@@ -4047,7 +4035,6 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/resourceQuotas"
         return self.delete(endpoint=url).json()
 
-    # ==================== workload-query.jmx ====================
 
     def list_workloads_by_ns_kind(
         self, cell_code: str, sys_code: str, kind: str
@@ -4329,7 +4316,7 @@ class ElasticComputeOpenService(BaseService):
         url = f"/openapi/elastic-compute/v2/cells/{cell_code}/workloads/events"
         return self.get(endpoint=url).json()
 
-    # ==================== workload.jmx (CRUD + Lifecycle) ====================
+    # ==================== (CRUD + Lifecycle) ====================
 
     def get_workload_status(
         self, cell_code: str, sys_code: str, kind: str, name: str
@@ -4425,7 +4412,7 @@ class ElasticComputeOpenService(BaseService):
     ) -> Dict[str, Any]:
         """全量更新工作负载。PUT /.../kinds/{kind}/workloads/{name}
 
-        JMX 规则：replicas += 1、containerPort=8090、containers 增加 imagePullPolicy=Always、
+        更新规则：replicas += 1、containerPort=8090、containers 增加 imagePullPolicy=Always、
         labels 追加 test=update。
         Args:
             cell_code: 单元编码
@@ -4496,7 +4483,7 @@ class ElasticComputeOpenService(BaseService):
     ) -> Dict[str, Any]:
         """增量更新工作负载。PATCH /.../kinds/{kind}/workloads/{name}
 
-        JMX 规则：labels 追加 test=patch-update，容器 container0 增加 port1(8010)。
+        更新规则：labels 追加 test=patch-update，容器 container0 增加 port1(8010)。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码
@@ -4616,7 +4603,7 @@ class ElasticComputeOpenService(BaseService):
     ) -> Dict[str, Any]:
         """批量增量更新工作负载。PATCH /.../workloads/batch
 
-        JMX 规则：labels 追加 test=batch-patch-update，容器 container0 增加 port2(8020)。
+        更新规则：labels 追加 test=batch-patch-update，容器 container0 增加 port2(8020)。
         Args:
             cell_code: 单元编码
             sys_code: 系统编码

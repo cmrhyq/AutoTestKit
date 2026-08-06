@@ -1,10 +1,8 @@
 """
 弹性计算 Native ServiceAccount 接口测试
 
-转换自 JMeter 脚本: serviceaccount.jmx
 测试内容：ServiceAccount 原生接口生命周期测试（查询、创建、删除）
 
-注意：JMX 中仅包含 GET/POST/DELETE，没有 update / list 接口。
 Service 层的 get_service_account / create_service_account / delete_service_account
 在文件顶部已存在，直接复用。
 """
@@ -32,10 +30,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("ServiceAccount 原生接口")
 class TestEcNativeServiceAccount:
-    """
-    对应 JMeter 脚本: serviceaccount.jmx
-    线程组: Thread Group - serviceaccount
-    """
 
     TENANT = Tenant.ADMIN
 

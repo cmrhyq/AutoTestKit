@@ -25,10 +25,6 @@ from core.constants import Tenant
 @allure.feature("磐基可观测OpenAPI接口")
 @allure.story("Observable Query 查询接口")
 class TestObservableQuery:
-    """
-    对应 JMeter 脚本: observable-query.jmx
-    线程组: 可观测接口调用
-    """
 
     TENANT = Tenant.ADMIN
 
@@ -79,7 +75,7 @@ class TestObservableQuery:
     @allure.severity(allure.severity_level.NORMAL)
     def test_search_conf_items(self, observable_service, api_env, api_cache):
         with AllureHelper.api_test(observable_service):
-            # 构造查询条件（对应 JMX 中的大 JSON body）
+            # 构造查询条件
             query = {
                 "uniques": [],
                 "filters": [],

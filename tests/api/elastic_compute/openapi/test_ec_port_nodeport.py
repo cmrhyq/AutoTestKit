@@ -1,7 +1,6 @@
 """
 Port/NodePort 接口测试
 
-转换自 JMeter 脚本: port-nodeport.jmx
 测试内容：Port 和 NodePort 端口管理（查询使用中端口列表、查询指定端口可用性、分配端口范围、查询指定集群端口范围、查询全部端口范围）
 """
 import allure
@@ -24,10 +23,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("Port/NodePort 端口管理接口")
 class TestEcOpenapiPortNodePort:
-    """
-    对应 JMeter 脚本: port-nodeport.jmx
-    线程组: Thread Group - Port和NodePort
-    """
 
     TENANT = Tenant.ADMIN
 

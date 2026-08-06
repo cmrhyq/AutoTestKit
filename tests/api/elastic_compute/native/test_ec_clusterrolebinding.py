@@ -1,7 +1,6 @@
 """
 弹性计算 Native ClusterRoleBinding 接口测试
 
-转换自 JMeter 脚本: clusterrolebinding.jmx
 测试内容：ClusterRoleBinding 原生接口，针对 ClusterRoleBinding 增删查进行测试
 """
 import allure
@@ -28,10 +27,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("ClusterRoleBinding 原生接口")
 class TestEcNativeClusterRoleBinding:
-    """
-    对应 JMeter 脚本: clusterrolebinding.jmx
-    线程组: Thread Group - Secret（JMX 中沿用了 Secret 的线程组名）
-    """
 
     TENANT = Tenant.ADMIN
 

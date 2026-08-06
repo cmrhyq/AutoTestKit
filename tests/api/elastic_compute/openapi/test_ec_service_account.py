@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI ServiceAccount 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/ServiceAccountV2.jmx
-线程组: Thread Group - serviceaccount
 测试内容：ServiceAccount 查询接口（全集群列表/命名空间列表/查询指定）
 """
 import json
@@ -25,9 +23,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("ServiceAccount 查询接口")
 class TestEcOpenapiServiceAccount:
     """
-    对应 JMeter 脚本: ServiceAccountV2.jmx
-    线程组: Thread Group - serviceaccount
-
     拆分为独立接口测试函数，通过 pytest-dependency 保证执行顺序和依赖关系。
     执行顺序：全集群列表 → 命名空间列表 → 查询指定 ServiceAccount
     """
@@ -85,7 +80,6 @@ class TestEcOpenapiServiceAccount:
             )
 
             # 提取首条 ServiceAccount 名称供后续 get 接口使用
-            # 对应 JMX JSONPostProcessor: $.data[0].metadata.name
             data = list_resp.get("data", [])
             sa_name = data[0]["metadata"]["name"] if data else "default"
             api_cache.set("sa_name", sa_name)

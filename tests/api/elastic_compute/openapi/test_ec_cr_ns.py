@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI Namespace 级别 CustomResource 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/CustomResource-ns.jmx
-线程组: Thread Group - CustomResource-ns
 测试内容：Namespace 级别 CR 完整生命周期（查询/删除/创建/列表/PUT 更新/PATCH 增量更新/删除）
 """
 import json
@@ -29,9 +27,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Namespace 级别 CustomResource 生命周期接口")
 class TestEcOpenapiCrNs:
     """
-    对应 JMeter 脚本: CustomResource-ns.jmx
-    线程组: Thread Group - CustomResource-ns
-
     拆分为独立接口测试函数，通过 pytest-dependency 保证执行顺序和依赖关系。
     执行顺序：查询 → 清理已存在 → 创建 → 列表查询 → PUT更新 → PATCH更新 → 删除 → 验证删除
     """

@@ -1,7 +1,6 @@
 """
 模糊查询（持续交付定制接口）测试
 
-转换自 JMeter 脚本: fuzzy-query.jmx
 测试内容：Helm 应用模糊查询、应用模糊查询
 """
 
@@ -20,10 +19,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("模糊查询（持续交付定制）接口")
 class TestEcExtensionsFuzzyQuery:
-    """
-    对应 JMeter 脚本: fuzzy-query.jmx
-    线程组: 模糊查询(持续交付定制接口) v2
-    """
 
     TENANT = None
 

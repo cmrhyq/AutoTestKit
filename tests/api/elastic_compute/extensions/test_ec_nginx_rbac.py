@@ -1,7 +1,6 @@
 """
 Nginx RBAC 模板管理接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: nginx-rbac.jmx
 测试内容：
     1) 前置清理：若目标 RBAC 已存在则先删除，若不存在则跳过
     2) 创建 Nginx RBAC 模板
@@ -9,8 +8,8 @@ Nginx RBAC 模板管理接口测试（Extensions - apikey 鉴权）
 
 依赖：
     - config/env_*.yaml 需提供：apiInnerBaseUrl / clusterId / namespace / rbacCode
-    - JMX 通过 IfController 判断 code==2000 或 code==4004 分支，
-      Python 侧拍平为顺序 fixture-driven 流程（pre_cleanup → create → delete）。
+    - 按 code==2000 或 code==4004 判断资源是否存在，
+      拍平为顺序 fixture-driven 流程（pre_cleanup → create → delete）。
 """
 
 import allure
@@ -30,10 +29,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Nginx RBAC 模板管理接口")
 class TestEcExtensionsNginxRbac:
     """
-    对应 JMeter 脚本: nginx-rbac.jmx
-    线程组: Thread Group - nginx-rbac
-
-    执行流程（对齐 JMX IfController 逻辑，拍平为顺序流程）：
         pre_cleanup（GET，若 2000 则 DELETE；若 4004 则跳过）
         → create（POST）
         → delete（DELETE）

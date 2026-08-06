@@ -1,7 +1,6 @@
 """
 弹性计算 Native HorizontalPodAutoscaler 接口测试
 
-转换自 JMeter 脚本: hpa.jmx
 测试内容：HPA 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 """
 import json
@@ -27,10 +26,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("HorizontalPodAutoscaler 原生接口")
 class TestEcNativeHpa:
-    """
-    对应 JMeter 脚本: hpa.jmx
-    线程组: Thread Group - HorizontalPodAutoscaler
-    """
 
     TENANT = Tenant.ADMIN
 

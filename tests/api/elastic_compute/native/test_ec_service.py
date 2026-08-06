@@ -1,7 +1,6 @@
 """
 弹性计算 Native Service 接口测试
 
-转换自 JMeter 脚本: service.jmx
 测试内容：K8s Service 原生接口完成生命周期测试（查询、创建、列表、更新、删除）
 
 注意：本处的 Service 指 K8s Service 资源（非本项目服务层的 service）。
@@ -30,10 +29,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("Service 原生接口")
 class TestEcNativeService:
-    """
-    对应 JMeter 脚本: service.jmx
-    线程组: Thread Group - service
-    """
 
     TENANT = Tenant.ADMIN
 

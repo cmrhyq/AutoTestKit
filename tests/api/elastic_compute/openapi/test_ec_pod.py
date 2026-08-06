@@ -1,7 +1,6 @@
 """
 Pod 接口测试
 
-转换自 JMeter 脚本: pod.jmx
 测试内容：Pod 完整生命周期（查询、创建、列表、全集群列表、事件列表、日志、PUT更新、PATCH更新、删除）
 """
 import json
@@ -29,10 +28,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("Pod 生命周期接口")
 class TestEcOpenapiPod:
-    """
-    对应 JMeter 脚本: pod.jmx
-    线程组: Thread Group - pod
-    """
 
     TENANT = Tenant.MONITOR_GROUP
 
@@ -130,7 +125,7 @@ class TestEcOpenapiPod:
                 f"查询指定 Pod 失败, code: {get_resp.get('code')}, 响应: {get_resp}"
             )
 
-            # 缓存 Pod 对象，用于 PUT 更新（模拟 JMX 中 JSR223 提取 podObject 的逻辑）
+            # 缓存 Pod 对象，用于 PUT 更新
             pod_object = get_resp.get("data", {})
             if pod_object and "metadata" in pod_object:
                 labels = pod_object.get("metadata", {}).get("labels", {})

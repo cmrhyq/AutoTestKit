@@ -1,7 +1,6 @@
 """
 镜像接口测试
 
-转换自 JMeter 脚本: image-api.jmx
 测试内容：获取镜像 tag 列表
 """
 
@@ -21,10 +20,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算Extensions接口")
 @allure.story("镜像管理接口")
 class TestEcExtensionsImageApi:
-    """
-    对应 JMeter 脚本: image-api.jmx
-    线程组: Thread Group - 镜像tag
-    """
 
     TENANT = None
 

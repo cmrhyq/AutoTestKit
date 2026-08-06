@@ -4,7 +4,7 @@
 面向磐基（PanJi）弹性计算平台的 **内部扩展接口** 客户端，与 `openapi` 类接口互补：
 路径无 `/openapi/` 前缀，使用 apikey 三件头鉴权，不需要 Portal Bearer Token。
 
-业务域覆盖（对应 auto_test_pro / auto-test/files/elastic-compute/extensions/*.jmx）：
+业务域覆盖（elastic-compute/extensions）：
 - applications / fuzzy-query：应用服务查询与模糊搜索
 - app-grant：应用授权与解除授权
 - cluster-manager：集群管理（列表 / 详情 / 状态 / 控制面）
@@ -71,7 +71,7 @@ def _get_admin_headers() -> Dict[str, str]:
     """获取以管理员身份访问 Extensions 接口所用请求头。
 
     在默认 headers 基础上，用 adminUsername / adminTenantCode 覆盖 username / tenantCode，
-    局部 HeaderManager 使用 admin 身份的场景。
+    适用于使用 admin 身份的场景。
     """
     env = env_manager.get_config()
     headers = _get_ext_headers()

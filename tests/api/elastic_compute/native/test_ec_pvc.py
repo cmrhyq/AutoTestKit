@@ -1,10 +1,7 @@
 """
 弹性计算 Native PVC 接口测试
 
-转换自 JMeter 脚本: pvc-pv-api.jmx
 测试内容：PersistentVolumeClaim 原生接口生命周期测试（查询、创建、删除）
-
-注意：JMX 中仅包含 PVC 部分，没有 PV / update / list 接口。
 """
 import allure
 import pytest
@@ -27,10 +24,6 @@ logger = get_logger(__name__)
 @allure.feature("磐基弹性计算Native接口")
 @allure.story("PersistentVolumeClaim 原生接口")
 class TestEcNativePvc:
-    """
-    对应 JMeter 脚本: pvc-pv-api.jmx
-    线程组: Thread Group - PVC/PV API原生接口
-    """
 
     TENANT = Tenant.ADMIN
 

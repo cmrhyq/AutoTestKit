@@ -1,7 +1,6 @@
 """
 配额管理（管理员视角）接口测试
 
-转换自 JMeter 脚本: quota-manager-admin.jmx
 测试内容：配额管理完整流程（集群配额概览、批量查询、租户配额分配/调整/查询/列表、系统配额概览/详情/可调整查询）
 """
 import allure
@@ -24,10 +23,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("配额管理接口（管理员视角）")
 class TestEcOpenapiQuotaManagerAdmin:
-    """
-    对应 JMeter 脚本: quota-manager-admin.jmx
-    线程组: Thread Group - quota-manager-admin
-    """
 
     TENANT = Tenant.ADMIN
 

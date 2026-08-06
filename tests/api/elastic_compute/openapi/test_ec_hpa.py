@@ -1,8 +1,6 @@
 """
 弹性计算 OpenAPI HPA(HorizontalPodAutoscaler) 接口测试
 
-转换自 JMeter 脚本: elastic-compute/openapi/HPA.jmx
-线程组: Thread Group - hpa
 测试内容：HPA 完整生命周期（查询/条件清理/创建/命名空间列表/全集群列表/PUT 全量更新/PATCH 增量更新/删除/删除后验证）
 """
 import json
@@ -28,9 +26,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("HPA 生命周期接口")
 class TestEcOpenapiHpa:
     """
-    对应 JMeter 脚本: HPA.jmx
-    线程组: Thread Group - hpa
-
     拆分为独立接口测试函数，通过 pytest-dependency 保证执行顺序和依赖关系。
     执行顺序：查询 → 清理已存在 → 创建 → 命名空间列表 → 全集群列表 →
              PUT 更新 → PATCH 增量更新 → 删除 → 删除后验证。

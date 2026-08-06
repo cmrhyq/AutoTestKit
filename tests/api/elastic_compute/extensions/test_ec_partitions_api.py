@@ -1,7 +1,6 @@
 """
 Partitions API 接口测试（Extensions - apikey 鉴权）
 
-转换自 JMeter 脚本: partitions-api.jmx
 测试内容：
     - 托管集群分支（testHostCluster==1）：
         1) 创建/获取/更新 ResourceQuota
@@ -37,13 +36,9 @@ from core.reporting.allure_helper import AllureHelper
 @allure.story("Partitions API - ResourceQuota / LimitRange 接口")
 class TestEcExtensionsPartitionsApi:
     """
-    对应 JMeter 脚本: partitions-api.jmx
-    线程组: Thread Group - partitions-api
-
-    JMX 通过 testHostCluster 变量分流：
         1: 托管集群 → 有 create/delete 接口
         0: 标准集群 → 只有 get/update
-    最后共同分支查询节点信息（局部 HeaderManager 使用 adminUsername/adminTenantCode）。
+    最后共同分支查询节点信息（使用 admin 头覆盖）。
     """
 
     TENANT = None
@@ -246,7 +241,7 @@ class TestEcExtensionsPartitionsApi:
     @allure.description("标准集群下以空 body 更新 ResourceQuota，断言业务码为 2000；托管集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_resource_quota_standard(self, ec_ext_service, public_params):
-        """标准集群 ResourceQuota 更新（PUT 空 body 对齐 JMX）。"""
+        """标准集群 ResourceQuota 更新（PUT 空 body）。"""
         self._skip_if_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):
@@ -281,7 +276,7 @@ class TestEcExtensionsPartitionsApi:
     @allure.description("标准集群下以空 body 更新 LimitRange，断言业务码为 2000；托管集群 env 跳过")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_limit_range_standard(self, ec_ext_service, public_params):
-        """标准集群 LimitRange 更新（PUT 空 body 对齐 JMX）。"""
+        """标准集群 LimitRange 更新（PUT 空 body）。"""
         self._skip_if_host_cluster(public_params.is_host_cluster)
 
         with AllureHelper.api_test(ec_ext_service):

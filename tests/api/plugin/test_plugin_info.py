@@ -43,7 +43,6 @@ class TestPluginInfo:
 
             with AllureHelper.step("验证响应数据"):
                 assert isinstance(response_json, dict), "响应应该是字典类型"
-                # JMX 中提取 $.code，默认值5000表示可能失败但接口可达
                 assert "code" in response_json, "响应应包含 code 字段"
 
     @allure.title("获取当前环境插件数据")

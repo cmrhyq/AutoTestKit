@@ -1,7 +1,6 @@
 """
 OIDC/Harbor 初始化 接口测试
 
-转换自 JMeter 脚本: oidc-harborinit.jmx
 测试内容：获取 OIDC 信息
 """
 import allure
@@ -22,10 +21,6 @@ from core.reporting.allure_helper import AllureHelper
 @allure.feature("磐基弹性计算OpenAPI接口")
 @allure.story("OIDC/Harbor 初始化接口")
 class TestEcOpenapiOidcHarborinit:
-    """
-    对应 JMeter 脚本: oidc-harborinit.jmx
-    线程组: Thread Group - Oidc
-    """
 
     TENANT = Tenant.MONITOR_GROUP
 

@@ -25,10 +25,10 @@ from base.api.entity.elastic_compute.native import PaasLabels
 @dataclass
 class WorkloadPublicParams(object):
     """
-    Workload 生命周期测试的公共参数集合（对齐 workload.jmx 中的默认变量）。
+    Workload 生命周期测试的公共参数集合。
 
     集中承载 cluster / namespace / kind / name / image / labels 等常用字段，
-    供测试用例传给 service 层构造具体 Entity。字段名与 JMX 变量一一对应。
+    供测试用例传给 service 层构造具体 Entity。
 
     Attributes:
         cluster_id: 集群 ID
@@ -62,7 +62,7 @@ class WorkloadPublicParams(object):
 @dataclass
 class WorkloadEntity(object):
     """
-    Workload create / update / batch payload 的实体表示（对应 workload.jmx create body）。
+    Workload create / update / batch payload 的实体表示。
 
     字段命名使用 snake_case（Python 侧），service 层负责映射到 API 契约的字段名
     （name / kind / replicas / image / appCode / labels）。
@@ -86,7 +86,7 @@ class WorkloadEntity(object):
     @classmethod
     def from_public_params(cls, params: "WorkloadPublicParams") -> "WorkloadEntity":
         """
-        从 WorkloadPublicParams 快捷构造 WorkloadEntity，并附加对齐 JMX 的 12 项 PaaS 标签。
+        从 WorkloadPublicParams 快捷构造 WorkloadEntity，并附加 12 项 PaaS 标签。
         """
         labels = PaasLabels(
             paas_owner=params.paas_owner,
@@ -121,7 +121,7 @@ class WorkloadServicePortEntity(object):
 @dataclass
 class WorkloadServiceEntity(object):
     """
-    Workload 关联的 Service payload 单项（对应 workload.jmx update-services body）。
+    Workload 关联的 Service payload 单项。
 
     Attributes:
         name: Service 名称（一般等于 Workload 名称）
@@ -138,9 +138,9 @@ class WorkloadServiceEntity(object):
 @dataclass
 class WorkloadPatchEntity(object):
     """
-    Workload PATCH（增量更新）payload 实体（对应 workload.jmx patch body）。
+    Workload PATCH（增量更新）payload 实体。
 
-    PATCH 场景为局部字段更新，目前 JMX 场景只使用 labels 字段。
+    PATCH 场景为局部字段更新，当前只使用 labels 字段。
     如后续需要 patch 其他字段，可在此扩展。
     """
 
@@ -152,7 +152,7 @@ class WorkloadPatchEntity(object):
 @dataclass
 class HelmChartPublicParams(object):
     """
-    Helm/Chart 生命周期测试的公共参数集合（对齐 helm-chart.jmx 用户参数默认值）。
+    Helm/Chart 生命周期测试的公共参数集合。
 
     Attributes:
         cluster_id: 集群 ID
@@ -191,7 +191,7 @@ class HelmReleaseEntity(object):
     """
     Helm Install / Upgrade / 批量安装 / 批量升级 的单条 Release 实体。
 
-    对应 helm-chart.jmx 中 install/upgrade body 的核心字段。
+    覆盖 install/upgrade body 的核心字段。
     Python 侧字段为 snake_case，service 层负责组装成 API 契约要求的
     带点 flat key（image.repository / labels.paas-* / service.labels.paas-*）。
 
@@ -207,7 +207,7 @@ class HelmReleaseEntity(object):
         paas_app_code / paas_owner / paas_tenant_code / paas_env_code /
             paas_plane_code: PaaS 标签字段
         extra_label_test: True 时额外追加 labels.test=update / service.labels.test=update
-            （对齐 JMX upgrade 场景），默认 False（install 场景）
+            ，默认 False（install 场景）
     """
 
     name: str
@@ -250,7 +250,7 @@ class HelmReleaseEntity(object):
 @dataclass
 class HelmBatchUninstallEntity(object):
     """
-    Helm 批量卸载 payload 实体（对应 helm-chart.jmx 批量卸载 body）。
+    Helm 批量卸载 payload 实体。
 
     Attributes:
         release_names: 待卸载的 Helm Release 名称列表
@@ -264,7 +264,7 @@ class HelmBatchUninstallEntity(object):
 @dataclass
 class PartitionsPublicParams(object):
     """
-    Partitions API 测试公共参数（对齐 partitions-api.jmx 用户参数默认值）。
+    Partitions API 测试公共参数。
 
     Attributes:
         cluster_id: 集群 ID
@@ -279,7 +279,7 @@ class PartitionsPublicParams(object):
 @dataclass
 class ResourceQuotaEntity(object):
     """
-    ResourceQuota 创建 / 更新 payload 实体（对应 partitions-api.jmx create body）。
+    ResourceQuota 创建 / 更新 payload 实体。
 
     Attributes:
         limits_cpu: CPU 上限（核）
@@ -296,7 +296,7 @@ class ResourceQuotaEntity(object):
 @dataclass
 class LimitRangeEntity(object):
     """
-    LimitRange 创建 / 更新 payload 实体（对应 partitions-api.jmx create body）。
+    LimitRange 创建 / 更新 payload 实体。
 
     Attributes:
         max_cpu: 最大 CPU 限额
@@ -316,7 +316,7 @@ class LimitRangeEntity(object):
 @dataclass
 class CustomResourcePublicParams(object):
     """
-    CustomResource V1 测试公共参数（对齐 CustomResourceV1.jmx 用户参数默认值）。
+    CustomResource V1 测试公共参数。
 
     Attributes:
         cluster_id: 集群 ID
@@ -337,7 +337,7 @@ class CustomResourcePublicParams(object):
 @dataclass
 class CustomResourceCreateEntity(object):
     """
-    CustomResource 创建 payload 实体（对应 CustomResourceV1.jmx create body）。
+    CustomResource 创建 payload 实体。
 
     Attributes:
         group: CRD API group
@@ -370,7 +370,7 @@ class CustomResourceCreateEntity(object):
 @dataclass
 class CustomResourceUpdateEntity(object):
     """
-    CustomResource 更新 payload 实体（对应 CustomResourceV1.jmx update body）。
+    CustomResource 更新 payload 实体。
 
     Attributes:
         group: CRD API group
@@ -409,11 +409,11 @@ class CustomResourceUpdateEntity(object):
 @dataclass
 class TenantQuotaPublicParams(object):
     """
-    Tenant Quota 测试公共参数（对齐 tenant-quota.jmx 用户参数默认值）。
+    Tenant Quota 测试公共参数。
 
     Attributes:
         cluster_id: 集群 ID
-        tenant_code: 租户编码（对齐 JMX 中 adminTenantCode 变量）
+        tenant_code: 租户编码
     """
 
     cluster_id: str
@@ -423,7 +423,7 @@ class TenantQuotaPublicParams(object):
 class TenantQuotaBatchEntity(object):
     """
     批量查询租户资源配额概览的 payload 实体
-    （对应 tenant-quota.jmx 中 POST /v1/tenants/quota/batch 的 body）。
+    。
 
     Attributes:
         tenant_codes: 待查询的租户编码列表
@@ -437,12 +437,12 @@ class TenantQuotaBatchEntity(object):
 @dataclass
 class PhysicalHostPublicParams(object):
     """
-    Physical Host 测试公共参数（对齐 physical-host.jmx 用户参数默认值）。
+    Physical Host 测试公共参数。
 
     Attributes:
         fallback_host_id: 当动态查询未获取到 hostId 时的回退值（env physicalHostId）
         admin_tenant_code: 绑定用租户编码（管理员场景，写入 bind 接口）
-        bind_tenant_code: 解绑用租户编码（对齐 JMX 中两个可能不同的变量）
+        bind_tenant_code: 解绑用租户编码
     """
 
     fallback_host_id: str
@@ -455,7 +455,7 @@ class PhysicalHostPublicParams(object):
 @dataclass
 class NamespaceQuotaPublicParams(object):
     """
-    Namespace Quota 测试公共参数（对齐 namespace-quota.jmx 用户参数默认值）。
+    Namespace Quota 测试公共参数。
 
     Attributes:
         cluster_id: 集群 ID
@@ -473,7 +473,7 @@ class NamespaceQuotaPublicParams(object):
 @dataclass
 class NginxRbacPublicParams(object):
     """
-    Nginx RBAC 模板测试公共参数（对齐 nginx-rbac.jmx 用户参数默认值）。
+    Nginx RBAC 模板测试公共参数。
 
     Attributes:
         cluster_id: 集群 ID
@@ -491,7 +491,7 @@ class NginxRbacPublicParams(object):
 @dataclass
 class SystemBindPublicParams(object):
     """
-    System Bind 测试公共参数（对齐 system-bind.jmx 用户参数默认值）。
+    System Bind 测试公共参数。
 
     Attributes:
         tenant_code: 租户编码
@@ -509,7 +509,7 @@ class SystemBindPublicParams(object):
 @dataclass
 class ClusterManagerPublicParams(object):
     """
-    Cluster Manager 测试公共参数（对齐 cluster-manager.jmx 用户参数默认值）。
+    Cluster Manager 测试公共参数。
 
     Attributes:
         cluster_id: 集群 ID（fallback 值，实际优先使用 api_cache 中动态提取的 ext_cluster_id）
@@ -523,7 +523,7 @@ class ClusterManagerPublicParams(object):
 @dataclass
 class AppGrantPublicParams(object):
     """
-    App Grant 测试公共参数（对齐 app-grant.jmx 用户参数默认值）。
+    App Grant 测试公共参数。
 
     Attributes:
         app_code: 应用编码
@@ -539,7 +539,7 @@ class AppGrantPublicParams(object):
 class AppGrantEntity(object):
     """
     应用授权请求体实体
-    （对应 app-grant.jmx 中 POST /elastic-compute/v1/applications/{appCode}/grantUsers 的 body）。
+    。
 
     Attributes:
         users: 待授权的用户名列表
@@ -552,9 +552,7 @@ class AppGrantEntity(object):
 @dataclass
 class AppRemoveGrantEntity(object):
     """
-    解除应用授权请求体实体
-    （对应 app-grant.jmx 中 DELETE /elastic-compute/v1/applications/{appCode}/grantUsers 的 body，
-    JMX 中为纯 JSON 数组形态）。
+    解除应用授权请求体实体。
 
     Attributes:
         users: 待解除授权的用户名列表（序列化为 JSON 数组，非对象）
@@ -568,12 +566,12 @@ class AppRemoveGrantEntity(object):
 @dataclass
 class DashboardPublicParams(object):
     """
-    Dashboard 测试公共参数（对齐 Dashboard.jmx 用户参数默认值）。
+    Dashboard 测试公共参数。
 
     Attributes:
         tenant_code: 租户编码
-        start_time: 查询起始时间戳（毫秒，字符串形态对齐 JMX 用户参数）
-        end_time: 查询结束时间戳（毫秒，字符串形态对齐 JMX 用户参数）
+        start_time: 查询起始时间戳（毫秒，字符串形态）
+        end_time: 查询结束时间戳（毫秒，字符串形态）
     """
 
     tenant_code: str
@@ -586,11 +584,11 @@ class DashboardPublicParams(object):
 @dataclass
 class NodePublicParams(object):
     """
-    Node 节点污点查询测试公共参数（对齐 Node.jmx 用户参数默认值）。
+    Node 节点污点查询测试公共参数。
 
     Attributes:
         cell_code: 单元编码
-        node_name: 节点名（对齐 JMX 中 nodeIp 变量）
+        node_name: 节点名
     """
 
     cell_code: str
@@ -602,10 +600,10 @@ class NodePublicParams(object):
 @dataclass
 class HarborBindPublicParams(object):
     """
-    Harbor 绑定集群测试公共参数（对齐 harbor-bindcluster.jmx 用户参数默认值）。
+    Harbor 绑定集群测试公共参数。
 
     Attributes:
-        cluster_id: 集群 ID（JMX 中为数值类型）
+        cluster_id: 集群 ID
         harbor_name: Harbor 仓库名称
     """
 
@@ -616,7 +614,7 @@ class HarborBindPublicParams(object):
 class HarborBindClusterEntity(object):
     """
     Harbor 绑定集群请求体实体
-    （对应 harbor-bindcluster.jmx 中 POST /elastic-compute/v1/harbor/bindCluster 的 body）。
+    。
 
     Attributes:
         cluster_id: 集群 ID（数值）
@@ -632,11 +630,11 @@ class HarborBindClusterEntity(object):
 @dataclass
 class ImageApiPublicParams(object):
     """
-    Image API 测试公共参数（对齐 image-api.jmx 用户参数默认值）。
+    Image API 测试公共参数。
 
     Attributes:
-        repo_name: 镜像仓库名（对齐 JMX 中 nginxRepoName 变量）
-        project_name: 项目名（对齐 JMX 中 nginxProjectName 变量）
+        repo_name: 镜像仓库名
+        project_name: 项目名
     """
 
     repo_name: str
@@ -648,7 +646,7 @@ class ImageApiPublicParams(object):
 @dataclass
 class EndpointsPublicParams(object):
     """
-    Endpoints 测试公共参数（对齐 Endpoints.jmx 用户参数默认值）。
+    Endpoints 测试公共参数。
 
     Attributes:
         cell_code: 单元编码
@@ -662,7 +660,7 @@ class EndpointsPublicParams(object):
 @dataclass
 class HostBindPublicParams(object):
     """
-    Host Bind 测试公共参数（对齐 host-bind.jmx 用户参数默认值）。
+    Host Bind 测试公共参数。
 
     Attributes:
         cell_code: 单元编码
