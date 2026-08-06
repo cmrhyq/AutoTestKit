@@ -1,3 +1,21 @@
+"""
+微服务 OpenAPI 服务封装（Bearer 鉴权）
+
+面向磐基（PanJi）微服务治理平台的 **对外开放接口** 客户端，覆盖 Ingress 网关、Istio 网关、
+CMF（服务熔断限流）、UBM（统一业务监控）等治理域。
+
+业务域覆盖：
+- ingressnginx：Ingress Nginx 网关实例（增删改查 + 配置下发 + 启停扩缩容）
+- msingressgw：Nginx 参数模板管理
+- msingressksr：Ingress 网关实例启停 / 扩缩容
+- msistiogateway：Istio 网关（VirtualService / Gateway / 批量策略）
+- ms-ubm：UBM 业务监控（CMF 熔断限流、服务降级、Cell / Strategy 集群策略）
+
+鉴权：`Authorization: Bearer <token>`
+（由测试层 `service_factory` 从 `TokenManager` 注入；无 token 时不设置鉴权头，
+仅适用于登录 / 健康检查等 open path）。
+URL 前缀：`/openapi/ms-ingress/...`、`/openapi/ms-mesh/...`、`/openapi/ms-ubm/...`。
+"""
 from typing import Dict, Any, List, Optional
 
 from base import BaseService
@@ -24,6 +42,14 @@ logger = get_logger(__name__)
 
 
 class MicroservicesOpenService(BaseService):
+    """
+    微服务 OpenAPI 服务（对外开放接口）。
+
+    - 鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入；token 缺省时不设置鉴权头）
+    - URL 前缀：`/openapi/ms-ingress/...`、`/openapi/ms-mesh/...`、`/openapi/ms-ubm/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
         """

@@ -1,3 +1,22 @@
+"""
+门户 OpenAPI 服务封装（Bearer 鉴权 + 登录例外）
+
+面向磐基（PanJi）门户系统的 **对外开放接口** 客户端，覆盖门户登录、集群面板、系统 / 应用
+生命周期与授权。
+
+业务域覆盖：
+- 登录：`get_token`（Bearer Token 签发入口，登录时 token 为 None）
+- 字段信息：门户业务字段元数据
+- 集群面板：集群 / 租户 - 集群绑定的 CRUD
+- 系统 / 应用：OpenSystem / Application 的 CRUD + 用户授权
+- 资源配额：系统资源分配与配额管理
+
+鉴权：`Authorization: Bearer <token>`。
+      **例外**：`get_token` 登录接口初始化时 token 可为 None，此时不设置鉴权头；
+      其他业务方法调用前，测试层需先通过 `TokenManager` / `get_token` 获取并注入 token。
+URL 前缀：业务接口 `/openapi/portal/restApi/...`；
+        登录接口 `/apisix/plugin/jwt/sign`（走 APISIX JWT 签发）。
+"""
 from typing import Dict, Any, Optional
 
 from base.api.services.base_service import BaseService
@@ -14,6 +33,16 @@ logger = get_logger(__name__)
 
 
 class PortalOpenService(BaseService):
+    """
+    门户 OpenAPI 服务（对外开放接口）。
+
+    - 鉴权：`Authorization: Bearer <token>`
+      （**例外**：`get_token` 登录接口首次初始化时 token 可为 None，不设置鉴权头；
+      其他业务方法调用前需先通过 `TokenManager` / `get_token` 获取并注入 token）
+    - URL 前缀：业务接口 `/openapi/portal/restApi/...`；
+              登录接口 `/apisix/plugin/jwt/sign`（走 APISIX JWT 签发）
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
         """

@@ -1,3 +1,18 @@
+"""
+可观测 OpenAPI 服务封装（Bearer 鉴权）
+
+面向磐基（PanJi）可观测平台的 **对外开放接口** 客户端，覆盖日志检索与查询模型管理。
+
+业务域覆盖：
+- observable-log：四元组（namespace/cluster/pod/container）日志检索、日志拉取、
+  日志上下文回溯
+- observable-query：查询模型配置管理（新建 / 更新 / 列表 / 删除）
+
+鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入，必传）。
+URL 前缀：`/openapi/monitor-o11y/webgate-log-console/3rd/log/...`
+        与 `/openapi/monitor-o11y/webgate-log-console/3rd/query/...`。
+"""
 from typing import Dict, Any, Optional
 
 from base import BaseService
@@ -13,6 +28,14 @@ logger = get_logger(__name__)
 
 
 class ObservableOpenService(BaseService):
+    """
+    可观测 OpenAPI 服务（对外开放接口）。
+
+    - 鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入，必传）
+    - URL 前缀：`/openapi/monitor-o11y/webgate-log-console/3rd/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
         """

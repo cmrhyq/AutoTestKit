@@ -1,3 +1,21 @@
+"""
+门户 InnerAPI 服务封装（apikey 鉴权）
+
+面向磐基（PanJi）门户系统的 **内部管控接口** 客户端，覆盖门户核心元数据（用户、租户、
+角色、菜单、系统、应用）的全生命周期管理与授权。
+
+业务域覆盖：
+- 用户 / 租户 / 角色 / 菜单：门户核心 IAM 元数据
+- 字典 / API / 系统配置 / 版本 / 平台 / 全局配置 / 域：门户配置元数据
+- 授权：用户 - 租户 / 用户 - 角色 / 用户 - 系统 / 用户 - 应用 授权
+- 消息：门户内消息通道
+- 系统 / 应用管理：内部系统与应用注册
+- 实例查询 / 菜单管理：门户仪表盘数据源
+
+鉴权：`apikey` 请求头（静态值）+ `tenantCode` + `x-app-id: portal` 三件头。
+URL 前缀：`/portal/server/api/...`、`/portal/server/api/v2/...`
+（无 `/openapi/` 前缀）。
+"""
 from typing import Dict, Any, List
 
 from base.api.services.base_service import BaseService
@@ -26,8 +44,11 @@ def _get_default_headers() -> Dict[str, str]:
 
 class PortalInnerService(BaseService):
     """
-    盘古门户 InnerAPI 服务类
-    提供门户系统内部 API 的调用方法
+    门户 InnerAPI 服务（内部管控接口）。
+
+    - 鉴权：`apikey` 请求头（静态值）+ `tenantCode` + `x-app-id: portal` 三件头
+    - URL 前缀：`/portal/server/api/...`、`/portal/server/api/v2/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str):

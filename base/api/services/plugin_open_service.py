@@ -1,3 +1,19 @@
+"""
+插件 OpenAPI 服务封装（Bearer 鉴权）
+
+面向磐基（PanJi）插件市场 / 插件管理平台的 **对外开放接口** 客户端，覆盖插件元信息、
+安装信息、MCP 任务校验等场景。
+
+业务域覆盖：
+- 插件安装信息查询（按插件名）
+- 当前环境插件版本数据上报
+- MCP 任务配置与特性校验
+- 权限转移能力查询
+
+鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入）。
+URL 前缀：`/openapi/plugin-mgmt/api/v1/...`。
+"""
 from typing import Dict, Any, Optional
 
 from base import BaseService
@@ -7,6 +23,14 @@ logger = get_logger(__name__)
 
 
 class PluginOpenService(BaseService):
+    """
+    插件 OpenAPI 服务（对外开放接口）。
+
+    - 鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入）
+    - URL 前缀：`/openapi/plugin-mgmt/api/v1/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
         """

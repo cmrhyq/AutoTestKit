@@ -1,3 +1,16 @@
+"""
+插件 InnerAPI 服务封装（apikey 鉴权）
+
+面向磐基（PanJi）插件管理平台的 **内部接口** 客户端，与对外 `plugin_open` 系统互补，
+供门户后台聚合展示等场景使用。
+
+业务域覆盖：
+- 插件安装数量统计
+
+鉴权：`apikey` 请求头（硬编码为固定值，供 Portal 后台集成使用）
+      + `x-app-id: portal` 应用标识。
+URL 前缀：`/plugin/server/api/v1/...`（无 `/openapi/` 前缀）。
+"""
 from typing import Dict, Any
 
 from base import BaseService
@@ -14,6 +27,13 @@ def _get_default_headers() -> Dict[str, str]:
 
 
 class PluginInnerService(BaseService):
+    """
+    插件 InnerAPI 服务（内部接口）。
+
+    - 鉴权：`apikey` 请求头（静态值，供 Portal 后台集成）+ `x-app-id: portal`
+    - URL 前缀：`/plugin/server/api/v1/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str):
         """

@@ -1,20 +1,30 @@
 """
 弹性计算 Extensions 服务封装（apikey 鉴权）
 
-基于 auto_test_pro 的 auto-test/files/elastic-compute/extensions/*.jmx 转换：
-- applications.jmx：查询应用服务列表
-- helm-chart.jmx：Helm/Chart 完整生命周期
-- nginx-rbac.jmx：Nginx RBAC 模板管理
-- Node.jmx：节点污点查询
-- partitions-api.jmx：ResourceQuota / LimitRange 分区 API
-- physical-host.jmx：裸金属主机绑定/查询
-- tenant-quota.jmx：租户资源配额相关接口
-- workload.jmx：Workload 单实例 & 批量生命周期
-- system-bind.jmx：系统 - 用户绑定接口
+面向磐基（PanJi）弹性计算平台的 **内部扩展接口** 客户端，与 `openapi` 类接口互补：
+路径无 `/openapi/` 前缀，使用 apikey 三件头鉴权，不需要 Portal Bearer Token。
 
-Extensions 类接口使用 apikey/username/tenantCode 三件头鉴权，
-不需要走 Portal 登录、也不需要 Bearer Token。
-所有敏感值均从 core.config.env_manager 的 yaml 配置读取，杜绝硬编码。
+业务域覆盖（对应 auto_test_pro / auto-test/files/elastic-compute/extensions/*.jmx）：
+- applications / fuzzy-query：应用服务查询与模糊搜索
+- app-grant：应用授权与解除授权
+- cluster-manager：集群管理（列表 / 详情 / 状态 / 控制面）
+- CustomResourceV1：K8s CustomResource 生命周期
+- Dashboard：资源信息与工作负载统计面板
+- ElasticComputeResourceCollectorAPI：全量资源采集指标
+- harbor-bindcluster：Harbor 仓库绑定集群
+- helm-chart：Helm Chart 完整生命周期（含 v1 / v2 批量接口）
+- host-bind / physical-host：主机绑定与裸金属主机管理
+- image-api：镜像仓库 tag 查询
+- namespace-quota / tenant-quota：命名空间与租户配额
+- nginx-rbac：Nginx RBAC 模板
+- Node：节点污点查询
+- partitions-api：ResourceQuota / LimitRange 分区管理
+- system-bind：系统 - 用户绑定
+- workload：Workload 单实例 & 批量生命周期
+
+鉴权：`apikey` 请求头 + `username` / `tenantCode` 三件头组合。
+URL 前缀：`/elastic-compute/v1/...` 或 `/elastic-compute/v2/...`（无 `/openapi/` 前缀）。
+敏感值统一从 `core.config.env_manager` 的 yaml 配置读取，杜绝硬编码。
 """
 
 import os
@@ -85,16 +95,18 @@ def _get_workload_headers() -> Dict[str, str]:
 
 class ElasticComputeExtService(BaseService):
     """
-    弹性计算 Extensions 服务（apikey 鉴权）
+    弹性计算 Extensions 服务（磐基内部扩展接口）。
 
-    与 openapi 类接口的区别：
-    - 接口为系统内部接口
-    - URL 前缀通常为 /elastic-compute/... 而非 /openapi/elastic-compute/...
+    - 鉴权：`apikey` 请求头（`_get_ext_headers` 补 `username` / `tenantCode`；
+      管理员场景走 `_get_admin_headers`；Workload 类走 `_get_workload_headers`）
+    - URL 前缀：`/elastic-compute/v1/...` 与 `/elastic-compute/v2/...`
+      （与 `openapi` 系接口的 `/openapi/elastic-compute/...` 前缀相区分）
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str):
         """
-        初始化 PanJi 弹性计算 Extensions 服务
+        初始化 PanJi 弹性计算 Extensions 服务接口
 
         Args:
             base_url: API 基础 URL（必传，来自 config/env_*.yaml 的 apiBaseUrl）

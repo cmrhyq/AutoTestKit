@@ -1,20 +1,26 @@
 """
-弹性计算 Native K8s API 服务封装（特权接口 - Bearer + X-API-KEY + apikey 鉴权）
+弹性计算 Native K8s API 服务封装（特权接口 - Bearer + X-API-KEY + apikey 三重鉴权）
 
-基于 auto_test_pro 的 auto-test/files/elastic-compute/native/*.jmx 转换：
-- serviceaccount.jmx（3 个去重接口）
-- daemonset.jmx（4 个去重接口：查询/创建/更新/删除）
-- clusterrolebinding.jmx（3 个去重接口：查询/创建/删除）
-- configmap.jmx（5 个去重接口：查询/创建/列表/更新/删除）
-- crd.jmx（4 个去重接口：查询/创建/列表/删除）
+面向磐基（PanJi）弹性计算平台的 **K8s 原生代理接口** 客户端，直接透传 K8s API Server
+资源模型（apiVersion/metadata/spec），与 `openapi` / `extensions` 系统的扁平化契约互补。
 
-Native 类接口直接代理 K8s API Server，路径模式为：
-  /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/{resource}
-  /elastic-compute/v2/k8s/clusters/{clusterId}/apis/{apiGroup}/{version}/...
+业务域覆盖（对应 auto_test_pro / auto-test/files/elastic-compute/native/*.jmx）：
+- 工作负载：Deployment / StatefulSet / DaemonSet / Job / Pod
+- K8s 标准资源：ConfigMap / Secret / Service / ServiceAccount / Endpoints / Ingress
+- 权限与调度：Role / RoleBinding / ClusterRole / ClusterRoleBinding / PriorityClass
+- 存储与配额：PVC / PV / StorageClass / ResourceQuota / LimitRange
+- 集群级：Namespace / Node / HPA / CRD / CustomResource
+- 弹性伸缩：Scaled Object / Recovery Resource
 
-鉴权方式：Bearer Token + X-API-KEY + apikey 三重头。
-- Bearer 通过 BaseService 的 auth_type='bearer' 承载于 session.headers（由 service_factory 从 TokenManager 注入）
-- X-API-KEY + apikey 为静态头，通过 _get_native_headers() 在每次请求时补充
+鉴权：Bearer Token + `X-API-KEY` + `apikey` 三重头。
+- Bearer 由 `BaseService(auth_type='bearer')` 挂到 `session.headers`（测试层 `service_factory`
+  通过 `TokenManager` 注入）
+- `X-API-KEY` + `apikey` 为静态特权头，由 `_get_native_headers()` 每次请求补充
+URL 前缀：`/elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/...`
+        或 `/elastic-compute/v2/k8s/clusters/{clusterId}/apis/{group}/{version}/...`。
+
+**特权接口**：不经磐基业务层扁平化包装，直接返回 K8s 原生 JSON（含 `code=0` 表示无 `{code, data}`
+封装），成功语义由 HTTP 状态码判断（200 OK / 201 Created / 404 NotFound）。
 """
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -57,14 +63,15 @@ def _get_native_headers() -> Dict[str, str]:
 
 class ElasticComputeNativeService(BaseService):
     """
-    弹性计算 Native K8s API 服务（特权接口）
+    弹性计算 Native K8s API 服务接口（特权接口）。
 
-    与 OpenAPI 类接口的区别：
-    - 直接代理 K8s API Server
-    - 使用 Bearer + X-API-KEY + apikey 三重鉴权
-    - 路径前缀为 /elastic-compute/v2/k8s/clusters/{clusterId}/...
-    - 响应格式为原生 K8s JSON（非 {code, data} 包装）
-    - HTTP 状态码判断成功/失败（200=成功, 201=创建成功, 404=不存在）
+    - 鉴权：Bearer Token + `X-API-KEY` + `apikey` 三重头
+      （Bearer 由 `TokenManager` 注入；后两者由 `_get_native_headers()` 每次请求补充）
+    - URL 前缀：`/elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/...`
+              或 `/elastic-compute/v2/k8s/clusters/{clusterId}/apis/{group}/{version}/...`
+    - 响应模型：K8s 原生 JSON（apiVersion/metadata/spec/status），无 `{code, data}` 封装
+    - 成功判定：HTTP 状态码（200 / 201 / 404 语义 direct passthrough）
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str, token: Optional[str] = None):

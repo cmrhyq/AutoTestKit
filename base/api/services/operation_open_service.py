@@ -1,3 +1,19 @@
+"""
+运维 OpenAPI 服务封装（Bearer 鉴权）
+
+面向磐基（PanJi）运维监控与巡检平台的 **对外开放接口** 客户端，覆盖告警、拨测、
+指标查询与巡检任务。
+
+业务域覆盖：
+- 告警：最近告警数量查询
+- 拨测（Synthetic）：接口 / 服务拨测日志查询
+- 指标（Metric）：批量指标查询
+- 巡检：巡检任务触发执行
+
+鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入）。
+URL 前缀：`/openapi/monitor-inspection/cluster-inspection/api/...`。
+"""
 from typing import Dict, Any, List, Optional, Union
 
 from base import BaseService
@@ -8,6 +24,14 @@ logger = get_logger(__name__)
 
 
 class OperationOpenService(BaseService):
+    """
+    运维 OpenAPI 服务（对外开放接口）。
+
+    - 鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入）
+    - URL 前缀：`/openapi/monitor-inspection/cluster-inspection/api/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
         """

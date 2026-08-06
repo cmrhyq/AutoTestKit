@@ -1,3 +1,18 @@
+"""
+微服务 InnerAPI 服务封装（apikey 鉴权）
+
+面向磐基（PanJi）微服务治理平台的 **内部管控接口** 客户端，与对外的 `microservices_open`
+系统互补，供平台自身与内部治理链路调用。
+
+业务域覆盖：
+- ISTIO 网关内部接口：Kem（Ingress Gateway 实例）、MeshVirtualService、MeshNode 的
+  内部生命周期管理与状态同步
+
+鉴权：`apikey` 请求头（值取自 `env yaml` 的 `ms_apikey` 键，避免源码硬编码）
+      + `username` / `tenantCode` 三件头（由 `_get_default_headers()` 每次请求补充）。
+URL 前缀：`/ms-mesh/microservice-mesh-console/openapi/internal/...`
+（**注意**：路径含 `openapi/internal` 段，但语义仍为 Inner API，与 open 系不同）。
+"""
 from typing import Dict, Any
 
 from base import BaseService
@@ -28,6 +43,14 @@ def _get_default_headers() -> Dict[str, str]:
 
 
 class MicroservicesInnerService(BaseService):
+    """
+    微服务 InnerAPI 服务（内部管控接口）。
+
+    - 鉴权：`apikey` 请求头（值取自 `env yaml` 的 `ms_apikey`）
+      + `username` / `tenantCode` 三件头
+    - URL 前缀：`/ms-mesh/microservice-mesh-console/openapi/internal/...`
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    """
 
     def __init__(self, base_url: str):
         """

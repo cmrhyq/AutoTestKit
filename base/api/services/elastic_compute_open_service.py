@@ -1,30 +1,28 @@
 """
 弹性计算 OpenAPI 服务封装（Bearer 鉴权）
 
-基于 auto_test_pro 的 auto-test/files/elastic-compute/openapi/*.jmx 转换。
+面向磐基（PanJi）弹性计算平台的 **对外开放接口** 客户端，与 `native`（K8s 原生透传）
+和 `extensions`（内部扩展） 系统互补：路径统一以 `/openapi/elastic-compute/...` 开头，
+使用 Portal Bearer Token 鉴权。
 
-集群/命名空间/资源采集/节点：
-- cluster.jmx：集群管理生命周期
-- namespace-api.jmx：分区管理
-- elastic-computer-resource-collection.jmx：资源采集/指标信息
-- Node.jmx：Node 节点查询/更新
+业务域覆盖（对应 auto_test_pro / auto-test/files/elastic-compute/openapi/*.jmx）：
+- 集群 / 命名空间 / 节点 / 资源采集：
+  cluster、namespace-api、Node、elastic-computer-resource-collection
+- K8s 标准资源（Namespaced）：
+  ConfigMap、SecretV2、ServiceV2、ServiceAccountV2、EndpointsV2
+- K8s 集群级资源 / 命名空间配额：
+  LimitRange、resourcequota、PriorityClassesV2、RBAC_V2
+- 存储：
+  pvc-pv（简写路径 `/pvc /pv /storageClass` + 标准 K8s 路径
+  `/persistentvolumeclaims /persistentvolumes`）
+- 弹性伸缩 / 工作负载 / 端口 / 资源回收 / 租户配额分配 / Helm / Harbor / CustomResource
 
-PVC/PV/StorageClass（简写路径 /pvc /pv /storageClass）：
-- pvc-pv.jmx：PVC/PV/StorageClass 生命周期
+鉴权：`Authorization: Bearer <token>`（由测试层 `service_factory` 从 `TokenManager` 注入）。
+URL 前缀：`/openapi/elastic-compute/v1/...` 与 `/openapi/elastic-compute/v2/...`。
 
-K8s 标准资源（Namespaced）：
-- ConfigMap.jmx        （8）
-- SecretV2.jmx         （14）
-- ServiceV2.jmx        （14）
-- ServiceAccountV2.jmx （3）
-- EndpointsV2.jmx      （2）
-
-K8s 集群级资源 / 命名空间配额：
-- LimitRange.jmx        （16）
-- resourcequota.jmx     （16）
-- PriorityClassesV2.jmx （12）
-- RBAC_V2.jmx           （4）
-- pvc-pv.jmx（标准 K8s 路径 /persistentvolumeclaims /persistentvolumes）（12）
+**注意**：本服务的实体对象位于 `base.api.entity.elastic_compute.openapi`，
+与 `extensions` 系统的实体（磐基自定义扁平结构）物理隔离；本服务的 K8s 原生 spec 类实体
+统一以 `K8s` 前缀命名（如 `K8sConfigMapEntity`），避免与 `extensions` 同名类冲突。
 """
 from typing import Any, Dict, List, Optional
 import json
@@ -77,10 +75,15 @@ logger = get_logger(__name__)
 
 class ElasticComputeOpenService(BaseService):
     """
-    弹性计算 OpenAPI 服务
+    弹性计算 OpenAPI 服务接口（对外开放接口）。
 
-    - 走 Portal 的 Bearer Token（由测试层 service_factory 通过 TokenManager 注入）
-    - base_url 由 api_env["apiBaseUrl"] 提供（必传，不再硬编码默认值）
+    - 鉴权：`Authorization: Bearer <token>`
+      （由测试层 `service_factory` 从 `TokenManager` 注入）
+    - URL 前缀：`/openapi/elastic-compute/v1/...`、`/openapi/elastic-compute/v2/...`
+      （与 `extensions` 系统的 `/elastic-compute/...` 前缀相区分）
+    - 响应模型：磐基业务层扁平化包装（`{code, data, message}`），
+      **K8s 原生 spec 类接口** 除外（直接返回 apiVersion/metadata/spec 结构）
+    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
