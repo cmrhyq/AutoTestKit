@@ -43,7 +43,7 @@ class ObservableOpenService(BaseService):
     def query_log_by_quadruple(self, log: Log) -> Dict[str, Any]:
         """
         根据四元组检索日志
-
+        GET /openapi/monitor-o11y/webgate-log-console/3rd/log/query
         Args:
             log: 日志数据类
         """
@@ -66,7 +66,7 @@ class ObservableOpenService(BaseService):
     def pull_log_by_request_id(self, request_id: str) -> Dict[str, Any]:
         """
         根据日志检索requestId轮询拉取日志列表
-
+        GET /openapi/monitor-o11y/webgate-log-console/3rd/log/pull
         Args:
             request_id: 请求ID
         """
@@ -79,7 +79,7 @@ class ObservableOpenService(BaseService):
     def query_log_context(self, context: LogContext) -> Dict[str, Any]:
         """
         查询日志上下文
-
+        GET /openapi/monitor-o11y/webgate-log-console/3rd/log/context
         Args:
             context：日志上下文
         """
@@ -104,7 +104,7 @@ class ObservableOpenService(BaseService):
     def pull_log_context_by_request_id(self, request_id: str) -> Dict[str, Any]:
         """
         根据上下文检索requestId获取上下文日志列表
-
+        GET /openapi/monitor-o11y/webgate-log-console/3rd/log/context/pull
         Args:
             request_id: 上下文请求ID
         """
@@ -119,7 +119,7 @@ class ObservableOpenService(BaseService):
     def query_models(self, config: QueryModelConf) -> Dict[str, Any]:
         """
         查询模型列表
-
+        GET /openapi/monitor-o11y/amdb-console/publish/v3/confs/models
         Args:
             config: 查询配置
         """
@@ -140,7 +140,7 @@ class ObservableOpenService(BaseService):
     def get_model_by_id_or_name(self, model_id_or_name: str) -> Dict[str, Any]:
         """
         根据ID或名称获取模型
-
+        GET /openapi/monitor-o11y/amdb-console/publish/v3/confs/models/{model_id_or_name}
         Args:
             model_id_or_name: 模型ID或名称
         """
@@ -152,7 +152,7 @@ class ObservableOpenService(BaseService):
     def search_conf_items(self, query: Dict[str, Any]) -> Dict[str, Any]:
         """
         配置项结构化查询
-
+        POST /openapi/monitor-o11y/amdb-console/publish/v3/confs/search/conf-items
         Args:
             query: 查询条件对象
         """

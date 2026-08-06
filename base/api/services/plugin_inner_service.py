@@ -44,6 +44,7 @@ class PluginInnerService(BaseService):
     def get_plugin_install_count(self) -> Dict[str, Any]:
         """
         统计插件安装数量
+        GET /plugin/server/api/v1/plugin/list/instance
         """
         logger.info(f"Getting Plugin Install Count")
         url = "/plugin/server/api/v1/plugin/list/instance"

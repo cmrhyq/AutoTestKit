@@ -98,8 +98,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 ServiceAccount。
-
-        对应 JMX：弹性计算_native_serviceaccount_查询指定ServiceAccount请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/serviceaccounts/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -136,10 +134,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 ServiceAccount。
-
-        对应 JMX：弹性计算_native_serviceaccount_创建ServiceAccount请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/serviceaccounts
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -168,10 +163,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 ServiceAccount。
-
-        对应 JMX：弹性计算_native_serviceaccount_删除指定ServiceAccount请求
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/serviceaccounts/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -197,8 +189,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 DaemonSet。
-
-        对应 JMX：弹性计算_native_daemonset_查询指定DaemonSet请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -234,10 +224,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 DaemonSet。
-
-        对应 JMX：弹性计算_native_daemonset_创建DaemonSet请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -308,10 +295,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 DaemonSet。
-
-        对应 JMX：弹性计算_native_daemonset_更新指定DaemonSet
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -381,10 +365,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 DaemonSet。
-
-        对应 JMX：弹性计算_native_daemonset_删除指定DaemonSet请求
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -408,10 +389,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 DaemonSet 列表。
-
-        对应 JMX：弹性计算_native_daemonset_查询DaemonSet列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/daemonsets
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -448,8 +426,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 ClusterRoleBinding。
-
-        对应 JMX：弹性计算_native_clusterrolebinding_查询指定ClusterRoleBinding请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -482,10 +458,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 ClusterRoleBinding。
-
-        对应 JMX：弹性计算_native_clusterrolebinding_创建ClusterRoleBinding请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/clusterrolebindings
-
         Args:
             cluster_id: 集群 ID
             crb: ClusterRoleBinding 实体（包含 name / cluster_role_name / service_account_name / subject_namespace）
@@ -523,10 +496,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 ClusterRoleBinding。
-
-        对应 JMX：弹性计算_native_clusterrolebinding_删除指定ClusterRoleBinding
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/{name}
-
         Args:
             cluster_id: 集群 ID
             name: ClusterRoleBinding 名称
@@ -549,8 +519,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 ConfigMap（Native 接口）。
-
-        对应 JMX：弹性计算_native_configmap_查询指定ConfigMap请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -586,10 +554,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 ConfigMap（Native 接口）。
-
-        对应 JMX：弹性计算_native_configmap_创建ConfigMap请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -626,10 +591,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新 ConfigMap（Native 接口）。
-
-        对应 JMX：弹性计算_native_configmap_更新指定ConfigMap
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -669,10 +631,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 ConfigMap（Native 接口）。
-
-        对应 JMX：弹性计算_native_configmap_删除指定ConfigMap
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -696,10 +655,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 ConfigMap 列表（Native 接口）。
-
-        对应 JMX：弹性计算_native_configmap_查询ConfigMap列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/configmaps
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -736,8 +692,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 CustomResourceDefinition。
-
-        对应 JMX：弹性计算_native_crd_查询指定CustomResourceDefinition请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -770,10 +724,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 CustomResourceDefinition。
-
-        对应 JMX：弹性计算_native_crd_创建CustomResourceDefinition请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions
-
         Args:
             cluster_id: 集群 ID
             crd: CRD 实体（name / group / scope / plural / singular / kind / short_names / version_name / properties / extra_labels）
@@ -830,10 +781,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 CustomResourceDefinition。
-
-        对应 JMX：弹性计算_native_crd_删除指定CustomResourceDefinition
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions/{name}
-
         Args:
             cluster_id: 集群 ID
             name: CRD 名称
@@ -854,10 +802,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 CustomResourceDefinition 列表。
-
-        对应 JMX：弹性计算_native_crd_查询CustomResourceDefinition列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apiextensions.k8s.io/v1/customresourcedefinitions
-
         Args:
             cluster_id: 集群 ID
             label_selector: 标签选择器（如 name=xxx,test=crd）
@@ -891,8 +836,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Job。
-
-        对应 JMX：弹性计算_native_job_查询指定Job请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/batch/v1/namespaces/{namespace}/jobs/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -926,10 +869,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Job。
-
-        对应 JMX：弹性计算_native_job_创建Job请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/batch/v1/namespaces/{namespace}/jobs
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -990,10 +930,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Job。
-
-        对应 JMX：弹性计算_native_job_更新指定Job
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/batch/v1/namespaces/{namespace}/jobs/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1059,8 +996,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Job。
-
-        对应 JMX：弹性计算_native_job_删除指定Job请求
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/batch/v1/namespaces/{namespace}/jobs/{name}
 
         JMX 中 DELETE 携带请求体 {"propagationPolicy": "Background"} 以级联删除关联 Pod。
@@ -1091,10 +1026,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Job 列表。
-
-        对应 JMX：弹性计算_native_job_查询Job列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/batch/v1/namespaces/{namespace}/jobs
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1131,8 +1063,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Deployment。
-
-        对应 JMX：弹性计算_native_deployment_查询指定Deployment请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/deployments/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -1168,10 +1098,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Deployment。
-
-        对应 JMX：弹性计算_native_deployment_创建Deployment请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/deployments
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1243,10 +1170,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Deployment。
-
-        对应 JMX：弹性计算_native_deployment_更新指定Deployment
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/deployments/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1317,10 +1241,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Deployment。
-
-        对应 JMX：弹性计算_native_deployment_删除指定Deployment
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/deployments/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1344,10 +1265,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Deployment 列表。
-
-        对应 JMX：弹性计算_native_deployment_查询Deployment列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/deployments
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1384,8 +1302,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 HorizontalPodAutoscaler（Native 接口）。
-
-        对应 JMX：弹性计算_native_hpa_查询指定HorizontalPodAutoscaler请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -1421,10 +1337,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 HorizontalPodAutoscaler（Native 接口）。
-
-        对应 JMX：弹性计算_native_hpa_创建HorizontalPodAutoscaler请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1487,10 +1400,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 HorizontalPodAutoscaler（Native 接口）。
-
-        对应 JMX：弹性计算_native_hpa_更新指定HorizontalPodAutoscaler
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1556,10 +1466,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 HorizontalPodAutoscaler（Native 接口）。
-
-        对应 JMX：弹性计算_native_hpa_删除指定HorizontalPodAutoscaler
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1583,10 +1490,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 HorizontalPodAutoscaler 列表（Native 接口）。
-
-        对应 JMX：弹性计算_native_hpa_查询HorizontalPodAutoscaler列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/autoscaling/v2/namespaces/{namespace}/horizontalpodautoscalers
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1623,8 +1527,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Ingress。
-
-        对应 JMX：弹性计算_native_ingress-api_查询Ingress
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -1658,10 +1560,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Ingress。
-
-        对应 JMX：弹性计算_native_ingress-api_创建Ingress
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1725,10 +1624,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Ingress。
-
-        对应 JMX：弹性计算_native_ingress-api_更新Ingress
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1791,10 +1687,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Ingress。
-
-        对应 JMX：弹性计算_native_ingress-api_删除Ingress
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1818,10 +1711,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Ingress 列表。
-
-        对应 JMX：弹性计算_native_ingress-api_查询Ingress list
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/networking.k8s.io/v1/namespaces/{namespace}/ingresses
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -1858,8 +1748,6 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 PriorityClass（cluster-scoped）。
-
-        对应 JMX：弹性计算_native_priorityclass_查询指定PriorityClass请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/scheduling.k8s.io/v1/priorityclasses/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
@@ -1892,10 +1780,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 PriorityClass。
-
-        对应 JMX：弹性计算_native_priorityclass_创建PriorityClass请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/scheduling.k8s.io/v1/priorityclasses
-
         Args:
             cluster_id: 集群 ID
             pc: PriorityClass 实体
@@ -1926,10 +1811,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 PriorityClass。
-
-        对应 JMX：弹性计算_native_priorityclass_更新指定PriorityClass
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/scheduling.k8s.io/v1/priorityclasses/{name}
-
         Args:
             cluster_id: 集群 ID
             name: PriorityClass 名称
@@ -1961,10 +1843,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 PriorityClass。
-
-        对应 JMX：弹性计算_native_priorityclass_删除指定PriorityClass
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/scheduling.k8s.io/v1/priorityclasses/{name}
-
         Args:
             cluster_id: 集群 ID
             name: PriorityClass 名称
@@ -1987,11 +1866,12 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Namespace。
-
-        对应 JMX：弹性计算_native_namespace-api_查询namespace
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Get Namespace: cluster={cluster_id}, ns={namespace}")
         url = (
@@ -2014,10 +1894,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Namespace。
-
-        对应 JMX：弹性计算_native_namespace-api_创建namespace
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces
-
         Args:
             cluster_id: 集群 ID
             ns: Namespace 实体
@@ -2041,10 +1918,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Namespace。
-
-        对应 JMX：弹性计算_native_namespace-api_更新namespace
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2072,9 +1946,10 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Namespace。
-
-        对应 JMX：弹性计算_native_namespace-api_删除namespace
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Delete Namespace: cluster={cluster_id}, ns={namespace}")
         url = (
@@ -2087,9 +1962,9 @@ class ElasticComputeNativeService(BaseService):
     def list_namespaces(self, cluster_id: str) -> Dict[str, Any]:
         """
         查询 Namespace 列表。
-
-        对应 JMX：弹性计算_native_namespace-api_查询namespace list
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces
+        Args:
+            cluster_id: 集群 ID
         """
         logger.info(f"List Namespaces: cluster={cluster_id}")
         url = f"/elastic-compute/v2/k8s/clusters/{cluster_id}/api/v1/namespaces"
@@ -2109,9 +1984,10 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询指定 Namespace 下的 Events。
-
-        对应 JMX：弹性计算_native_namespace-api_获取namespace events
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/events
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Get Namespace Events: cluster={cluster_id}, ns={namespace}")
         url = (
@@ -2136,9 +2012,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询指定 ResourceQuota。
-
-        对应 JMX：弹性计算_native_namespace-api_获取资源配额（ResourceQuota）信息
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/resourcequotas/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Get ResourceQuota: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2155,10 +2033,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 ResourceQuota。
-
-        对应 JMX：弹性计算_native_namespace-api_创建资源配额（ResourceQuota）
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/resourcequotas
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2190,10 +2065,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 ResourceQuota。
-
-        对应 JMX：弹性计算_native_namespace-api_更新资源配额（ResourceQuota）设置
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/resourcequotas/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2226,9 +2098,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询指定 LimitRange。
-
-        对应 JMX：弹性计算_native_namespace-api_获取资源限制（LimitRange）信息
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/limitranges/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Get LimitRange: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2245,10 +2119,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 LimitRange。
-
-        对应 JMX：弹性计算_native_namespace-api_创建资源限制（LimitRange）
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/limitranges
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2291,10 +2162,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 LimitRange。
-
-        对应 JMX：弹性计算_native_namespace-api_更新资源限制（LimitRange）设置
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/limitranges/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2336,9 +2204,9 @@ class ElasticComputeNativeService(BaseService):
     def list_nodes(self, cluster_id: str) -> Dict[str, Any]:
         """
         查询 Node 列表。
-
-        对应 JMX：弹性计算_native_node-api_查询node list
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/nodes
+        Args:
+            cluster_id: 集群 ID
         """
         logger.info(f"List Nodes: cluster={cluster_id}")
         url = f"/elastic-compute/v2/k8s/clusters/{cluster_id}/api/v1/nodes"
@@ -2356,9 +2224,10 @@ class ElasticComputeNativeService(BaseService):
     def get_node(self, cluster_id: str, name: str) -> Dict[str, Any]:
         """
         查询指定 Node。
-
-        对应 JMX：弹性计算_native_node-api_查询node
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/nodes/{name}
+        Args:
+            cluster_id: 集群 ID
+            name: 资源名称
         """
         logger.info(f"Get Node: cluster={cluster_id}, name={name}")
         url = f"/elastic-compute/v2/k8s/clusters/{cluster_id}/api/v1/nodes/{name}"
@@ -2372,11 +2241,13 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Pod。
-
-        对应 JMX：弹性计算_native_pod_查询指定Pod请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/pods/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Get Pod: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -2399,10 +2270,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Pod。
-
-        对应 JMX：弹性计算_native_pod_创建Pod请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/pods
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2453,9 +2321,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Pod。
-
-        对应 JMX：弹性计算_native_pod_删除指定Pod请求
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/pods/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Delete Pod: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -2470,9 +2340,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Pod 列表。
-
-        对应 JMX：弹性计算_native_pod_查询Pod列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/pods
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            label_selector: 标签选择器
         """
         logger.info(
             f"List Pods: cluster={cluster_id}, ns={namespace}, selector={label_selector}"
@@ -2507,11 +2379,14 @@ class ElasticComputeNativeService(BaseService):
     ) -> str:
         """
         查询指定 Pod 的日志。
-
-        对应 JMX：弹性计算_native_pod_查询指定Pod日志请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/pods/{name}/log
 
         注意：响应为纯文本日志（非 JSON），返回字符串。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
+            container: 容器名
         """
         logger.info(
             f"Get Pod Log: cluster={cluster_id}, ns={namespace}, name={name},"
@@ -2546,11 +2421,13 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 StatefulSet。
-
-        对应 JMX：弹性计算_native_statefulset_查询指定StatefulSet请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets/{name}
 
         注意：此方法允许 404 返回（表示资源不存在），不抛出异常。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Get StatefulSet: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2575,10 +2452,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 StatefulSet。
-
-        对应 JMX：弹性计算_native_statefulset_创建StatefulSet请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2647,10 +2521,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 StatefulSet。
-
-        对应 JMX：弹性计算_native_statefulset_更新指定StatefulSet
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2718,9 +2589,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 StatefulSet。
-
-        对应 JMX：弹性计算_native_statefulset_删除指定StatefulSet
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Delete StatefulSet: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2737,9 +2610,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 StatefulSet 列表。
-
-        对应 JMX：弹性计算_native_statefulset_查询StatefulSet列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/apps/v1/namespaces/{namespace}/statefulsets
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            label_selector: 标签选择器
         """
         logger.info(
             f"List StatefulSets: cluster={cluster_id}, ns={namespace},"
@@ -2773,11 +2648,13 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 PersistentVolumeClaim。
-
-        对应 JMX：弹性计算_native_pvc-pv-api_查询PVC
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/persistentvolumeclaims/{name}
 
         注意：此方法允许 404 返回，不抛出异常。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Get PVC: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -2800,10 +2677,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 PersistentVolumeClaim。
-
-        对应 JMX：弹性计算_native_pvc-pv-api_创建PVC
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/persistentvolumeclaims
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2839,9 +2713,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 PersistentVolumeClaim。
-
-        对应 JMX：弹性计算_native_pvc-pv-api_删除PVC
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/persistentvolumeclaims/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Delete PVC: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -2858,11 +2734,13 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 RoleBinding。
-
-        对应 JMX：弹性计算_native_rolebinding_查询指定RoleBinding请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/rolebindings/{name}
 
         注意：此方法允许 404 返回，不抛出异常。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Get RoleBinding: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2887,10 +2765,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 RoleBinding。
-
-        对应 JMX：弹性计算_native_rolebinding_创建RoleBinding请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/rolebindings
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -2926,9 +2801,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 RoleBinding。
-
-        对应 JMX：弹性计算_native_rolebinding_删除指定RoleBinding
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/rolebindings/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Delete RoleBinding: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -2947,11 +2824,13 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Secret。
-
-        对应 JMX：弹性计算_native_secret_查询指定Secret请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets/{name}
 
         注意：此方法允许 404 返回，不抛出异常。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Get Secret: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -2974,10 +2853,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Secret。
-
-        对应 JMX：弹性计算_native_secret_创建Secret请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -3011,10 +2887,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Secret。
-
-        对应 JMX：弹性计算_native_secret_更新指定Secret
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -3051,9 +2924,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Secret。
-
-        对应 JMX：弹性计算_native_secret_删除指定Secret
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Delete Secret: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -3068,9 +2943,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Secret 列表。
-
-        对应 JMX：弹性计算_native_secret_查询Secret列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/secrets
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            label_selector: 标签选择器
         """
         logger.info(
             f"List Secrets: cluster={cluster_id}, ns={namespace},"
@@ -3104,12 +2981,14 @@ class ElasticComputeNativeService(BaseService):
     ) -> Tuple[int, Dict[str, Any]]:
         """
         查询指定 Service（K8s Service 资源，非本项目服务层的 service）。
-
-        对应 JMX：弹性计算_native_service_查询指定Service请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services/{name}
 
         注意：此方法允许 404 返回，不抛出异常。
         方法名末尾附 `_resource` 后缀以避免与 BaseService 潜在同名冲突。
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Get Service: cluster={cluster_id}, ns={namespace}, name={name}")
         url = (
@@ -3132,10 +3011,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Service。
-
-        对应 JMX：弹性计算_native_service_创建Service请求
         POST /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -3187,10 +3063,7 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         PUT 全量更新指定 Service。
-
-        对应 JMX：弹性计算_native_service_更新指定Service
         PUT /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services/{name}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -3245,9 +3118,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除指定 Service。
-
-        对应 JMX：弹性计算_native_service_删除指定Service
         DELETE /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(
             f"Delete Service: cluster={cluster_id}, ns={namespace}, name={name}"
@@ -3264,9 +3139,11 @@ class ElasticComputeNativeService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Service 列表。
-
-        对应 JMX：弹性计算_native_service_查询Service列表请求
         GET /elastic-compute/v2/k8s/clusters/{clusterId}/api/v1/namespaces/{namespace}/services
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            label_selector: 标签选择器
         """
         logger.info(
             f"List Services: cluster={cluster_id}, ns={namespace},"

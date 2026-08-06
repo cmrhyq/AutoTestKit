@@ -61,7 +61,7 @@ class PortalInnerService(BaseService):
     def get_user_full_data(self) -> Dict[str, Any]:
         """
         获取用户全量数据
-
+        GET /portal/server/api/user/list
         Returns:
             Dict[str, Any]: 用户列表数据
         """
@@ -74,10 +74,9 @@ class PortalInnerService(BaseService):
     def get_user_by_username(self, username: str) -> Dict[str, Any]:
         """
         查询用户
-
+        GET /portal/server/api/v2/users/{username}
         Args:
             username: 用户名
-
         Returns:
             Dict[str, Any]: 用户信息
         """
@@ -89,10 +88,9 @@ class PortalInnerService(BaseService):
     def create_user(self, user: InnerUserEntity) -> Dict[str, Any]:
         """
         创建用户
-
+        POST /portal/server/api/v2/tenant
         Args:
             user: 用户数据类
-
         Returns:
             Dict[str, Any]: 创建结果
         """
@@ -113,10 +111,9 @@ class PortalInnerService(BaseService):
     def delete_user(self, username: str) -> Dict[str, Any]:
         """
         删除用户
-
+        DELETE /portal/server/api/v2/users/{username}
         Args:
             username: 用户名称
-
         Returns:
             Dict[str, Any]: 删除结果
         """
@@ -130,7 +127,7 @@ class PortalInnerService(BaseService):
     def get_tenant_full_data(self) -> Dict[str, Any]:
         """
         获取租户全量数据
-
+        GET /portal/server/api/tenant/list
         Returns:
             Dict[str, Any]: 租户列表数据
         """
@@ -142,11 +139,10 @@ class PortalInnerService(BaseService):
     def bind_user_tenant(self, username: str, tenant_code: str) -> Dict[str, Any]:
         """
         用户租户绑定
-
+        POST /portal/server/api/v2/users/{username}/tenants/{tenant_code}/bind
         Args:
             username: 用户名
             tenant_code: 租户编码
-
         Returns:
             Dict[str, Any]: 绑定结果
         """
@@ -158,11 +154,10 @@ class PortalInnerService(BaseService):
     def unbind_user_tenant(self, username: str, tenant_code: str) -> Dict[str, Any]:
         """
         用户租户解绑
-
+        POST /portal/server/api/v2/users/{username}/tenants/{tenant_code}/unbind
         Args:
             username: 用户名
             tenant_code: 租户编码
-
         Returns:
             Dict[str, Any]: 解绑结果
         """
@@ -174,12 +169,11 @@ class PortalInnerService(BaseService):
     def bind_user_tenant_role(self, username: str, tenant_code: str, role_code: str) -> Dict[str, Any]:
         """
         用户租户角色绑定
-
+        POST /portal/server/api/v2/users/{username}/tenants/{tenant_code}/roles/{role_code}/bind
         Args:
             username: 用户名
             tenant_code: 租户编码
             role_code: 角色编码
-
         Returns:
             Dict[str, Any]: 绑定结果
         """
@@ -191,12 +185,11 @@ class PortalInnerService(BaseService):
     def unbind_user_tenant_role(self, username: str, tenant_code: str, role_code: str) -> Dict[str, Any]:
         """
         用户租户角色解绑
-
+        POST /portal/server/api/v2/users/{username}/tenants/{tenant_code}/roles/{role_code}/unbind
         Args:
             username: 用户名
             tenant_code: 租户编码
             role_code: 角色编码
-
         Returns:
             Dict[str, Any]: 解绑结果
         """
@@ -208,10 +201,9 @@ class PortalInnerService(BaseService):
     def get_tenant(self, tenant_code: str) -> Dict[str, Any]:
         """
         查询租户
-
+        GET /portal/server/api/v2/tenants/{tenant_code}
         Args:
             tenant_code: 租户编码
-
         Returns:
             Dict[str, Any]: 租户列表数据
         """
@@ -223,10 +215,9 @@ class PortalInnerService(BaseService):
     def create_tenant(self, tenant: TenantEntity) -> Dict[str, Any]:
         """
         创建租户
-
+        POST /portal/server/api/v2/tenant
         Args:
             tenant: 租户数据类
-
         Returns:
             Dict[str, Any]: 创建结果
         """
@@ -248,10 +239,9 @@ class PortalInnerService(BaseService):
     def delete_tenant(self, tenant_code: str) -> Dict[str, Any]:
         """
         删除租户
-
+        DELETE /portal/server/api/v2/tenants/{tenant_code}
         Args:
             tenant_code: 租户编码
-
         Returns:
             Dict[str, Any]: 删除结果
         """
@@ -265,7 +255,7 @@ class PortalInnerService(BaseService):
     def get_role_full_data(self) -> Dict[str, Any]:
         """
         获取角色全量数据
-
+        GET /portal/server/api/role/list
         Returns:
             Dict[str, Any]: 角色列表数据
         """
@@ -277,7 +267,7 @@ class PortalInnerService(BaseService):
     def get_roles(self) -> Dict[str, Any]:
         """
         查询角色
-
+        GET /portal/server/api/v2/roles
         Returns:
             Dict[str, Any]: 角色列表数据
         """
@@ -289,10 +279,9 @@ class PortalInnerService(BaseService):
     def create_role(self, role: RoleEntity) -> Dict[str, Any]:
         """
         创建角色
-
+        POST /portal/server/api/role/add
         Args:
             role: 角色数据类
-
         Returns:
             Dict[str, Any]: 创建结果
         """
@@ -312,10 +301,9 @@ class PortalInnerService(BaseService):
     def update_role(self, role: RoleEntity) -> Dict[str, Any]:
         """
         修改角色
-
+        PUT /portal/server/api/v2/roles/{role.role_name}
         Args:
             role: 角色数据类
-
         Returns:
             Dict[str, Any]: 修改结果
         """
@@ -333,10 +321,9 @@ class PortalInnerService(BaseService):
     def delete_role(self, role_code: str) -> Dict[str, Any]:
         """
         删除角色
-
+        DELETE /portal/server/api/v2/roles/{role_code}
         Args:
             role_code: 角色编码
-
         Returns:
             Dict[str, Any]: 删除结果
         """
@@ -350,11 +337,10 @@ class PortalInnerService(BaseService):
     def get_dict_by_module(self, module_name: str, dict_type: str = None) -> Dict[str, Any]:
         """
         根据模块名称查询字典数据
-
+        GET /portal/server/api/dict/list/{module_name}
         Args:
             module_name: 模块名称
             dict_type: 字典类型，如 ENVIRONMENT
-
         Returns:
             Dict[str, Any]: 字典数据
         """
@@ -371,7 +357,7 @@ class PortalInnerService(BaseService):
     def get_role_api_full_data(self) -> Dict[str, Any]:
         """
         获取API全量数据
-
+        GET /portal/server/api/roleApi/list
         Returns:
             Dict[str, Any]: API列表数据
         """
@@ -383,10 +369,9 @@ class PortalInnerService(BaseService):
     def get_api_list(self, module_name: str) -> Dict[str, Any]:
         """
         API列表查询
-
+        GET /portal/server/api/v2/apiDefines
         Args:
             module_name: 模块名称
-
         Returns:
             Dict[str, Any]: API列表数据
         """
@@ -401,12 +386,11 @@ class PortalInnerService(BaseService):
     def api_bulk_authorization(self, role_code, api_list: List[Dict[str,Any]]) -> Dict[str, Any]:
         """
         API批量授权
-
+        POST /portal/server/api/v2/roles/{role_code}/apis/auth
         Args:
             role_code: 角色编码
             api_list: 授权API列表数据，数据可以由API列表查询接口获得
                 例如: [{"apiId":"131","authorizedMethod":"get"},{"apiId":"133","authorizedMethod":"post"}]
-
         Returns:
             Dict[str, Any]: 授权结果
         """
@@ -419,12 +403,11 @@ class PortalInnerService(BaseService):
     def api_bulk_reauthorization(self, role_code, api_list: List[Dict[str,Any]]) -> Dict[str, Any]:
         """
         API批量解除授权
-
+        POST /portal/server/api/v2/roles/{role_code}/apis/unAuth
         Args:
             role_code: 角色编码
             api_list: 解除授权API列表数据，数据可以由API列表查询接口获得
                 例如: [{"apiId":"131","authorizedMethod":"get"},{"apiId":"133","authorizedMethod":"post"}]
-
         Returns:
             Dict[str, Any]: 解除授权结果
         """
@@ -439,10 +422,9 @@ class PortalInnerService(BaseService):
     def get_system_config(self, key: str = "platformCode") -> Dict[str, Any]:
         """
         获取系统参数
-
+        GET /portal/server/api/systemConfig/list
         Args:
             key: 参数键名，如 platformCode
-
         Returns:
             Dict[str, Any]: 系统参数数据
         """
@@ -459,12 +441,11 @@ class PortalInnerService(BaseService):
     def add_version_info(self, component_name: str, component_code: str, component_version: str) -> Dict[str, Any]:
         """
         添加组件版本信息
-
+        POST /portal/server/api/version/addVersionInfo
         Args:
             component_name: 组件名称
             component_code: 组件编码
             component_version: 组件版本
-
         Returns:
             Dict[str, Any]: 添加结果
         """
@@ -481,10 +462,9 @@ class PortalInnerService(BaseService):
     def get_license_info(self, module_code: str) -> Dict[str, Any]:
         """
         获取license信息
-
+        GET /portal/server/api/license/{module_code}
         Args:
             module_code: 模块编码
-
         Returns:
             Dict[str, Any]: license信息
         """
@@ -496,7 +476,7 @@ class PortalInnerService(BaseService):
     def get_platform_version(self) -> Dict[str, Any]:
         """
         获取平台版本信息
-
+        GET /portal/server/api/v1/version
         Returns:
             Dict[str, Any]: 平台版本信息
         """
@@ -510,7 +490,7 @@ class PortalInnerService(BaseService):
     def get_platform_base_info(self) -> Dict[str, Any]:
         """
         获取平台基本信息
-
+        GET /portal/server/api/v1/platform/baseInfo
         Returns:
             Dict[str, Any]: 平台基本信息
         """
@@ -522,7 +502,7 @@ class PortalInnerService(BaseService):
     def get_platform_enable_modules(self) -> Dict[str, Any]:
         """
         获取平台开启模块信息
-
+        GET /portal/server/api/v1/platform/enableModules
         Returns:
             Dict[str, Any]: 开启的模块列表
         """
@@ -536,7 +516,7 @@ class PortalInnerService(BaseService):
     def get_paas_config(self) -> Dict[str, Any]:
         """
         获取全局配置
-
+        GET /portal/server/api/paasConfig
         Returns:
             Dict[str, Any]: 全局配置数据
         """
@@ -548,10 +528,9 @@ class PortalInnerService(BaseService):
     def update_global_config(self, modules: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         全局配置修改 和 全局配置修改-还原
-
+        POST /portal/server/api/globalConfig/update
         Args:
             modules: 模块配置列表，如 [{"moduleCode": "component", "enabled": true}]
-
         Returns:
             Dict[str, Any]: 修改结果
         """
@@ -566,7 +545,7 @@ class PortalInnerService(BaseService):
     def get_auth_info(self) -> Dict[str, Any]:
         """
         获取系统应用全量授权信息
-
+        GET /portal/server/api/getAuthInfo
         Returns:
             Dict[str, Any]: 授权信息
         """
@@ -580,11 +559,10 @@ class PortalInnerService(BaseService):
     def send_message(self, users: List[str], content: str) -> Dict[str, Any]:
         """
         站内消息发送
-
+        POST /portal/server/api/msg/send
         Args:
             users: 用户列表，username的list
             content: 消息内容
-
         Returns:
             Dict[str, Any]: 发送结果
         """
@@ -603,7 +581,7 @@ class PortalInnerService(BaseService):
     def get_first_field_list(self) -> Dict[str, Any]:
         """
         查询一级域列表
-
+        GET /portal/server/api/firstFieldInfo/list
         Returns:
             Dict[str, Any]: 一级域列表
         """
@@ -615,10 +593,9 @@ class PortalInnerService(BaseService):
     def get_second_field_list(self, system_id: str) -> Dict[str, Any]:
         """
         查询二级域列表
-
+        GET /portal/server/api/secondFieldInfo/list
         Args:
             system_id: 系统ID
-
         Returns:
             Dict[str, Any]: 二级域列表
         """
@@ -633,10 +610,9 @@ class PortalInnerService(BaseService):
     def create_system(self, system: InnerSystemEntity) -> Dict[str, Any]:
         """
         创建系统
-
+        POST /portal/server/api/system/add
         Args:
             system: 系统数据类
-
         Returns:
             Dict[str, Any]: 创建结果
         """
@@ -661,7 +637,7 @@ class PortalInnerService(BaseService):
     def get_system_full_data(self) -> Dict[str, Any]:
         """
         获取系统全量数据
-
+        GET /portal/server/api/system/list
         Returns:
             Dict[str, Any]: 系统列表数据
         """
@@ -675,10 +651,9 @@ class PortalInnerService(BaseService):
     def create_application(self, app: ApplicationEntity) -> Dict[str, Any]:
         """
         创建应用
-
+        POST /portal/server/api/application/add
         Args:
             app: 应用数据类
-
         Returns:
             Dict[str, Any]: 创建结果
         """
@@ -702,7 +677,7 @@ class PortalInnerService(BaseService):
     def get_application_full_data(self) -> Dict[str, Any]:
         """
         获取应用全量数据
-
+        GET /portal/server/api/application/list
         Returns:
             Dict[str, Any]: 应用列表数据
         """
@@ -716,10 +691,9 @@ class PortalInnerService(BaseService):
     def get_all_instances(self, model_code: str) -> Dict[str, Any]:
         """
         全量查询接口（环境/平面/单元/产品实例）
-
+        POST /portal/server/api/all-instances
         Args:
             model_code: 模型编码，可选值：ENVIRONMENT, PLANE, CELL, PROD_INST
-
         Returns:
             Dict[str, Any]: 实例列表数据
         """
@@ -732,11 +706,10 @@ class PortalInnerService(BaseService):
     def get_instances_by_example(self, model_code: str, prod_inst_code: str) -> Dict[str, Any]:
         """
         按条件查询接口（环境/平面/单元/产品实例）
-
+        POST /portal/server/api/list-instance-by-example
         Args:
             model_code: 模型编码，可选值：ENVIRONMENT, PLANE, CELL, PROD_INST
             prod_inst_code: prod实例编码
-
         Returns:
             Dict[str, Any]: 实例列表数据
         """
@@ -757,11 +730,10 @@ class PortalInnerService(BaseService):
     def get_menu_list(self, source_code: str, all_menu: int = 1) -> Dict[str, Any]:
         """
         查询菜单权限数据
-
+        GET /portal/server/api/menu/list
         Args:
             source_code: 来源编码，如 observability
             all_menu: 是否查询全部菜单，1为是
-
         Returns:
             Dict[str, Any]: 菜单列表数据
         """
@@ -777,10 +749,9 @@ class PortalInnerService(BaseService):
     def add_menu(self, menu: MenuEntity) -> Dict[str, Any]:
         """
         新增插件菜单
-
+        POST /portal/server/api/menu/add
         Args:
             menu: 菜单数据类
-
         Returns:
             Dict[str, Any]: 添加结果
         """
@@ -807,10 +778,9 @@ class PortalInnerService(BaseService):
     def delete_menu(self, menu_ids: List[str]) -> Dict[str, Any]:
         """
         删除插件菜单
-
+        POST /portal/server/api/menu/delete
         Args:
             menu_ids: 要删除的菜单ID列表
-
         Returns:
             Dict[str, Any]: 删除结果
         """
@@ -823,10 +793,9 @@ class PortalInnerService(BaseService):
     def disable_menu(self, menu_ids: List[str]) -> Dict[str, Any]:
         """
         停用插件菜单
-
+        POST /portal/server/api/menu/disable
         Args:
             menu_ids: 要停用的菜单ID列表
-
         Returns:
             Dict[str, Any]: 停用结果
         """
@@ -839,10 +808,9 @@ class PortalInnerService(BaseService):
     def enable_menu(self, menu_ids: List[str]) -> Dict[str, Any]:
         """
         启用插件菜单
-
+        POST /portal/server/api/menu/enable
         Args:
             menu_ids: 要启用的菜单ID列表
-
         Returns:
             Dict[str, Any]: 启用结果
         """

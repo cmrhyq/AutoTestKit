@@ -61,7 +61,7 @@ def _get_admin_headers() -> Dict[str, str]:
     """获取以管理员身份访问 Extensions 接口所用请求头。
 
     在默认 headers 基础上，用 adminUsername / adminTenantCode 覆盖 username / tenantCode，
-    对齐 JMX 中局部 HeaderManager 使用 admin 身份的场景。
+    局部 HeaderManager 使用 admin 身份的场景。
     """
     env = env_manager.get_config()
     headers = _get_ext_headers()
@@ -88,8 +88,7 @@ class ElasticComputeExtService(BaseService):
     弹性计算 Extensions 服务（apikey 鉴权）
 
     与 openapi 类接口的区别：
-    - 无需 Portal 登录 / Bearer Token
-    - 通过 apikey + username + tenantCode 头进行鉴权
+    - 接口为系统内部接口
     - URL 前缀通常为 /elastic-compute/... 而非 /openapi/elastic-compute/...
     """
 
@@ -121,10 +120,7 @@ class ElasticComputeExtService(BaseService):
     def search_app(self, kinds: str) -> Dict[str, Any]:
         """
         查询当前租户的所有应用服务信息。
-
-        对应 JMX：弹性计算_extensions_applications_查询应用服务列表
         GET /elastic-compute/v2/searchApp?kinds=Deployment
-
         Args:
             kinds: 应用类型，如 "Deployment"、"StatefulSet" 等
         """
@@ -139,10 +135,7 @@ class ElasticComputeExtService(BaseService):
     def get_resource_dashboard(self, tenant_code: str) -> Dict[str, Any]:
         """
         资源信息统计接口，对接门户页面上的集群、主机、namespace、CPU、内存和PVC。
-
-        对应 JMX：弹性计算_extentions_Dashboard_资源信息统计接口
         GET /elastic-compute/v1/resource/dashboard?tenantCode={tenantCode}
-
         Args:
             tenant_code: 租户编码
         """
@@ -155,10 +148,7 @@ class ElasticComputeExtService(BaseService):
     def get_app_dashboard(self, tenant_code: str, start_time: str, end_time: str) -> Dict[str, Any]:
         """
         工作负载和应用服务统计接口，对接门户 dashboard 页面上的工作负载和应用服务。
-
-        对应 JMX：弹性计算_extentions_Dashboard_工作负载和应用服务
         GET /elastic-compute/v1/app/dashboard?startTime=&endTime=&tenantCode=
-
         Args:
             tenant_code: 租户编码
             start_time: 统计起始时间戳（毫秒）
@@ -179,10 +169,7 @@ class ElasticComputeExtService(BaseService):
     def grant_app(self, app_code: str, grant: AppGrantEntity) -> Dict[str, Any]:
         """
         应用授权，调用 extendapi 进行应用授权。
-
-        对应 JMX：弹性计算_extentions_app-grant_应用授权
         POST /elastic-compute/v1/applications/{appCode}/grant
-
         Args:
             app_code: 应用编码
             grant: 授权实体，含用户列表与到期时间（camelCase 转换在方法内完成）
@@ -201,13 +188,10 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         解除应用授权，调用 extendapi 解除应用授权。
-
-        对应 JMX：弹性计算_extentions_app-grant_解除应用授权
         POST /elastic-compute/v1/applications/{appCode}/removeGrant
-
         Args:
             app_code: 应用编码
-            grant: 解除授权实体，body 序列化为纯 JSON 数组 [user1, user2, ...]（对齐 JMX 行为）
+            grant: 解除授权实体，body 序列化为纯 JSON 数组 [user1, user2, ...]
         """
         logger.info(f"Remove grant app: appCode={app_code}, users={grant.users}")
         url = f"/elastic-compute/v1/applications/{app_code}/removeGrant"
@@ -220,8 +204,6 @@ class ElasticComputeExtService(BaseService):
     def list_clusters(self) -> Dict[str, Any]:
         """
         获取集群列表信息。
-
-        对应 JMX：弹性计算_extentions_cluster-manager_获取集群l信息
         GET /elastic-compute/v1/clusters
         """
         logger.info("List clusters")
@@ -232,10 +214,7 @@ class ElasticComputeExtService(BaseService):
     def get_cluster_info(self, cluster_id: str) -> Dict[str, Any]:
         """
         查询指定集群的详情接口。
-
-        对应 JMX：弹性计算_extentions_cluster-manager_查询指定集群的详情接口
         GET /elastic-compute/v1/clusters/{clusterId}/info
-
         Args:
             cluster_id: 集群 ID
         """
@@ -247,10 +226,7 @@ class ElasticComputeExtService(BaseService):
     def get_cluster_status(self, cluster_id: str) -> Dict[str, Any]:
         """
         查询集群状态。
-
-        对应 JMX：弹性计算_extentions_cluster-manager_查询集群状态
         GET /elastic-compute/v1/clusters/{clusterId}/status
-
         Args:
             cluster_id: 集群 ID
         """
@@ -262,8 +238,6 @@ class ElasticComputeExtService(BaseService):
     def get_controller_cluster(self) -> Dict[str, Any]:
         """
         获取控制面集群信息。
-
-        对应 JMX：弹性计算_extentions_cluster-manager_获取控制面集群信息
         GET /elastic-compute/v2/clusters/controller
         """
         logger.info("Get controller cluster info")
@@ -284,10 +258,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Any:
         """
         查询 CR 资源。
-
-        对应 JMX：弹性计算_extentions_CustomResourceV1_查询CR资源
         GET /elastic-compute/v1/clusters/{clusterId}/{group}/{version}/namespaces/{namespace}/kind/{kind}/customResources/{name}
-
         Args:
             cluster_id: 集群 ID
             group: CR group（如 test.example.com）
@@ -318,10 +289,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Any:
         """
         创建 CR 实例。
-
-        对应 JMX：弹性计算_extentions_CustomResourceV1_创建CR实例
         POST /elastic-compute/v1/clusters/{clusterId}/{group}/{version}/namespaces/{namespace}/kind/{kind}/customResources
-
         Args:
             cluster_id: 集群 ID
             group: CR group（路径参数）
@@ -361,10 +329,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Any:
         """
         更新 CR 实例。
-
-        对应 JMX：弹性计算_extentions_CustomResourceV1_更新CR实例
         PUT /elastic-compute/v1/clusters/{clusterId}/{group}/{version}/namespaces/{namespace}/kind/{kind}/customResources
-
         Args:
             cluster_id: 集群 ID
             group: CR group（路径参数）
@@ -407,10 +372,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Any:
         """
         删除 CR 实例。
-
-        对应 JMX：弹性计算_extentions_CustomResourceV1_删除CR实例
         DELETE /elastic-compute/v1/clusters/{clusterId}/{group}/{version}/namespaces/{namespace}/kind/{kind}/customResources/{name}
-
         Args:
             cluster_id: 集群 ID
             group: CR group
@@ -440,10 +402,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Any:
         """
         查询 CR 列表。
-
-        对应 JMX：弹性计算_extentions_CustomResourceV1_查询CR列表
         GET /elastic-compute/v1/clusters/{clusterId}/{group}/{version}/namespaces/{namespace}/kind/{kind}/customResources
-
         Args:
             cluster_id: 集群 ID
             group: CR group
@@ -467,10 +426,7 @@ class ElasticComputeExtService(BaseService):
     def harbor_bind_cluster(self, bind: HarborBindClusterEntity) -> Dict[str, Any]:
         """
         Harbor 仓库绑定集群。
-
-        对应 JMX：弹性计算_extentions_harbor-bindcluster_harbor仓库绑定
         POST /elastic-compute/v2/harbor/bindCluster
-
         Args:
             bind: 绑定实体，包含 cluster_id 和 harbor_name
         """
@@ -490,8 +446,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_nodes(self) -> Dict[str, Any]:
         """
         获取全量集群节点列表信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_全量集群节点列表信息
         GET /elastic-compute/v2/metrics/nodes
         """
         logger.info("Get metrics nodes")
@@ -502,8 +456,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_workloads(self) -> Dict[str, Any]:
         """
         获取全量应用服务列表信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_全量应用服务列表信息
         GET /elastic-compute/v2/metrics/workloads
         """
         logger.info("Get metrics workloads")
@@ -514,8 +466,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_physical_hosts(self) -> Dict[str, Any]:
         """
         查询裸金属主机列表。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询裸金属主机列表
         GET /elastic-compute/v2/metrics/physicalHosts
         """
         logger.info("Get metrics physical hosts")
@@ -526,8 +476,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_physical_host_number(self) -> Dict[str, Any]:
         """
         查询裸金属主机数量。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询裸金属主机数量
         GET /elastic-compute/v2/metrics/physicalHostNumber
         """
         logger.info("Get metrics physical host number")
@@ -538,8 +486,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_cluster_resource(self) -> Dict[str, Any]:
         """
         查询集群资源信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询集群资源信息
         GET /elastic-compute/v2/metrics/clusterResource
         """
         logger.info("Get metrics cluster resource")
@@ -550,8 +496,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_cluster_quota(self) -> Dict[str, Any]:
         """
         查询集群配额信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询集群配额信息
         GET /elastic-compute/v2/metrics/clusterQuota
         """
         logger.info("Get metrics cluster quota")
@@ -562,8 +506,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_tenant_quota(self) -> Dict[str, Any]:
         """
         查询租户配额信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询租户配额信息
         GET /elastic-compute/v2/metrics/tenantQuota
         """
         logger.info("Get metrics tenant quota")
@@ -574,8 +516,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_system_quota(self) -> Dict[str, Any]:
         """
         查询应用/组件系统配额信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询应用/组件系统配额信息
         GET /elastic-compute/v2/metrics/systemQuota
         """
         logger.info("Get metrics system quota")
@@ -586,8 +526,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_container_storage_software(self) -> Dict[str, Any]:
         """
         查询容器存储软件信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询容器存储软件信息
         GET /elastic-compute/v2/metrics/containerStorageSoftware
         """
         logger.info("Get metrics container storage software")
@@ -598,8 +536,6 @@ class ElasticComputeExtService(BaseService):
     def get_metrics_container_orchestration_software(self) -> Dict[str, Any]:
         """
         查询容器编排软件信息。
-
-        对应 JMX：弹性计算_extentions_ElasticComputeResourceCollectorAPI_查询容器编排软件信息
         GET /elastic-compute/v2/metrics/containerOrchestrationSoftware
         """
         logger.info("Get metrics container orchestration software")
@@ -612,10 +548,7 @@ class ElasticComputeExtService(BaseService):
     def list_endpoints(self, cell_code: str) -> Dict[str, Any]:
         """
         查询全集群的 Endpoints 列表。
-
-        对应 JMX：弹性计算_extentions_Endpoints_查询全集群的Endpoints列表
         GET /elastic-compute/v2/cells/{cellCode}/endpoints
-
         Args:
             cell_code: 单元编码
         """
@@ -629,8 +562,6 @@ class ElasticComputeExtService(BaseService):
     def search_helm_app(self) -> Dict[str, Any]:
         """
         Helm 应用模糊查询服务接口。
-
-        对应 JMX：弹性计算_extentions_fuzzy-query_Helm应用模糊查询服务接口
         GET /elastic-compute/v2/searchHelmApp
         """
         logger.info("Search helm app")
@@ -641,8 +572,6 @@ class ElasticComputeExtService(BaseService):
     def search_app_fuzzy(self) -> Dict[str, Any]:
         """
         应用模糊查询。
-
-        对应 JMX：弹性计算_extentions_fuzzy-query_应用模糊查询
         GET /elastic-compute/v2/searchApp
         """
         logger.info("Search app fuzzy")
@@ -655,9 +584,10 @@ class ElasticComputeExtService(BaseService):
     def get_namespace_quota_overview(self, tenant_code: str, namespace: str) -> Dict[str, Any]:
         """
         系统资源配额各集群概览。
-
-        对应 JMX：弹性计算_extentions_namespace-quota_系统资源配额各集群概览
         GET /elastic-compute/v1/tenants/{tenantCode}/namespaces/{namespace}/quota
+        Args:
+            tenant_code: 租户编码
+            namespace: K8s Namespace
         """
         logger.info(f"Get namespace quota overview: tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/tenants/{tenant_code}/namespaces/{namespace}/quota"
@@ -667,9 +597,11 @@ class ElasticComputeExtService(BaseService):
     def get_namespace_quota_detail(self, cluster_id: str, tenant_code: str, namespace: str) -> Dict[str, Any]:
         """
         系统资源配额详情。
-
-        对应 JMX：弹性计算_extentions_namespace-quota_系统资源配额详情
         GET /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/namespaces/{namespace}/quota/detail
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
+            namespace: K8s Namespace
         """
         logger.info(f"Get namespace quota detail: cluster={cluster_id}, tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/namespaces/{namespace}/quota/detail"
@@ -679,9 +611,11 @@ class ElasticComputeExtService(BaseService):
     def get_namespace_quota_scale(self, cluster_id: str, tenant_code: str, namespace: str) -> Dict[str, Any]:
         """
         系统可调整资源配额查询。
-
-        对应 JMX：弹性计算_extentions_namespace-quota_系统可调整资源配额查询
         GET /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/namespaces/{namespace}/quota/scale
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
+            namespace: K8s Namespace
         """
         logger.info(f"Get namespace quota scale: cluster={cluster_id}, tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/namespaces/{namespace}/quota/scale"
@@ -693,11 +627,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         系统资源配额调整(扩容缩容)。
-
-        对应 JMX：弹性计算_extentions_namespace-quota_系统资源配额调整(扩容缩容)
         PUT /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/namespaces/{namespace}/quota/scale
-
-        对齐 JMX 行为：body 固定为空对象 {}。
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
+            namespace: K8s Namespace
         """
         logger.info(f"Update namespace quota scale: cluster={cluster_id}, tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/namespaces/{namespace}/quota/scale"
@@ -710,11 +644,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         系统资源配额分配。
-
-        对应 JMX：弹性计算_extentions_namespace-quota_系统资源配额分配
         POST /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/namespaces/{namespace}/quota/allocate
-
-        对齐 JMX 行为：body 固定为空对象 {}。
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
+            namespace: K8s Namespace
         """
         logger.info(f"Allocate namespace quota: cluster={cluster_id}, tenant={tenant_code}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/namespaces/{namespace}/quota/allocate"
@@ -727,9 +661,9 @@ class ElasticComputeExtService(BaseService):
     def list_hosts(self, cell_code: str) -> Dict[str, Any]:
         """
         集群下的主机列表查询接口。
-
-        对应 JMX：弹性计算_extentions_host-bind_集群下的主机列表查询接口
         GET /elastic-compute/v2/cells/{cellCode}/hosts
+        Args:
+            cell_code: 单元编码
         """
         logger.info(f"List hosts: cellCode={cell_code}")
         url = f"/elastic-compute/v2/cells/{cell_code}/hosts"
@@ -741,10 +675,7 @@ class ElasticComputeExtService(BaseService):
     def get_image_tags(self, repo_name: str, project_name: str) -> Dict[str, Any]:
         """
         获取镜像 tag 列表。
-
-        对应 JMX：弹性计算_extentions_image-api_获取镜像tag列表
         GET /elastic-compute/v1/images/getRepositoriesTags?repo_name=&projectName=
-
         Args:
             repo_name: 镜像仓库名（如 kube_system/nfs/provisioner/v1）
             project_name: 项目名（如 kube_system）
@@ -760,10 +691,7 @@ class ElasticComputeExtService(BaseService):
     def list_helm_charts(self, cluster_id: str, keyword: Optional[str] = None) -> Dict[str, Any]:
         """
         查询 Chart 列表。
-
-        对应 JMX：弹性计算_extentions_helm-chart_查询Chart列表
         GET /elastic-compute/v1/clusters/{clusterId}/helm/charts?keyword={keyword}
-
         Args:
             cluster_id: 集群 ID
             keyword: 关键字过滤（可选，通常传 chartName 用于精准匹配）
@@ -777,9 +705,11 @@ class ElasticComputeExtService(BaseService):
     def download_helm_chart(self, cluster_id: str, chart_name: str, chart_version: str) -> Any:
         """
         下载 Chart。
-
-        对应 JMX：弹性计算_extentions_helm-chart_下载Chart
         GET /elastic-compute/v1/clusters/{clusterId}/helm/charts/{chartName}/versions/{chartVersion}/download
+        Args:
+            cluster_id: 集群 ID
+            chart_name: Helm Chart 名称
+            chart_version: Helm Chart 版本
         """
         logger.info(f"Download helm chart: cluster={cluster_id}, chart={chart_name}, version={chart_version}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/helm/charts/{chart_name}/versions/{chart_version}/download"
@@ -791,10 +721,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         删除 Chart。
-
-        对应 JMX：弹性计算_extentions_helm-chart_删除Chart
         DELETE /elastic-compute/v1/clusters/{clusterId}/helm/charts/{chartName}?version={chartVersion}
-
         Args:
             cluster_id: 集群 ID
             chart_name: Chart 名称
@@ -811,9 +738,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm Install 请求。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Install请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/install
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            release: Helm Release 实体
         """
         logger.info(f"Helm install: cluster={cluster_id}, ns={namespace}, name={release.name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/install"
@@ -861,9 +790,11 @@ class ElasticComputeExtService(BaseService):
     def helm_uninstall(self, cluster_id: str, namespace: str, name: str) -> Dict[str, Any]:
         """
         Helm Uninstall 请求。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Uninstall请求
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/release/{name}/uninstall
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Helm uninstall: cluster={cluster_id}, ns={namespace}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/release/{name}/uninstall"
@@ -873,9 +804,10 @@ class ElasticComputeExtService(BaseService):
     def helm_list_releases(self, cluster_id: str, namespace: str) -> Dict[str, Any]:
         """
         查询 Helm Release 列表。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm list请求
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/release
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Helm list releases: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/release"
@@ -885,9 +817,11 @@ class ElasticComputeExtService(BaseService):
     def helm_manifest(self, cluster_id: str, namespace: str, name: str) -> Dict[str, Any]:
         """
         查询 Helm Release Manifest。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Manifest请求
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/release/{name}/manifest
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Helm manifest: cluster={cluster_id}, ns={namespace}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/release/{name}/manifest"
@@ -899,9 +833,12 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm Upgrade 请求。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Upgrade请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/release/{name}/upgrade
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
+            release: Helm Release 实体
         """
         logger.info(f"Helm upgrade: cluster={cluster_id}, ns={namespace}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/release/{name}/upgrade"
@@ -949,9 +886,11 @@ class ElasticComputeExtService(BaseService):
     def helm_history(self, cluster_id: str, namespace: str, name: str) -> Dict[str, Any]:
         """
         查询 Helm Release 历史版本。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm History请求
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/release/{name}/history
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Helm history: cluster={cluster_id}, ns={namespace}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/release/{name}/history"
@@ -961,10 +900,7 @@ class ElasticComputeExtService(BaseService):
     def helm_rollback(self, cluster_id: str, namespace: str, name: str, revision: int = 1) -> Dict[str, Any]:
         """
         Helm Rollback 请求。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Rollback请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/release/{name}/rollback?revision={revision}
-
         Args:
             cluster_id: 集群 ID
             namespace: 命名空间
@@ -980,10 +916,7 @@ class ElasticComputeExtService(BaseService):
     def upload_helm_chart(self, cluster_id: str, file_path: str) -> Dict[str, Any]:
         """
         上传 Chart 包。
-
-        对应 JMX：弹性计算_extentions_helm-chart_上传Chart请求
         POST /elastic-compute/v1/clusters/{clusterId}/helm/charts/upload (multipart/form-data)
-
         Args:
             cluster_id: 集群 ID
             file_path: 本地 Chart 包文件路径
@@ -1001,9 +934,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm 批量 Install 请求（v1）。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Install请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/install/batch
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            releases: Helm Release 实体列表（批量场景）
         """
         logger.info(f"Helm batch install v1: cluster={cluster_id}, ns={namespace}, count={len(releases)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/install/batch"
@@ -1056,9 +991,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm 批量 Uninstall 请求（v1）。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Uninstall请求
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/uninstall/batch
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            uninstall: Helm 批量卸载实体（含 release 名称列表）
         """
         logger.info(
             f"Helm batch uninstall v1: cluster={cluster_id}, ns={namespace}, count={len(uninstall.release_names)}"
@@ -1073,9 +1010,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm 批量 Upgrade 请求（v1）。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Upgrade请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/helm/upgrade/batch
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            releases: Helm Release 实体列表（批量场景）
         """
         logger.info(f"Helm batch upgrade v1: cluster={cluster_id}, ns={namespace}, count={len(releases)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/helm/upgrade/batch"
@@ -1128,9 +1067,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm 批量 Install 请求（v2）。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Install请求 v2
         POST /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/install/batch
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            releases: Helm Release 实体列表（批量场景）
         """
         logger.info(f"Helm batch install v2: cell={cell_code}, sys={sys_code}, count={len(releases)}")
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/install/batch"
@@ -1183,9 +1124,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm 批量 Uninstall 请求（v2）。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Uninstall请求 v2
         DELETE /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/uninstall/batch
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            uninstall: Helm 批量卸载实体（含 release 名称列表）
         """
         logger.info(
             f"Helm batch uninstall v2: cell={cell_code}, sys={sys_code}, count={len(uninstall.release_names)}"
@@ -1200,9 +1143,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         Helm 批量 Upgrade 请求（v2）。
-
-        对应 JMX：弹性计算_extentions_helm-chart_Helm Batch Upgrade请求 v2
         POST /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/helm/upgrade/batch
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            releases: Helm Release 实体列表（批量场景）
         """
         logger.info(f"Helm batch upgrade v2: cell={cell_code}, sys={sys_code}, count={len(releases)}")
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/helm/upgrade/batch"
@@ -1255,9 +1200,11 @@ class ElasticComputeExtService(BaseService):
     def get_nginx_rbac(self, cluster_id: str, namespace: str, code: str) -> Dict[str, Any]:
         """
         查询 Nginx RBAC 模板。
-
-        对应 JMX：弹性计算_extentions_nginx-rbac_查询RBAC接口
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/rbac/nginx/{code}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            code: RBAC 模板编码
         """
         logger.info(f"Get nginx rbac: cluster={cluster_id}, ns={namespace}, code={code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/rbac/nginx/{code}"
@@ -1267,9 +1214,11 @@ class ElasticComputeExtService(BaseService):
     def create_nginx_rbac(self, cluster_id: str, namespace: str, code: str) -> Dict[str, Any]:
         """
         创建 Nginx RBAC 模板。
-
-        对应 JMX：弹性计算_extentions_nginx-rbac_创建RBAC接口
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/rbac/nginx/{code}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            code: RBAC 模板编码
         """
         logger.info(f"Create nginx rbac: cluster={cluster_id}, ns={namespace}, code={code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/rbac/nginx/{code}"
@@ -1279,9 +1228,11 @@ class ElasticComputeExtService(BaseService):
     def delete_nginx_rbac(self, cluster_id: str, namespace: str, code: str) -> Dict[str, Any]:
         """
         删除 Nginx RBAC 模板。
-
-        对应 JMX：弹性计算_extentions_nginx-rbac_删除RBAC接口
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/rbac/nginx/{code}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            code: RBAC 模板编码
         """
         logger.info(f"Delete nginx rbac: cluster={cluster_id}, ns={namespace}, code={code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/rbac/nginx/{code}"
@@ -1293,9 +1244,10 @@ class ElasticComputeExtService(BaseService):
     def list_node_taints(self, cell_code: str, node_name: str) -> Dict[str, Any]:
         """
         查询节点污点列表。
-
-        对应 JMX：弹性计算_extentions_Node_查询节点污点列表
         GET /elastic-compute/v2/cells/{cellCode}/nodes/taints?nodeName={nodeName}
+        Args:
+            cell_code: 单元编码
+            node_name: 节点名称
         """
         logger.info(f"List node taints: cell={cell_code}, nodeName={node_name}")
         url = f"/elastic-compute/v2/cells/{cell_code}/nodes/taints"
@@ -1310,9 +1262,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建资源配额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_创建资源配额
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/resourceQuota
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            quota: ResourceQuota 实体
         """
         logger.info(f"Create resource quota: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/resourceQuota"
@@ -1328,9 +1282,10 @@ class ElasticComputeExtService(BaseService):
     def get_resource_quota(self, cluster_id: str, namespace: str) -> Dict[str, Any]:
         """
         获取资源配额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_获取资源配额
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/resourceQuota
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Get resource quota: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/resourceQuota"
@@ -1342,14 +1297,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         更新资源配额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_更新资源配额
         PUT /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/resourceQuota
-
         Args:
             cluster_id: 集群 ID
             namespace: K8s Namespace
-            quota: 资源配额实体。None 时发送空 body（对齐 JMX PUT 空 body 场景）
+            quota: 资源配额实体。None 时发送空 body
         """
         logger.info(f"Update resource quota: cluster={cluster_id}, ns={namespace}, has_body={quota is not None}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/resourceQuota"
@@ -1368,8 +1320,10 @@ class ElasticComputeExtService(BaseService):
     def delete_resource_quota(self, cluster_id: str, namespace: str) -> Dict[str, Any]:
         """
         删除资源配额。
-
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/resourceQuota
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Delete resource quota: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/resourceQuota"
@@ -1381,9 +1335,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建资源限额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_创建资源限额
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/limitRange
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            limit_range: LimitRange 实体
         """
         logger.info(f"Create limit range: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/limitRange"
@@ -1399,9 +1355,10 @@ class ElasticComputeExtService(BaseService):
     def get_limit_range(self, cluster_id: str, namespace: str) -> Dict[str, Any]:
         """
         获取资源限额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_获取资源限额
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/limitRange
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Get limit range: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/limitRange"
@@ -1413,14 +1370,11 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         更新资源限额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_更新资源限额
         PUT /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/limitRange
-
         Args:
             cluster_id: 集群 ID
             namespace: K8s Namespace
-            limit_range: LimitRange 实体。None 时发送空 body（对齐 JMX PUT 空 body 场景）
+            limit_range: LimitRange 实体。None 时发送空 body
         """
         logger.info(
             f"Update limit range: cluster={cluster_id}, ns={namespace}, has_body={limit_range is not None}"
@@ -1441,9 +1395,10 @@ class ElasticComputeExtService(BaseService):
     def delete_limit_range(self, cluster_id: str, namespace: str) -> Dict[str, Any]:
         """
         删除资源限额。
-
-        对应 JMX：弹性计算_extentions_partitions-api_删除资源限额
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/limitRange
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
         """
         logger.info(f"Delete limit range: cluster={cluster_id}, ns={namespace}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/limitRange"
@@ -1453,13 +1408,10 @@ class ElasticComputeExtService(BaseService):
     def list_partition_nodes(self, cluster_id: str, admin: bool = False) -> Dict[str, Any]:
         """
         获取节点信息（partitions-api 场景下用于节点资源查询）。
-
-        对应 JMX：弹性计算_extentions_partitions-api_获取节点信息
         GET /elastic-compute/v1/clusters/{clusterId}/nodes
-
         Args:
             cluster_id: 集群 ID
-            admin: 是否使用 adminUsername / adminTenantCode 请求（对齐 JMX 中局部 HeaderManager）
+            admin: 是否使用 adminUsername / adminTenantCode 请求
         """
         logger.info(f"List partition nodes: cluster={cluster_id}, admin={admin}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/nodes"
@@ -1472,8 +1424,6 @@ class ElasticComputeExtService(BaseService):
     def search_physical_host_for_authorization(self) -> Dict[str, Any]:
         """
         获取主机列表（门户视图，供租户授权查询）。
-
-        对应 JMX：弹性计算_extentions_physical-host_获取主机列表(门户)
         GET /elastic-compute/v2/physicalHost/searchPhysicalHostListForTenantAuthorization
         """
         logger.info("Search physical host list for tenant authorization")
@@ -1484,9 +1434,10 @@ class ElasticComputeExtService(BaseService):
     def bind_physical_host_tenant(self, host_id: Any, tenant_code: str) -> Dict[str, Any]:
         """
         主机绑定租户（门户）。
-
-        对应 JMX：弹性计算_extentions_physical-host_主机绑定租户(门户)
         POST /elastic-compute/v2/physicalHost/bindTenant
+        Args:
+            host_id: 裸金属主机 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Bind physical host tenant: hostId={host_id}, tenantCode={tenant_code}")
         url = "/elastic-compute/v2/physicalHost/bindTenant"
@@ -1497,8 +1448,6 @@ class ElasticComputeExtService(BaseService):
     def list_current_tenant_hosts(self) -> Dict[str, Any]:
         """
         获取当前租户的裸金属主机列表。
-
-        对应 JMX：弹性计算_extentions_physical-host_获取当前租户的裸金属主机列表
         GET /elastic-compute/v2/hosts
         """
         logger.info("List current tenant hosts")
@@ -1509,13 +1458,10 @@ class ElasticComputeExtService(BaseService):
     def get_host_resource(self, host_id: Any, admin: bool = False) -> Dict[str, Any]:
         """
         获取指定裸金属主机信息。
-
-        对应 JMX：弹性计算_extentions_physical-host_获取指定裸金属主机信息
         GET /elastic-compute/v2/hostResource/{hostId}
-
         Args:
             host_id: 主机 ID
-            admin: 是否使用 adminUsername / adminTenantCode 请求（对齐 JMX 中局部 HeaderManager）
+            admin: 是否使用 adminUsername / adminTenantCode 请求
         """
         logger.info(f"Get host resource: hostId={host_id}, admin={admin}")
         url = f"/elastic-compute/v2/hostResource/{host_id}"
@@ -1526,9 +1472,9 @@ class ElasticComputeExtService(BaseService):
     def get_host_connect_info(self, host_id: Any) -> Dict[str, Any]:
         """
         获取指定裸金属主机连接信息。
-
-        对应 JMX：弹性计算_extentions_physical-host_获取指定裸金属主机连接信息
         GET /elastic-compute/v2/hostConnectInfo/{hostId}
+        Args:
+            host_id: 裸金属主机 ID
         """
         logger.info(f"Get host connect info: hostId={host_id}")
         url = f"/elastic-compute/v2/hostConnectInfo/{host_id}"
@@ -1538,9 +1484,10 @@ class ElasticComputeExtService(BaseService):
     def unbind_physical_host_tenant(self, host_id: Any, tenant_code: str) -> Dict[str, Any]:
         """
         主机解绑租户（门户）。
-
-        对应 JMX：弹性计算_extentions_physical-host_主机解绑租户(门户)
         POST /elastic-compute/v2/physicalHost/unbindTenant
+        Args:
+            host_id: 裸金属主机 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Unbind physical host tenant: hostId={host_id}, tenantCode={tenant_code}")
         url = "/elastic-compute/v2/physicalHost/unbindTenant"
@@ -1553,9 +1500,9 @@ class ElasticComputeExtService(BaseService):
     def get_cluster_quota(self, cluster_id: str) -> Dict[str, Any]:
         """
         集群配额概览查询。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_集群配额概览查询
         GET /elastic-compute/v1/clusters/{clusterId}/quota
+        Args:
+            cluster_id: 集群 ID
         """
         logger.info(f"Get cluster quota: cluster={cluster_id}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/quota"
@@ -1565,9 +1512,9 @@ class ElasticComputeExtService(BaseService):
     def get_tenant_quota_overview(self, tenant_code: str) -> Dict[str, Any]:
         """
         租户资源配额总览。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额总览
         GET /elastic-compute/v1/tenants/{tenantCode}/quota
+        Args:
+            tenant_code: 租户编码
         """
         logger.info(f"Get tenant quota overview: tenant={tenant_code}")
         url = f"/elastic-compute/v1/tenants/{tenant_code}/quota"
@@ -1577,9 +1524,10 @@ class ElasticComputeExtService(BaseService):
     def get_tenant_quota_detail(self, cluster_id: str, tenant_code: str) -> Dict[str, Any]:
         """
         租户资源配额详情。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额详情
         GET /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota/detail
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Get tenant quota detail: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota/detail"
@@ -1589,9 +1537,10 @@ class ElasticComputeExtService(BaseService):
     def get_tenant_cluster_quota(self, cluster_id: str, tenant_code: str) -> Dict[str, Any]:
         """
         租户资源配额单集群总览。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额单集群总览
         GET /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Get tenant cluster quota: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota"
@@ -1601,9 +1550,10 @@ class ElasticComputeExtService(BaseService):
     def get_tenant_quota_scale(self, cluster_id: str, tenant_code: str) -> Dict[str, Any]:
         """
         租户可调整资源配额查询。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_租户可调整资源配额查询
         GET /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota/scale
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Get tenant quota scale: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota/scale"
@@ -1615,11 +1565,10 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         租户资源配额分配。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额分配
         POST /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota/allocate
-
-        对齐 JMX 行为：body 固定为空对象 {}。
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Allocate tenant quota: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota/allocate"
@@ -1632,11 +1581,10 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         租户资源配额调整（扩容缩容）。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_租户资源配额调整(扩容缩容)
         PUT /elastic-compute/v1/clusters/{clusterId}/tenants/{tenantCode}/quota/scale
-
-        对齐 JMX 行为：body 固定为空对象 {}。
+        Args:
+            cluster_id: 集群 ID
+            tenant_code: 租户编码
         """
         logger.info(f"Update tenant quota scale: cluster={cluster_id}, tenant={tenant_code}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/tenants/{tenant_code}/quota/scale"
@@ -1649,13 +1597,10 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         批量查询租户资源配额概览。
-
-        对应 JMX：弹性计算_extentions_tenant-quota_批量查询租户资源配额概览
         POST /elastic-compute/v1/tenants/quota/batch
-
         Args:
             batch: 批量查询实体，包含 tenant_codes 列表
-            admin: 是否使用 adminUsername / adminTenantCode 请求（对齐 JMX 中局部 HeaderManager）
+            admin: 是否使用 adminUsername / adminTenantCode 请求
         """
         logger.info(f"Batch query tenant quota: admin={admin}, tenants={batch.tenant_codes}")
         url = "/elastic-compute/v1/tenants/quota/batch"
@@ -1669,9 +1614,12 @@ class ElasticComputeExtService(BaseService):
     def get_workload_status(self, cell_code: str, sys_code: str, kind: str, name: str) -> Dict[str, Any]:
         """
         查询指定 Workload 状态。
-
-        对应 JMX：弹性计算_extentions_workload_查询指定Deployment
         GET /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/kinds/{kind}/workloads/{name}/status
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
         """
         logger.info(f"Get workload status: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}")
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/kinds/{kind}/workloads/{name}/status"
@@ -1683,10 +1631,7 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         创建 Workload。
-
-        对应 JMX：弹性计算_extentions_workload_创建Deployment请求
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications
-
         Args:
             cluster_id: 集群 ID
             namespace: K8s Namespace
@@ -1712,9 +1657,13 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         更新指定 Workload（PUT，全量更新）。
-
-        对应 JMX：弹性计算_extentions_workload_更新指定Deployment
         PUT /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+            workload: Workload create/update 实体
         """
         logger.info(f"Update workload: cluster={cluster_id}, ns={namespace}, kind={kind}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}"
@@ -1735,9 +1684,13 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         增量更新指定 Workload。
-
-        对应 JMX：弹性计算_extentions_workload_增量更新指定Deployment
         PATCH /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+            patch: Workload PATCH 增量更新实体
         """
         logger.info(f"Patch workload: cluster={cluster_id}, ns={namespace}, kind={kind}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}"
@@ -1750,9 +1703,12 @@ class ElasticComputeExtService(BaseService):
     def delete_workload(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
         """
         删除指定 Workload。
-
-        对应 JMX：弹性计算_extentions_workload_删除Deployment
         DELETE /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
         """
         logger.info(f"Delete workload: cluster={cluster_id}, ns={namespace}, kind={kind}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}"
@@ -1762,9 +1718,12 @@ class ElasticComputeExtService(BaseService):
     def list_workload_pods(self, cell_code: str, sys_code: str, kind: str, name: str) -> Dict[str, Any]:
         """
         查询 Workload 关联的 Pod 实例列表。
-
-        对应 JMX：弹性计算_extentions_workload_查询应用服务的Pod实例列表
         GET /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/kinds/{kind}/workloads/{name}/pods
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
         """
         logger.info(f"List workload pods: cell={cell_code}, sys={sys_code}, kind={kind}, name={name}")
         url = f"/elastic-compute/v2/cells/{cell_code}/systems/{sys_code}/kinds/{kind}/workloads/{name}/pods"
@@ -1776,9 +1735,13 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Workload Pod 的事件列表。
-
-        对应 JMX：弹性计算_extentions_workload_查询应用服务的Pod事件列表
         GET /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/kinds/{kind}/workloads/{name}/pods/{podName}/events
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+            pod_name: Pod 名称
         """
         logger.info(f"Get workload pod events: kind={kind}, name={name}, pod={pod_name}")
         url = (
@@ -1799,9 +1762,14 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         查询 Workload Pod 容器日志。
-
-        对应 JMX：弹性计算_extentions_workload_查询应用服务的Pod容器日志
         GET /elastic-compute/v2/cells/{cellCode}/systems/{sysCode}/kinds/{kind}/workloads/{name}/pods/{podName}/containers/{containerName}/logs
+        Args:
+            cell_code: 单元编码
+            sys_code: 系统编码
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+            pod_name: Pod 名称
+            container_name: 容器名
         """
         logger.info(f"Get workload pod logs: kind={kind}, name={name}, pod={pod_name}, container={container_name}")
         url = (
@@ -1815,9 +1783,12 @@ class ElasticComputeExtService(BaseService):
     def get_workload_volume_mounts(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
         """
         查询 Workload 的挂载存储列表。
-
-        对应 JMX：弹性计算_extentions_workload_查询应用服务的挂载存储列表
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}/volumeMounts
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
         """
         logger.info(f"Get workload volume mounts: kind={kind}, name={name}")
         url = (
@@ -1830,9 +1801,12 @@ class ElasticComputeExtService(BaseService):
     def get_workload_hpa(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
         """
         查询 Workload 的 HPA。
-
-        对应 JMX：弹性计算_extentions_workload_查询应用服务的HPA
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}/hpa
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
         """
         logger.info(f"Get workload hpa: kind={kind}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}/hpa"
@@ -1844,9 +1818,13 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         更新 Workload 副本数。
-
-        对应 JMX：弹性计算_extentions_workload_更新Deployment副本数
         POST /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}/replicas/{replicas}
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+            replicas: 目标副本数
         """
         logger.info(f"Update workload replicas: kind={kind}, name={name}, replicas={replicas}")
         url = (
@@ -1857,21 +1835,45 @@ class ElasticComputeExtService(BaseService):
         return response.json()
 
     def stop_workload(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
-        """停止 Workload。POST /kinds/{kind}/applications/{name}/stop"""
+        """
+        停止 Workload。
+        POST /kinds/{kind}/applications/{name}/stop
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+        """
         logger.info(f"Stop workload: kind={kind}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}/stop"
         response = self.post(endpoint=url, headers=_get_workload_headers())
         return response.json()
 
     def start_workload(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
-        """启动 Workload。POST /kinds/{kind}/applications/{name}/start"""
+        """
+        启动 Workload。
+        POST /kinds/{kind}/applications/{name}/start
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+        """
         logger.info(f"Start workload: kind={kind}, name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}/start"
         response = self.post(endpoint=url, headers=_get_workload_headers())
         return response.json()
 
     def restart_workload(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
-        """重启 Workload。POST /kinds/{kind}/applications/{name}/restart"""
+        """
+        重启 Workload。
+        POST /kinds/{kind}/applications/{name}/restart
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+        """
         logger.info(f"Restart workload: kind={kind}, name={name}")
         url = (
             f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/kinds/{kind}/applications/{name}/restart"
@@ -1882,9 +1884,12 @@ class ElasticComputeExtService(BaseService):
     def get_workload_services(self, cluster_id: str, namespace: str, kind: str, name: str) -> Dict[str, Any]:
         """
         查询 Workload 关联的 Service。
-
-        对应 JMX：弹性计算_extentions_workload_查询应用服务关联的Service
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}/services
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
         """
         logger.info(f"Get workload services: kind={kind}, name={name}")
         url = (
@@ -1904,9 +1909,13 @@ class ElasticComputeExtService(BaseService):
     ) -> Dict[str, Any]:
         """
         更新 Workload 关联的 Service。
-
-        对应 JMX：弹性计算_extentions_workload_更新应用服务Service
         PUT /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/kinds/{kind}/applications/{name}/services
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            kind: Workload 类型（Deployment / StatefulSet / DaemonSet / Job / CloneSet 等）
+            name: 资源名称
+            services: Workload 关联 Service 实体列表
         """
         logger.info(f"Update workload services: kind={kind}, name={name}, count={len(services)}")
         url = (
@@ -1932,9 +1941,11 @@ class ElasticComputeExtService(BaseService):
     def get_services_workloads(self, cluster_id: str, namespace: str, name: str) -> Dict[str, Any]:
         """
         通过 Service 反查关联的 Workload。
-
-        对应 JMX：弹性计算_extentions_workload_通过Service查询关联的应用服务
         GET /elastic-compute/v1/clusters/{clusterId}/namespaces/{namespace}/services/{name}/workloads
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            name: 资源名称
         """
         logger.info(f"Get services workloads: name={name}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/services/{name}/workloads"
@@ -1944,7 +1955,14 @@ class ElasticComputeExtService(BaseService):
     def batch_create_workloads(
         self, cluster_id: str, namespace: str, workloads: List[WorkloadEntity]
     ) -> Dict[str, Any]:
-        """批量创建 Workload。POST /applications/batch"""
+        """
+        批量创建 Workload。
+        POST /applications/batch
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            workloads: Workload 实体列表（批量场景）
+        """
         logger.info(f"Batch create workloads: cluster={cluster_id}, ns={namespace}, count={len(workloads)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/applications/batch"
         workload_list: List[Dict[str, Any]] = []
@@ -1966,7 +1984,14 @@ class ElasticComputeExtService(BaseService):
     def batch_update_workloads(
         self, cluster_id: str, namespace: str, workloads: List[WorkloadEntity]
     ) -> Dict[str, Any]:
-        """批量更新 Workload。PUT /applications/batch"""
+        """
+        批量更新 Workload。
+        PUT /applications/batch
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            workloads: Workload 实体列表（批量场景）
+        """
         logger.info(f"Batch update workloads: cluster={cluster_id}, ns={namespace}, count={len(workloads)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/applications/batch"
         workload_list: List[Dict[str, Any]] = []
@@ -1988,7 +2013,14 @@ class ElasticComputeExtService(BaseService):
     def batch_delete_workloads(
         self, cluster_id: str, namespace: str, workloads: List[WorkloadEntity]
     ) -> Dict[str, Any]:
-        """批量删除 Workload。DELETE /applications/batch（body 仅 kind+name）"""
+        """
+        批量删除 Workload。
+        DELETE /applications/batch（body 仅 kind+name）
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            workloads: Workload 实体列表（批量场景）
+        """
         logger.info(f"Batch delete workloads: cluster={cluster_id}, ns={namespace}, count={len(workloads)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/applications/batch"
         payload = {"workloadList": [{"kind": w.kind, "name": w.name} for w in workloads]}
@@ -1998,7 +2030,14 @@ class ElasticComputeExtService(BaseService):
     def batch_stop_workloads(
         self, cluster_id: str, namespace: str, workloads: List[WorkloadEntity]
     ) -> Dict[str, Any]:
-        """批量停止 Workload。POST /applications/stop/batch（body 仅 kind+name）"""
+        """
+        批量停止 Workload。
+        POST /applications/stop/batch（body 仅 kind+name）
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            workloads: Workload 实体列表（批量场景）
+        """
         logger.info(f"Batch stop workloads: cluster={cluster_id}, ns={namespace}, count={len(workloads)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/applications/stop/batch"
         payload = {"workloadList": [{"kind": w.kind, "name": w.name} for w in workloads]}
@@ -2008,7 +2047,14 @@ class ElasticComputeExtService(BaseService):
     def batch_start_workloads(
         self, cluster_id: str, namespace: str, workloads: List[WorkloadEntity]
     ) -> Dict[str, Any]:
-        """批量启动 Workload。POST /applications/start/batch（body 仅 kind+name）"""
+        """
+        批量启动 Workload。
+        POST /applications/start/batch（body 仅 kind+name）
+        Args:
+            cluster_id: 集群 ID
+            namespace: K8s Namespace
+            workloads: Workload 实体列表（批量场景）
+        """
         logger.info(f"Batch start workloads: cluster={cluster_id}, ns={namespace}, count={len(workloads)}")
         url = f"/elastic-compute/v1/clusters/{cluster_id}/namespaces/{namespace}/applications/start/batch"
         payload = {"workloadList": [{"kind": w.kind, "name": w.name} for w in workloads]}
@@ -2020,9 +2066,10 @@ class ElasticComputeExtService(BaseService):
     def check_system_quota(self, tenant_code: str, sys_code: str) -> Dict[str, Any]:
         """
         查询系统是否有配额信息。
-
-        对应 JMX：弹性计算_extentions_system-bind_查询系统是否有配额信息
         GET /elastic-compute/v2/tenants/{tenantCode}/sysCode/{sysCode}/ns/quota
+        Args:
+            tenant_code: 租户编码
+            sys_code: 系统编码
         """
         logger.info(f"Check system quota: tenant={tenant_code}, sysCode={sys_code}")
         url = f"/elastic-compute/v2/tenants/{tenant_code}/sysCode/{sys_code}/ns/quota"
@@ -2032,9 +2079,10 @@ class ElasticComputeExtService(BaseService):
     def bind_system_user(self, sys_code: str, username: str) -> Dict[str, Any]:
         """
         用户与系统绑定。
-
-        对应 JMX：弹性计算_extentions_system-bind_用户与系统绑定接口
         GET /elastic-compute/v2/sysCode/{sysCode}/username/{username}/bindUser
+        Args:
+            sys_code: 系统编码
+            username: 用户名
         """
         logger.info(f"Bind system user: sysCode={sys_code}, username={username}")
         url = f"/elastic-compute/v2/sysCode/{sys_code}/username/{username}/bindUser"
@@ -2044,9 +2092,10 @@ class ElasticComputeExtService(BaseService):
     def unbind_system_user(self, sys_code: str, username: str) -> Dict[str, Any]:
         """
         解除用户与系统绑定。
-
-        对应 JMX：弹性计算_extentions_system-bind_解除用户与系统绑定接口
         GET /elastic-compute/v2/sysCode/{sysCode}/username/{username}/unbindUser
+        Args:
+            sys_code: 系统编码
+            username: 用户名
         """
         logger.info(f"Unbind system user: sysCode={sys_code}, username={username}")
         url = f"/elastic-compute/v2/sysCode/{sys_code}/username/{username}/unbindUser"

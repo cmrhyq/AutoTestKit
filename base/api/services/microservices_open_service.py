@@ -54,6 +54,7 @@ class MicroservicesOpenService(BaseService):
     def add_ingress_instance(self, data: Ingress) -> Dict[str, Any]:
         """
         新增ingress网关实例
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/add
         Args:
             data: Ingress 网关实例数据，数据类参数全必填
         """
@@ -87,6 +88,7 @@ class MicroservicesOpenService(BaseService):
     def get_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据编码查询ingress网关实例详情
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/detailCode
         Args:
             data: Ingress 网关数据类，必填：
             - code: str 网关实例编码
@@ -102,6 +104,7 @@ class MicroservicesOpenService(BaseService):
     def delete_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据网关实例编码删除网关实例
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/deleteCode
         Args:
             data: Ingress 网关数据类，必填：
             - code: str 网关实例编码
@@ -117,6 +120,7 @@ class MicroservicesOpenService(BaseService):
     def add_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
         """
         新增ingress网关配置
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/add
         Args:
             data: IngressConfig 网关配置数据，必填
             - name: ingress网关名称
@@ -158,6 +162,7 @@ class MicroservicesOpenService(BaseService):
     def list_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
         """
         查询ingress网关配置列表
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/list
         Args:
             data: Dict 查询参数
         """
@@ -175,6 +180,7 @@ class MicroservicesOpenService(BaseService):
     def update_ingress_config(self, data: IngressConfig) -> Dict[str, Any]:
         """
         更新ingress网关配置
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/update
         Args:
             data: IngressConfig 网关配置数据，必填
             - name: ingress网关名称
@@ -217,6 +223,7 @@ class MicroservicesOpenService(BaseService):
     def get_ingress_config_detail(self, data: IngressConfig) -> Dict[str, Any]:
         """
         ingress网关配置详情
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/detail
         Args:
             data: Dict 查询参数
         """
@@ -234,6 +241,7 @@ class MicroservicesOpenService(BaseService):
     def get_ingress_by_service_name(self, data: IngressConfig) -> Dict[str, Any]:
         """
         ingress网关配置通过service获取配置详情
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/getIngressByServiceName
         Args:
             data: 网关配置，必填：
             -
@@ -255,6 +263,7 @@ class MicroservicesOpenService(BaseService):
     def delete_ingress_config_by_code(self, data: IngressConfig) -> Dict[str, Any]:
         """
         ingress网关配置删除接口
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadIngress/deleteCode
         Args:
             data: Dict 删除参数
         """
@@ -274,6 +283,7 @@ class MicroservicesOpenService(BaseService):
     def add_nginx_param(self, data: NginxParam) -> Dict[str, Any]:
         """
         新增nginx参数模板
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/add
         Args:
             data: NginxParam 参数模板数据
         """
@@ -295,6 +305,7 @@ class MicroservicesOpenService(BaseService):
     def update_nginx_param(self, data: NginxParam) -> Dict[str, Any]:
         """
         修改nginx参数模板
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/update
         Args:
             data: NginxParam 更新数据
         """
@@ -316,6 +327,7 @@ class MicroservicesOpenService(BaseService):
     def query_all_nginx_param(self, param_type: str = "All") -> Dict[str, Any]:
         """
         查询nginx参数模板列表
+        GET /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/queryAll?type={param_type}
         Args:
             param_type: str 参数类型，默认All
         """
@@ -327,6 +339,7 @@ class MicroservicesOpenService(BaseService):
     def update_nginx_param_status(self, data: NginxParamStatus) -> Dict[str, Any]:
         """
         nginx参数模板上线/下线接口
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/updateStatus
         Args:
             data: NginxParamStatus 状态更新数据
         """
@@ -346,6 +359,7 @@ class MicroservicesOpenService(BaseService):
     def list_nginx_param(self, data: NginxParamStatus) -> Dict[str, Any]:
         """
         分页查询nginx参数模板列表
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/list
         Args:
             data: NginxParamStatus 分页查询参数
         """
@@ -365,6 +379,7 @@ class MicroservicesOpenService(BaseService):
     def delete_nginx_param_by_code(self, code: str, param_type: str) -> Dict[str, Any]:
         """
         根据nginx参数模板删除接口
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/nginxParam/deleteCode
         Args:
             code: str 参数模板编码
             param_type: str 参数类型
@@ -378,6 +393,7 @@ class MicroservicesOpenService(BaseService):
     def list_ingress_instance(self, data: IngressIns) -> Dict[str, Any]:
         """
         查询ingress网关实例信息-分页
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/list
         Args:
             data: IngressIns 分页查询参数
         """
@@ -397,6 +413,7 @@ class MicroservicesOpenService(BaseService):
     def update_ingress_instance(self, data: Ingress) -> Dict[str, Any]:
         """
         修改ingress网关实例
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoad/update
         Args:
             data: Ingress 网关数据类，需填 name/code/sysCode/unitCode/planeCode，可选 remark
         """
@@ -419,6 +436,7 @@ class MicroservicesOpenService(BaseService):
     def start_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据网关实例编码启动ingress网关实例
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/startCode
         Args:
             data: Ingress 网关数据类，必填：
             - code: str 网关实例编码
@@ -438,6 +456,7 @@ class MicroservicesOpenService(BaseService):
     def stop_ingress_instance_by_code(self, data: Ingress) -> Dict[str, Any]:
         """
         根据网关实例编码停止ingress网关实例
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/stopCode
         Args:
             data: Ingress 网关数据类，必填：
             - code: str 网关实例编码
@@ -457,6 +476,7 @@ class MicroservicesOpenService(BaseService):
     def scale_ingress_instance(self, instance_id: str, deploy_type: str, replicas: int) -> Dict[str, Any]:
         """
         ingress网关实例扩缩容
+        POST /openapi/ms-ingress/microservice-ingress-console/openapi/tenant/v1/mesh/softLoadInstance/scale
         Args:
             instance_id: str 实例ID
             deploy_type: str 部署类型
@@ -477,6 +497,7 @@ class MicroservicesOpenService(BaseService):
     def add_gateway_instance(self, data: GatewayInstance) -> Dict[str, Any]:
         """
         新增入口网关实例
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/add
         Args:
             data: Dict 网关实例数据
         """
@@ -503,6 +524,7 @@ class MicroservicesOpenService(BaseService):
     def get_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         精确入口网关实例信息
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/getGatewayInstance
         Args:
             data: GatewayInstanceQuery，需要 meta.system_code/cell_code/plane_code 与 name
         """
@@ -520,6 +542,7 @@ class MicroservicesOpenService(BaseService):
     def list_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         查询入口网关实例信息，分页展示
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/list
         Args:
             data: GatewayInstanceQuery，需要 meta + page/rows + type
         """
@@ -539,6 +562,7 @@ class MicroservicesOpenService(BaseService):
     def update_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         更新入口网关实例
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/update
         Args:
             data: GatewayInstanceQuery，需要 meta + name + type + 可选 remark
         """
@@ -559,6 +583,7 @@ class MicroservicesOpenService(BaseService):
     def list_ingress_egress_gateway(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         查询网关实例信息，分页展示包含入口和出口网关
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/ingressEgressList
         Args:
             data: GatewayInstanceQuery，需要 meta + page/rows
         """
@@ -577,6 +602,7 @@ class MicroservicesOpenService(BaseService):
     def add_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         新增网关规则
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/add
         Args:
             data: GatewayRuleEntity，需要 meta + gateway_name + rule_name + port + protocol
         """
@@ -597,6 +623,7 @@ class MicroservicesOpenService(BaseService):
     def list_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         查询网关规则信息，分页展示
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/list
         Args:
             data: GatewayRuleEntity，需要 meta + gateway_name + page/rows
         """
@@ -616,6 +643,7 @@ class MicroservicesOpenService(BaseService):
     def get_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         精确查询网关配置信息
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/getGateway
         Args:
             data: GatewayRuleEntity，需要 meta + gateway_name + rule_name
         """
@@ -634,6 +662,7 @@ class MicroservicesOpenService(BaseService):
     def update_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         更新网关规则
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/update
         Args:
             data: GatewayRuleEntity，需要 meta + gateway_name + rule_name + port + protocol + 可选 remark
         """
@@ -658,6 +687,7 @@ class MicroservicesOpenService(BaseService):
     def batch_add_funcser(self, control_plane_code: str, funcsers: List[FuncserEntity]) -> Dict[str, Any]:
         """
         批量新增单体服务SINGLE
+        POST /openapi/ms-ubm/microservice-ubm/v2/funcser/batch
         Args:
             control_plane_code: str 控制面编码
             funcsers: List[FuncserEntity] 服务定义列表
@@ -683,6 +713,7 @@ class MicroservicesOpenService(BaseService):
     def batch_get_funcser(self, control_plane_code: str, application_code: str, funcser_codes: list) -> Dict[str, Any]:
         """
         根据服务编码批量精确查询服务信息
+        GET /openapi/ms-ubm/microservice-ubm/v2/funcser/batch
         Args:
             control_plane_code: str 控制面编码
             application_code: str 应用编码
@@ -701,6 +732,7 @@ class MicroservicesOpenService(BaseService):
     def add_cmf_degrade(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF新增降级配置
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade
         Args:
             data: CmfDegradeEntity 需要 meta + degrade_rule
         """
@@ -725,6 +757,7 @@ class MicroservicesOpenService(BaseService):
     def get_cmf_degrade_detail(self, control_plane_name: str, env_code: str, func_ser_name: str) -> Dict[str, Any]:
         """
         CMF获取降级配置详情
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/detail
         Args:
             control_plane_name: str 控制面名称
             env_code: str 环境编码
@@ -739,6 +772,7 @@ class MicroservicesOpenService(BaseService):
     def update_cmf_degrade(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF修改降级配置
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/update
         Args:
             data: CmfDegradeEntity 需要 meta + degrade_rule
         """
@@ -763,6 +797,7 @@ class MicroservicesOpenService(BaseService):
     def update_cmf_degrade_state(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF熔断配置上线或者下线
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/updateState
         Args:
             data: CmfDegradeEntity 需要 meta + state
         """
@@ -785,6 +820,7 @@ class MicroservicesOpenService(BaseService):
     def delete_cmf_degrade(self, data: CmfDegradeEntity) -> Dict[str, Any]:
         """
         CMF删除降级配置
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/degrade/delete
         Args:
             data: CmfDegradeEntity 需要 meta
         """
@@ -805,6 +841,7 @@ class MicroservicesOpenService(BaseService):
     def add_cmf_circuit_breaking(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF新增熔断配置
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking
         Args:
             data: CmfCircuitBreakingEntity 需要 meta + circuit_breaking_rule
         """
@@ -829,6 +866,7 @@ class MicroservicesOpenService(BaseService):
     def get_cmf_circuit_breaking_detail(self, control_plane_name: str, env_code: str, func_ser_name: str) -> Dict[str, Any]:
         """
         CMF获取熔断配置详情
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/detail
         Args:
             control_plane_name: str 控制面名称
             env_code: str 环境编码
@@ -843,6 +881,7 @@ class MicroservicesOpenService(BaseService):
     def update_cmf_circuit_breaking(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF修改熔断配置
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/update
         Args:
             data: CmfCircuitBreakingEntity 需要 meta + circuit_breaking_rule
         """
@@ -867,6 +906,7 @@ class MicroservicesOpenService(BaseService):
     def update_cmf_circuit_breaking_state(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF熔断配置上线或者下线
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/updateState
         Args:
             data: CmfCircuitBreakingEntity 需要 meta + state
         """
@@ -889,6 +929,7 @@ class MicroservicesOpenService(BaseService):
     def delete_cmf_circuit_breaking(self, data: CmfCircuitBreakingEntity) -> Dict[str, Any]:
         """
         CMF删除熔断配置
+        POST /openapi/ms-ubm/microservice-ubm/openapi/tenant/cmf/circuitBreaking/delete
         Args:
             data: CmfCircuitBreakingEntity 需要 meta
         """
@@ -909,6 +950,7 @@ class MicroservicesOpenService(BaseService):
     def list_virtualservice_by_gateway_config(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         根据网关规则查询虚拟服务列表
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/listByGatewayConfig
         Args:
             data: VirtualServiceEntity，需要 meta + gateway_name + rule_name
         """
@@ -927,6 +969,7 @@ class MicroservicesOpenService(BaseService):
     def add_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         新增虚拟服务
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/add
         Args:
             data: VirtualServiceEntity，需要 meta + gateway_name + rule_name + vs_name
         """
@@ -946,6 +989,7 @@ class MicroservicesOpenService(BaseService):
     def get_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         精确查询虚拟服务信息
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/getVirtualService
         Args:
             data: VirtualServiceEntity，需要 meta + vs_name
         """
@@ -963,6 +1007,7 @@ class MicroservicesOpenService(BaseService):
     def update_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         更新虚拟服务
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/update
         Args:
             data: VirtualServiceEntity，需要 meta + vs_name + gateway_name + rule_name + 可选 remark
         """
@@ -984,6 +1029,7 @@ class MicroservicesOpenService(BaseService):
     def list_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         查询虚拟服务列表
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/list
         Args:
             data: VirtualServiceEntity，需要 meta + page/rows
         """
@@ -1002,6 +1048,7 @@ class MicroservicesOpenService(BaseService):
     def delete_virtual_service(self, data: VirtualServiceEntity) -> Dict[str, Any]:
         """
         删除虚拟服务
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v2/mesh/virtualservice/delete
         Args:
             data: VirtualServiceEntity，需要 meta + vs_name
         """
@@ -1019,6 +1066,7 @@ class MicroservicesOpenService(BaseService):
     def delete_gateway_rule(self, data: GatewayRuleEntity) -> Dict[str, Any]:
         """
         删除网关规则
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v3/mesh/gateway/delete
         Args:
             data: GatewayRuleEntity，需要 meta + gateway_name + rule_name
         """
@@ -1037,6 +1085,7 @@ class MicroservicesOpenService(BaseService):
     def delete_gateway_instance(self, data: GatewayInstanceQuery) -> Dict[str, Any]:
         """
         删除入口网关实例
+        POST /openapi/ms-mesh/microservice-mesh-console/openapi/tenant/v1/mesh/gatewayinstance/delete
         Args:
             data: GatewayInstanceQuery，需要 meta + name
         """
@@ -1056,6 +1105,7 @@ class MicroservicesOpenService(BaseService):
     def get_cells(self) -> Dict[str, Any]:
         """
         查询平面单元列表
+        GET /openapi/ms-ubm/microservice-ubm/v2/cells
         """
         logger.info("Get cells list")
         url = "/openapi/ms-ubm/microservice-ubm/v2/cells"
@@ -1065,6 +1115,7 @@ class MicroservicesOpenService(BaseService):
     def get_tenant_detail(self) -> Dict[str, Any]:
         """
         查询租户信息
+        GET /openapi/ms-ubm/microservice-ubm/v2/tenant/detail
         """
         logger.info("Get tenant detail")
         url = "/openapi/ms-ubm/microservice-ubm/v2/tenant/detail"
@@ -1074,6 +1125,7 @@ class MicroservicesOpenService(BaseService):
     def batch_add_strategy(self, control_plane_code: str, strategies: List[StrategyEntity]) -> Dict[str, Any]:
         """
         批量新增策略
+        POST /openapi/ms-ubm/microservice-ubm/v2/strategy/batch
         Args:
             control_plane_code: str 控制面编码
             strategies: List[StrategyEntity] 策略列表
@@ -1107,6 +1159,7 @@ class MicroservicesOpenService(BaseService):
     def batch_update_strategy_status(self, data: BatchStrategyStatusEntity) -> Dict[str, Any]:
         """
         批量更新策略状态
+        PUT /openapi/ms-ubm/microservice-ubm/v2/strategy/clusterstatus
         Args:
             data: BatchStrategyStatusEntity 状态更新数据
         """
@@ -1140,6 +1193,7 @@ class MicroservicesOpenService(BaseService):
     def get_strategy_batch_detail(self, batch_code: str) -> Dict[str, Any]:
         """
         批量更新策略状态进度查询
+        GET /openapi/ms-ubm/microservice-ubm/v2/strategy/batch/detail/{batch_code}
         Args:
             batch_code: str 批次编码
         """

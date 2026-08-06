@@ -42,7 +42,7 @@ class PortalOpenService(BaseService):
     def get_token(self, panji_sign: PortalUserEntity) -> Dict[str, Any]:
         """
         登陆获取Token
-
+        POST /apisix/plugin/jwt/sign
         Args:
             panji_sign: PortalSignEntity (
                 username: str
@@ -50,7 +50,6 @@ class PortalOpenService(BaseService):
                 tenant_code: str
                 expire_time: int = 18000000
             )
-
         Returns:
             Dict[str, Any]
         """
@@ -68,7 +67,7 @@ class PortalOpenService(BaseService):
     def get_first_field_info(self) -> Dict[str, Any]:
         """
         获取一级域信息
-
+        GET /openapi/portal/restApi/firstFieldInfo/list
         Returns:
             Dict[str, Any]
         """
@@ -80,7 +79,7 @@ class PortalOpenService(BaseService):
     def get_second_field_info(self) -> Dict[str, Any]:
         """
         获取二级域信息
-
+        GET /openapi/portal/restApi/secondFieldInfo/list
         Returns:
             Dict[str, Any]
         """
@@ -92,6 +91,9 @@ class PortalOpenService(BaseService):
     def create_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
         """
         新增集群平面单元
+        POST /openapi/portal/restApi/cluster/add
+        Args:
+            cluster_info: 集群平面实体
         """
         logger.info(f"Create cluster plane")
         url = "/openapi/portal/restApi/cluster/add"
@@ -116,6 +118,9 @@ class PortalOpenService(BaseService):
     def query_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
         """
         查询集群平面单元
+        GET /openapi/portal/restApi/cluster/list
+        Args:
+            cluster_info: 集群平面实体
         """
         logger.info(f"Query cluster plane")
         url = "/openapi/portal/restApi/cluster/list"
@@ -128,6 +133,9 @@ class PortalOpenService(BaseService):
     def update_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
         """
         修改集群平面单元
+        PATCH /openapi/portal/restApi/cluster/update
+        Args:
+            cluster_info: 集群平面实体
         """
         logger.info(f"Update cluster plane")
         url = "/openapi/portal/restApi/cluster/update"
@@ -148,6 +156,9 @@ class PortalOpenService(BaseService):
     def delete_cluster_plane(self, cluster_info: ClusterPlaneEntity) -> Dict[str, Any]:
         """
         删除集群平面单元
+        DELETE /openapi/portal/restApi/cluster/delete
+        Args:
+            cluster_info: 集群平面实体
         """
         logger.info(f"Delete cluster plane")
         url = "/openapi/portal/restApi/cluster/delete"
@@ -160,6 +171,7 @@ class PortalOpenService(BaseService):
     def query_bind_cluster_list(self) -> Dict[str, Any]:
         """
         根据租户、环境查询绑定集群信息
+        GET /openapi/portal/restApi/bindCluster/list
         """
         logger.info(f"Query bind cluster list")
         url = "/openapi/portal/restApi/bindCluster/list"
@@ -169,6 +181,7 @@ class PortalOpenService(BaseService):
     def tenant_bind_cluster(self) -> Dict[str, Any]:
         """
         租户绑定集群平面单元
+        POST /openapi/portal/restApi/tenantCluster/addBatch
         """
         logger.info(f"Tenant bind cluster plane cell")
         url = "/openapi/portal/restApi/tenantCluster/addBatch"
@@ -186,6 +199,9 @@ class PortalOpenService(BaseService):
     def query_tenant_info_by_username(self, username: str) -> Dict[str, Any]:
         """
         根据用户名查询绑定的租户信息
+        GET /openapi/portal/restApi/v1/user/{username}/tenants
+        Args:
+            username: 用户名
         """
         logger.info(f"Query tenant info by username: {username}")
         url = f"/openapi/portal/restApi/v1/user/{username}/tenants"
@@ -195,6 +211,7 @@ class PortalOpenService(BaseService):
     def get_menu_permission_data(self) -> Dict[str, Any]:
         """
         获取菜单权限数据
+        GET /openapi/portal/restApi/menu/list
         """
         logger.info(f"Get menu permission data")
         url = "/openapi/portal/restApi/menu/list"
@@ -204,6 +221,9 @@ class PortalOpenService(BaseService):
     def sync_user_api(self, user_info: PortalUserEntity) -> Dict[str, Any]:
         """
         同步用户
+        POST /openapi/portal/restApi/sync/user
+        Args:
+            user_info: 参数
         """
         logger.info(f"Sync user information")
         url = "/openapi/portal/restApi/sync/user"
@@ -230,6 +250,9 @@ class PortalOpenService(BaseService):
     def user_bind_tenant(self, user_info: PortalUserEntity) -> Dict[str, Any]:
         """
         绑定租户
+        POST /openapi/portal/restApi/addTenantUsers
+        Args:
+            user_info: 参数
         """
         logger.info(f"Bind tenant")
         url = "/openapi/portal/restApi/addTenantUsers"
@@ -249,6 +272,9 @@ class PortalOpenService(BaseService):
     def user_bind_role(self, user_info: PortalUserEntity) -> Dict[str, Any]:
         """
         绑定角色
+        POST /openapi/portal/restApi/addRoleMember
+        Args:
+            user_info: 参数
         """
         logger.info(f"Bind role")
         url = "/openapi/portal/restApi/addRoleMember"
@@ -268,6 +294,9 @@ class PortalOpenService(BaseService):
     def query_system(self, system_code: str) -> Dict[str, Any]:
         """
         查询系统
+        POST /openapi/portal/restApi/system/list
+        Args:
+            system_code: 系统编码
         """
         logger.info(f"Query system")
         url = "/openapi/portal/restApi/system/list"
@@ -281,6 +310,9 @@ class PortalOpenService(BaseService):
     def create_system(self, system: OpenSystemEntity):
         """
         创建系统
+        POST /openapi/portal/restApi/system/add
+        Args:
+            system: 系统实体
         """
         logger.info(f"Create system")
         url = "/openapi/portal/restApi/system/add"
@@ -303,6 +335,10 @@ class PortalOpenService(BaseService):
     def system_resource_allocation(self, username: str, code_list: BasicCodeEntity):
         """
         系统资源配额分配
+        POST /openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/allocate
+        Args:
+            username: 用户名
+            code_list: 参数
         """
         logger.info(f"System resource allocation")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/allocate"
@@ -320,6 +356,9 @@ class PortalOpenService(BaseService):
     def system_resource_quota_detail(self, code_list: BasicCodeEntity):
         """
         系统资源配额详情
+        GET /openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/detail
+        Args:
+            code_list: 参数
         """
         logger.info(f"System resource quota detail")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/detail"
@@ -329,11 +368,18 @@ class PortalOpenService(BaseService):
     def create_application(self, app_code: str, app_name: str, app_type: str, workload_type: str, system_id: str):
         """
         创建应用
+        POST /openapi/portal/restApi/application/add
         app_code: 应用编号
         app_name: 应用名称
         app_type: 应用类型
         workload_type: 工作负载类型
         system_id: 所属系统编号
+        Args:
+            app_code: 应用编码
+            app_name: 参数
+            app_type: 参数
+            workload_type: 参数
+            system_id: 系统 ID
         """
         logger.info(f"Create application")
         url = "/openapi/portal/restApi/application/add"
@@ -352,6 +398,9 @@ class PortalOpenService(BaseService):
     def update_system(self, system: OpenSystemEntity):
         """
         更新系统
+        POST /openapi/portal/restApi/system/update
+        Args:
+            system: 系统实体
         """
         logger.info(f"Update system")
         url = "/openapi/portal/restApi/system/update"
@@ -395,8 +444,12 @@ class PortalOpenService(BaseService):
     def user_system_authorization(self, user_id_list: list[str], system_id_list: list[str]):
         """
         用户系统授权接口，批量授权
+        POST /openapi/portal/restApi/batchAuthorization
         user_id_list: 授权的用户id列表，["200685","201214"]
         system_id_list: 授权的系统id列表
+        Args:
+            user_id_list: 参数
+            system_id_list: 参数
         """
         logger.info(f"User system authorization")
         url = "/openapi/portal/restApi/batchAuthorization"
@@ -415,8 +468,12 @@ class PortalOpenService(BaseService):
     def update_application(self, app_id: str, system_id: str):
         """
         更新应用
+        POST /openapi/portal/restApi/application/update
         app_id: 更新的应用编号
         system_id: 所属的系统
+        Args:
+            app_id: 应用 ID
+            system_id: 系统 ID
         """
         logger.info(f"Update application")
         url = "/openapi/portal/restApi/application/update"
@@ -436,8 +493,12 @@ class PortalOpenService(BaseService):
     def user_application_authorization(self, user_id_list: list[str], application_id_list: list[str]):
         """
         用户应用授权接口，批量授权
+        POST /openapi/portal/restApi/batchAuthorization
         user_id_list: 授权的用户id列表，["200685","201214"]
         application_id_list: 授权的应用id列表
+        Args:
+            user_id_list: 参数
+            application_id_list: 参数
         """
         logger.info(f"User application authorization")
         url = "/openapi/portal/restApi/batchAuthorization"
@@ -456,7 +517,10 @@ class PortalOpenService(BaseService):
     def query_application_list(self, app_code: str):
         """
         查询应用列表
+        POST /openapi/portal/restApi/application/list
         app_code: 应用编号
+        Args:
+            app_code: 应用编码
         """
         logger.info(f"Query application list")
         url = "/openapi/portal/restApi/application/list"
@@ -472,7 +536,10 @@ class PortalOpenService(BaseService):
     def query_application_detail(self, app_id: str):
         """
         查看应用详细信息
+        GET /openapi/portal/restApi/application/detail
         app_id: 要查看的应用的编号
+        Args:
+            app_id: 应用 ID
         """
         logger.info(f"Query application detail")
         url = f"/openapi/portal/restApi/application/detail"
@@ -485,6 +552,9 @@ class PortalOpenService(BaseService):
     def system_resource_quota_remove(self, code_list: BasicCodeEntity):
         """
         系统资源配额释放/删除
+        POST /openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/delete
+        Args:
+            code_list: 参数
         """
         logger.info(f"System resource quota remove")
         url = f"/openapi/elastic-compute/v2/cells/{code_list.cell_code}/tenants/{code_list.tenant_code}/systems/{code_list.system_code}/quota/delete"
@@ -494,7 +564,10 @@ class PortalOpenService(BaseService):
     def delete_application(self, app_id: str):
         """
         删除应用
+        POST /openapi/portal/restApi/application/delete
         app_id: 要删除的应用的编号
+        Args:
+            app_id: 应用 ID
         """
         logger.info(f"Delete application")
         url = "/openapi/portal/restApi/application/delete"
@@ -507,6 +580,9 @@ class PortalOpenService(BaseService):
     def system_quota_delete(self, code: BasicCodeEntity):
         """
         系统配额释放/删除
+        POST /openapi/elastic-compute/v2/cells/{code.cell_code}/tenants/{code.tenant_code}/systems/{code.system_code}/quota/delete
+        Args:
+            code: 编码
         """
         logger.info(f"System quota release delete")
         url = f"/openapi/elastic-compute/v2/cells/{code.cell_code}/tenants/{code.tenant_code}/systems/{code.system_code}/quota/delete"
@@ -516,9 +592,13 @@ class PortalOpenService(BaseService):
     def delete_system(self, system_id: str, system_code: str):
         """
         删除系统
+        POST /openapi/portal/restApi/system/delete
         app_id: 要删除的应用的编号
         system_id: 要删除的系统的id
         system_name: 要删除的系统的Code
+        Args:
+            system_id: 系统 ID
+            system_code: 系统编码
         """
         logger.info(f"Delete application")
         url = "/openapi/portal/restApi/system/delete"

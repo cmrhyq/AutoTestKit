@@ -36,6 +36,7 @@ class OperationOpenService(BaseService):
     def query_alarms_number_three(self):
         """
         查询最近3小时指定告警数量
+        GET /openapi/monitor-inspection/cluster-inspection/api/alertLabelsFiring/selectRecentAlerts
         """
         logger.info("Query the number of specified alarms in the last 3 hours")
         url = "/openapi/monitor-inspection/cluster-inspection/api/alertLabelsFiring/selectRecentAlerts"
@@ -45,7 +46,7 @@ class OperationOpenService(BaseService):
     def query_interface_synthetic_log(self, log_id: int) -> Dict[str, Any]:
         """
         查询接口拨测日志详情
-
+        GET /openapi/monitor-inspection/cluster-inspection/api/synthetic/interface/log
         Args:
             log_id: 日志ID, 运营运维/云拨测/任务分析页面，找接口编排的数据id=15174
         """
@@ -57,7 +58,7 @@ class OperationOpenService(BaseService):
     def query_service_synthetic_log(self, log_id: int) -> Dict[str, Any]:
         """
         查询服务拨测日志详情
-
+        GET /openapi/monitor-inspection/cluster-inspection/api/synthetic/service/log
         Args:
             log_id: 日志ID
         """
@@ -73,7 +74,7 @@ class OperationOpenService(BaseService):
     ) -> Dict[str, Any]:
         """
         通过promql对象批量查询指标
-
+        POST /openapi/monitor-inspection/cluster-inspection/api/component/batchQuery
         Args:
             metrics: 指标列表，元素为 MetricQuery 实体或等价的 dict
                      （包含 promql, range, startTime, endTime）
@@ -106,7 +107,7 @@ class OperationOpenService(BaseService):
     def execute_inspection_task(self, task_name: str) -> Dict[str, Any]:
         """
         通过任务名称执行巡检任务
-
+        POST /openapi/monitor-inspection/cluster-inspection/api/inspectionTask/executeTask
         Args:
             task_name: 任务名称
         """

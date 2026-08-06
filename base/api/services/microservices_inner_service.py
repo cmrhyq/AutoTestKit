@@ -60,6 +60,7 @@ class MicroservicesInnerService(BaseService):
     def kem_check(self, check_info: Kem) -> Dict[str, Any]:
         """
         统一校验接口
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/kem/check
         Args:
             check_info: 校验信息，数据类参数全都需要
         """
@@ -105,6 +106,7 @@ class MicroservicesInnerService(BaseService):
     def kem_create(self, data: Kem) -> Dict[str, Any]:
         """
         统一创建接口
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/kem/create
         Args:
             data: 创建数据，数据类参数全都需要
         """
@@ -387,6 +389,7 @@ class MicroservicesInnerService(BaseService):
     def kem_delete(self, data: Kem) -> Dict[str, Any]:
         """
         统一删除接口
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/kem/delete
         Args:
             data: Kem 删除数据
         """
@@ -450,6 +453,7 @@ class MicroservicesInnerService(BaseService):
     def batch_create_secret(self, data: Kem) -> Dict[str, Any]:
         """
         批量上传证书
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/kem/batchCreateSecret
         Args:
             data: Kem 证书数据
         """
@@ -483,6 +487,7 @@ class MicroservicesInnerService(BaseService):
     def list_virtual_service(self, data: MeshVS) -> Dict[str, Any]:
         """
         查询虚拟服务列表
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/list
         Args:
             data: dataclass 查询参数
             - sysCode
@@ -508,6 +513,7 @@ class MicroservicesInnerService(BaseService):
     def get_virtual_service(self, data: MeshVS) -> Dict[str, Any]:
         """
         精确查询虚拟服务信息
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/getVirtualService
         Args:
             data: Dict 查询参数
         """
@@ -527,6 +533,7 @@ class MicroservicesInnerService(BaseService):
     def add_virtual_service(self, data: MeshVS) -> Dict[str, Any]:
         """
         新增虚拟服务
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/add
         Args:
             data: Dict 虚拟服务数据
         """
@@ -572,6 +579,7 @@ class MicroservicesInnerService(BaseService):
     def delete_virtual_service(self, data: MeshVS) -> Dict[str, Any]:
         """
         删除虚拟服务
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/v2/mesh/virtualservice/delete
         Args:
             data: Dict 删除参数
         """
@@ -591,6 +599,7 @@ class MicroservicesInnerService(BaseService):
     def get_gateway_name(self) -> Dict[str, Any]:
         """
         查询网关配置名称
+        GET /ms-mesh/microservice-mesh-console/openapi/internal/v3/mesh/gateway/getGatewayName
         """
         logger.info("Get gateway name")
         url = "/ms-mesh/microservice-mesh-console/openapi/internal/v3/mesh/gateway/getGatewayName"
@@ -600,6 +609,7 @@ class MicroservicesInnerService(BaseService):
     def list_node(self, data: MeshNode) -> Dict[str, Any]:
         """
         查询节点列表
+        POST /ms-mesh/microservice-mesh-console/openapi/internal/v1/mesh/node/list
         Args:
             data: MeshNode 查询参数
         """

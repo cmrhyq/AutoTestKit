@@ -35,6 +35,7 @@ class PluginOpenService(BaseService):
     def get_plugin_install_info(self, plugin_name: str) -> Dict[str, Any]:
         """
         统计插件安装信息
+        GET /openapi/plugin-mgmt/api/v1/plugin/{plugin_name}/installationInfo
         Args:
             plugin_name: 插件名称
         """
@@ -46,6 +47,7 @@ class PluginOpenService(BaseService):
     def get_current_env_list(self) -> Dict[str, Any]:
         """
         获取当前环境插件数据
+        GET /openapi/plugin-mgmt/api/v1/plugin/version/data-report
         """
         logger.info(f"Getting Current Environment Plugins List")
         url = f"/openapi/plugin-mgmt/api/v1/plugin/version/data-report"
@@ -55,6 +57,7 @@ class PluginOpenService(BaseService):
     def verify_task_config(self):
         """
         验证任务配置
+        POST /openapi/plugin-mgmt/api/v1/mcp/validate/task
         """
         logger.info(f"Verifying Task Config")
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/task"
@@ -70,6 +73,7 @@ class PluginOpenService(BaseService):
     def verify_task_feature(self):
         """
         验证任务feature
+        POST /openapi/plugin-mgmt/api/v1/mcp/validate/feature
         """
         logger.info(f"Verifying Task Feature")
         url = f"/openapi/plugin-mgmt/api/v1/mcp/validate/feature"
@@ -85,6 +89,7 @@ class PluginOpenService(BaseService):
     def get_plugin_support_permission_transfer(self):
         """
         获取所有支持权限转让的插件
+        GET /openapi/plugin-mgmt/api/v1/auth-transfer/all
         """
         logger.info(f"Get All Plugins That Support Permission Transfer")
         url = f"/openapi/plugin-mgmt/api/v1/auth-transfer/all"
