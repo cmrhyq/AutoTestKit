@@ -13,6 +13,27 @@ from typing import List
 
 # ==================== Portal Inner API 实体 ====================
 
+@dataclass
+class PortalInnerPublicParams(object):
+    """
+    portal_user_id: 用户id
+    portal_username: 用户名
+    module_name: 测试用模块名称
+    role_code: 测试用角色名称
+    username: 测试用用户名
+    tenant_code: 测试用租户名称
+    menu_name: 测试用菜单名称
+    source_code: 测试用来源码
+    """
+    portal_user_id: str
+    portal_username: str
+    module_name: str = "portal"
+    role_code: str = "autotest260807"
+    username: str = "test_user_260807"
+    tenant_code: str = "auto_tenant_260807"
+    menu_name: str = "新增测试菜单"
+    source_code: str = "observability"
+
 
 @dataclass
 class InnerSystemEntity(object):
