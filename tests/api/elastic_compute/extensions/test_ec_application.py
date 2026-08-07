@@ -36,9 +36,9 @@ class TestEcExtensionsApplication:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
@@ -46,10 +46,10 @@ class TestEcExtensionsApplication:
     @allure.title("按 kinds 搜索应用")
     @allure.description("按 kinds 关键字搜索弹性计算应用，验证返回成功")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_search_app(self, ec_ext_service, api_env):
+    def test_search_app(self, ec_ext_service, test_env):
         with AllureHelper.api_test(ec_ext_service):
             with AllureHelper.step("发送 GET 请求按 kinds 搜索应用"):
-                kinds = api_env.get("nginxImageName") or "nginx"
+                kinds = test_env.get("nginxImageName") or "nginx"
                 response_json = ec_ext_service.search_app(kinds)
             with AllureHelper.step("验证响应"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"

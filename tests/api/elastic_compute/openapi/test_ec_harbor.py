@@ -49,16 +49,16 @@ class TestEcOpenapiHarbor:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> HarborPublicParams:
+    def public_params(self, test_env) -> HarborPublicParams:
         """提取 Harbor 测试所需的公共参数。"""
         return HarborPublicParams(
-            harbor_id=api_env.get("harborId"),
+            harbor_id=test_env.get("harborId"),
             project_name="test-harbor-project-0001",
             project_member_name="ec-harbor-admin",
             replication_policy_name="test-replication-policiy-name001",
             copy_harbor_access_id="admin",
             copy_harbor_access_secret="******",
-            rep_name=api_env.get("copyRepName"),
+            rep_name=test_env.get("copyRepName"),
         )
 
     # ---------------------------- Test cases ----------------------------
@@ -244,9 +244,9 @@ class TestEcOpenapiHarbor:
         name="harbor_registry_query", depends=["harbor_member_delete"]
     )
     @pytest.mark.order(8)
-    def test_get_registry(self, ec_service, public_params, api_env, api_cache):
+    def test_get_registry(self, ec_service, public_params, test_env, api_cache):
         """查询指定 targetId 的注册中心。targetId 来源于环境 harborId 复用。"""
-        target_id = api_env.get("harborTargetId") or public_params.harbor_id
+        target_id = test_env.get("harborTargetId") or public_params.harbor_id
 
         with AllureHelper.api_test(ec_service):
             resp = ec_service.get_harbor_registry(

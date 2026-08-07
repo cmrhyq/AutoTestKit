@@ -37,11 +37,11 @@ class TestEcOpenapiResourceQuota:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ResourceQuotaPublicParams:
+    def public_params(self, test_env) -> ResourceQuotaPublicParams:
         """提取 ResourceQuota 测试所需的公共参数。"""
         return ResourceQuotaPublicParams(
-            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            sys_code=api_env.get("sysCode", "test"),
+            cell_code=test_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=test_env.get("sysCode", "test"),
         )
 
     # ---------------------------- Test cases ----------------------------

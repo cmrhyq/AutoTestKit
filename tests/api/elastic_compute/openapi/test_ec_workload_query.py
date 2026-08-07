@@ -32,14 +32,14 @@ class TestEcOpenapiWorkloadQuery:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> WorkloadQueryPublicParams:
+    def public_params(self, test_env) -> WorkloadQueryPublicParams:
         """提取工作负载查询测试所需的公共参数。"""
         return WorkloadQueryPublicParams(
-            cell_code=api_env.get("cellCode", "test"),
-            sys_code=api_env.get("sysCode", "test-sys"),
-            kind=api_env.get("nativeHpaWorkloadKind", "Deployment"),
-            app_code=api_env.get("appCodeDeploy", "test-probe-deploy1"),
-            workload_name=api_env.get("nativeHpaWorkloadName", "test-hpa-workload-0001"),
+            cell_code=test_env.get("cellCode", "test"),
+            sys_code=test_env.get("sysCode", "test-sys"),
+            kind=test_env.get("nativeHpaWorkloadKind", "Deployment"),
+            app_code=test_env.get("appCodeDeploy", "test-probe-deploy1"),
+            workload_name=test_env.get("nativeHpaWorkloadName", "test-hpa-workload-0001"),
         )
 
     # ---------------------------- Test cases ----------------------------

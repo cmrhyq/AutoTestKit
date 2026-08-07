@@ -38,21 +38,21 @@ class TestEcExtensionsPhysicalHost:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> PhysicalHostPublicParams:
+    def public_params(self, test_env) -> PhysicalHostPublicParams:
         """提取 Physical Host 测试所需的公共参数。"""
         return PhysicalHostPublicParams(
-            fallback_host_id=str(api_env.get("physicalHostId", "1")),
-            admin_tenant_code=api_env.get("adminTenantCode", "tenant_admin"),
-            bind_tenant_code=api_env.get("tenantCode", "abc"),
+            fallback_host_id=str(test_env.get("physicalHostId", "1")),
+            admin_tenant_code=test_env.get("adminTenantCode", "tenant_admin"),
+            bind_tenant_code=test_env.get("tenantCode", "abc"),
         )
 
     # ==================== 1) 获取主机列表（门户）====================

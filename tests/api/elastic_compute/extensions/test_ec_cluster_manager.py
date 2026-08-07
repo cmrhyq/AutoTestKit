@@ -24,19 +24,19 @@ class TestEcExtensionsClusterManager:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ClusterManagerPublicParams:
+    def public_params(self, test_env) -> ClusterManagerPublicParams:
         """提取集群管理测试所需的公共参数。"""
         return ClusterManagerPublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
+            cluster_id=str(test_env.get("clusterId", "1")),
         )
 
     @pytest.mark.dependency(name="cluster_list")

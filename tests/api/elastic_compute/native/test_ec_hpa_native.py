@@ -35,15 +35,15 @@ class TestEcNativeHpa:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, test_env):
         """提取 HPA 测试所需的公共参数。"""
         return HpaNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-admin"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-admin"),
             name="native-test-hpa",
-            paas_owner=api_env.get("user", "panji_probe"),
-            workload_kind=api_env.get("nativeHpaWorkloadKind", "Deployment"),
-            workload_name=api_env.get("nativeHpaWorkloadName", "app-nginx"),
+            paas_owner=test_env.get("user", "panji_probe"),
+            workload_kind=test_env.get("nativeHpaWorkloadKind", "Deployment"),
+            workload_name=test_env.get("nativeHpaWorkloadName", "app-nginx"),
             min_replicas=1,
             max_replicas=10,
         )

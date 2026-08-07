@@ -31,9 +31,9 @@ class TestEcOpenapiHarborInit:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> HarborInitPublicParams:
+    def public_params(self, test_env) -> HarborInitPublicParams:
         """提取 Harbor-Init 测试所需的公共参数。"""
-        return HarborInitPublicParams(harbor_id=api_env.get("harborId"))
+        return HarborInitPublicParams(harbor_id=test_env.get("harborId"))
 
     @allure.title("刷新 Harbor 版本信息")
     @allure.description("调用 refreshHarborVersion 接口刷新指定 harbor 的版本信息")

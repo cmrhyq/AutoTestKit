@@ -28,20 +28,20 @@ class TestEcExtensionsAppGrant:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> AppGrantPublicParams:
+    def public_params(self, test_env) -> AppGrantPublicParams:
         """提取应用授权测试所需的公共参数。"""
         return AppGrantPublicParams(
-            app_code=api_env.get("grantAppCode", "test-probe-deploy"),
-            grant_user=api_env.get("grantUser", "monitor-admin"),
+            app_code=test_env.get("grantAppCode", "test-probe-deploy"),
+            grant_user=test_env.get("grantUser", "monitor-admin"),
             end_time="2035-12-31 23:59:59",
         )
 

@@ -56,9 +56,9 @@ class TestObservableQuery:
     @allure.title("根据ID或名称获取模型")
     @allure.description("按模型 ID 或名称获取可观测模型详情")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_model_by_id_or_name(self, observable_service, api_env, api_cache):
+    def test_get_model_by_id_or_name(self, observable_service, test_env, api_cache):
         with AllureHelper.api_test(observable_service):
-            models_id_or_name = api_env.get(
+            models_id_or_name = test_env.get(
                 "modelsIdOrName", "c6869bc8-b527-4bff-bce7-6f39de1b06ab"
             )
 
@@ -73,7 +73,7 @@ class TestObservableQuery:
     @allure.title("配置项结构化查询")
     @allure.description("按结构化条件查询可观测配置项")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_search_conf_items(self, observable_service, api_env, api_cache):
+    def test_search_conf_items(self, observable_service, test_env, api_cache):
         with AllureHelper.api_test(observable_service):
             # 构造查询条件
             query = {

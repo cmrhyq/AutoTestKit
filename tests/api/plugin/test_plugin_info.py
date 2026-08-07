@@ -34,9 +34,9 @@ class TestPluginInfo:
 
     @allure.title("查询指定插件的安装信息")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_plugin_install_info(self, plugin_open_service, api_env, api_cache):
+    def test_get_plugin_install_info(self, plugin_open_service, test_env, api_cache):
         with AllureHelper.api_test(plugin_open_service):
-            plugin_name = api_env.get("pluginName", "kubectl")
+            plugin_name = test_env.get("pluginName", "kubectl")
 
             with AllureHelper.step(f"发送 GET 请求查询插件 {plugin_name} 的安装信息"):
                 response_json = plugin_open_service.get_plugin_install_info(plugin_name=plugin_name)

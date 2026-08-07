@@ -83,7 +83,7 @@ class ElasticComputeOpenService(BaseService):
       （与 `extensions` 系统的 `/elastic-compute/...` 前缀相区分）
     - 响应模型：磐基业务层扁平化包装（`{code, data, message}`），
       **K8s 原生 spec 类接口** 除外（直接返回 apiVersion/metadata/spec 结构）
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
@@ -101,7 +101,7 @@ class ElasticComputeOpenService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

@@ -36,23 +36,23 @@ class TestEcNativeJob:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, test_env):
         """提取 Job 测试所需的公共参数。"""
         return JobNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-admin"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-admin"),
             name="native-test-busy-job",
-            paas_app_code=api_env.get("appCodeJob", "test-app-job"),
-            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
-            paas_owner=api_env.get("user", "panji_probe"),
-            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
-            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
-            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
-            image=api_env.get(
+            paas_app_code=test_env.get("appCodeJob", "test-app-job"),
+            paas_env_code=test_env.get("paasEnvCode", "ENV1"),
+            paas_owner=test_env.get("user", "panji_probe"),
+            paas_plane_code=test_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=test_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=test_env.get("paasUnitCode", "TEST"),
+            image=test_env.get(
                 "nginxImageUrl", "100.10.102.53:1121/tools/nginx:arm"
             ),
-            completions=int(api_env.get("completions", 1)),
-            parallelism=int(api_env.get("parallelism", 1)),
+            completions=int(test_env.get("completions", 1)),
+            parallelism=int(test_env.get("parallelism", 1)),
         )
 
     # ==================== 生命周期测试（每接口一函数）====================

@@ -39,11 +39,11 @@ class TestEcOpenapiCrNs:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> CrNsPublicParams:
+    def public_params(self, test_env) -> CrNsPublicParams:
         """提取 Namespace 级别 CR 测试所需的公共参数。"""
         return CrNsPublicParams(
-            cell_code=api_env.get("cellCode"),
-            sys_code=api_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            sys_code=test_env.get("sysCode"),
         )
 
     # ---------------------------- Test cases ----------------------------

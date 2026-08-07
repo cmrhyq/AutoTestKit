@@ -37,33 +37,33 @@ class TestEcExtensionsWorkload:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> WorkloadPublicParams:
+    def public_params(self, test_env) -> WorkloadPublicParams:
         """提取 Workload 测试所需的公共参数。"""
         return WorkloadPublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-ns"),
-            cell_code=api_env.get("cellCode", "test"),
-            sys_code=api_env.get("sysCode", "test-sys"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-ns"),
+            cell_code=test_env.get("cellCode", "test"),
+            sys_code=test_env.get("sysCode", "test-sys"),
             name="inner-test-app-nginx",
             # Deployment / StatefulSet / CloneSet / DaemonSet / CronJob / Job
             kind="Deployment",
-            image=api_env.get("nginxImageName", "hpe_containers/nginx:latest"),
+            image=test_env.get("nginxImageName", "hpe_containers/nginx:latest"),
             replicas=1,
-            app_code=api_env.get("appCodeDeploy", "test-app"),
-            paas_env_code=api_env.get("paasEnvCode", "PROD"),
-            paas_plane_code=api_env.get("paasPlaneCode", "test"),
-            paas_tenant_code=api_env.get("paasTenantCode", "monitor-group"),
-            paas_owner=api_env.get("user", "panji_probe"),
-            paas_unit_code=api_env.get("paasUnitCode", "test"),
+            app_code=test_env.get("appCodeDeploy", "test-app"),
+            paas_env_code=test_env.get("paasEnvCode", "PROD"),
+            paas_plane_code=test_env.get("paasPlaneCode", "test"),
+            paas_tenant_code=test_env.get("paasTenantCode", "monitor-group"),
+            paas_owner=test_env.get("user", "panji_probe"),
+            paas_unit_code=test_env.get("paasUnitCode", "test"),
         )
 
     # ==================== 0) 预清理：若存在则删除 ====================

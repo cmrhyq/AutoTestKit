@@ -38,10 +38,10 @@ class TestEcNativeCrd:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> CrdNativePublicParams:
+    def public_params(self, test_env) -> CrdNativePublicParams:
         """提取 CRD 测试所需的公共参数。"""
         return CrdNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
+            cluster_id=str(test_env.get("clusterId", "1")),
             name="crontabs.stable.example.com",
         )
 

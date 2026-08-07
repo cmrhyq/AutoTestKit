@@ -48,7 +48,7 @@ class PortalInnerService(BaseService):
 
     - 鉴权：`apikey` 请求头（静态值）+ `tenantCode` + `x-app-id: portal` 三件头
     - URL 前缀：`/portal/server/api/...`、`/portal/server/api/v2/...`
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str):
@@ -65,7 +65,7 @@ class PortalInnerService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

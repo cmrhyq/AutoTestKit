@@ -30,13 +30,13 @@ class TestEcOpenapiQuotaManagerTenant:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> QuotaManagerTenantPublicParams:
+    def public_params(self, test_env) -> QuotaManagerTenantPublicParams:
         """提取配额管理（租户）测试所需的公共参数。"""
         return QuotaManagerTenantPublicParams(
-            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            sys_code=api_env.get("sysCode", "test"),
-            tenant_code=api_env.get("tenantCode", "lzm"),
-            username=api_env.get("user", "lzm-admin"),
+            cell_code=test_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=test_env.get("sysCode", "test"),
+            tenant_code=test_env.get("tenantCode", "lzm"),
+            username=test_env.get("user", "lzm-admin"),
         )
 
     # -------------------- 测试用例 --------------------

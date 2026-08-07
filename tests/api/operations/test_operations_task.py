@@ -29,9 +29,9 @@ class TestOperationsTask:
 
     @allure.title("通过任务名称执行巡检任务")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_execute_inspection_task(self, operation_service, api_env, api_cache):
+    def test_execute_inspection_task(self, operation_service, test_env, api_cache):
         with AllureHelper.api_test(operation_service):
-            task_name = api_env.get("taskName", "test1119")
+            task_name = test_env.get("taskName", "test1119")
 
             with AllureHelper.step(f"发送 POST 请求执行巡检任务: {task_name}"):
                 response_json = operation_service.execute_inspection_task(task_name=task_name)

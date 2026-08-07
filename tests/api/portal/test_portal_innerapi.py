@@ -30,20 +30,20 @@ class TestPortalInnerAPI:
     TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
-    def portal_inner_service(self, api_env):
+    def portal_inner_service(self, test_env):
         """创建 Portal Inner API 服务实例"""
         service = PortalInnerService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, test_env):
         """提取 Portal InnerAPI 测试所需的公共参数。"""
         return {
-            "portal_user_id": api_env.get("portalUserId"),
-            "portal_username": api_env.get("portalUsername"),
+            "portal_user_id": test_env.get("portalUserId"),
+            "portal_username": test_env.get("portalUsername"),
         }
 
     # ==================== 基础数据查询接口 ====================
@@ -88,11 +88,11 @@ class TestPortalInnerAPI:
     @allure.title("根据模块名称查询字典数据")
     @allure.description("按模块名称查询指定类型的字典数据")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_dict_by_module(self, portal_inner_service, api_env, api_cache):
+    def test_get_dict_by_module(self, portal_inner_service, test_env, api_cache):
         with AllureHelper.api_test(portal_inner_service):
             with AllureHelper.step("发送 GET 请求查询字典数据"):
                 response_json = portal_inner_service.get_dict_by_module(
-                    module_name=api_env.get("moduleName"),
+                    module_name=test_env.get("moduleName"),
                     dict_type="ENVIRONMENT"
                 )
 

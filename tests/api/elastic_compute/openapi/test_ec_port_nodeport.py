@@ -32,13 +32,13 @@ class TestEcOpenapiPortNodePort:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> PortNodePortPublicParams:
+    def public_params(self, test_env) -> PortNodePortPublicParams:
         """提取 Port/NodePort 测试所需的公共参数。"""
         return PortNodePortPublicParams(
-            cell_code=api_env.get("cellCode", "testCellCode"),
-            node_port=api_env.get("nodePort", "10001"),
-            tenant_code=api_env.get("tenant_code", "monitor-group"),
-            ports=api_env.get("ports", "30011-30030"),
+            cell_code=test_env.get("cellCode", "testCellCode"),
+            node_port=test_env.get("nodePort", "10001"),
+            tenant_code=test_env.get("tenant_code", "monitor-group"),
+            ports=test_env.get("ports", "30011-30030"),
         )
 
     # -------------------- 测试用例 --------------------

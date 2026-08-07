@@ -39,11 +39,11 @@ class TestEcOpenapiHpa:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> HpaPublicParams:
+    def public_params(self, test_env) -> HpaPublicParams:
         """提取 HPA 测试所需的公共参数。"""
         return HpaPublicParams(
-            cell_code=api_env.get("cellCode"),
-            sys_code=api_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            sys_code=test_env.get("sysCode"),
             api_version="v1",
             hpa_name="auto-test-hpa-test-0001",
         )

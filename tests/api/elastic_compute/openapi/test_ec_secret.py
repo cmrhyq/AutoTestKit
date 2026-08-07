@@ -39,11 +39,11 @@ class TestEcOpenapiSecret:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> SecretPublicParams:
+    def public_params(self, test_env) -> SecretPublicParams:
         """提取 Secret 测试所需的公共参数。"""
         return SecretPublicParams(
-            cell_code=api_env.get("cellCode", "test"),
-            sys_code=api_env.get("sysCode", "test-sys"),
+            cell_code=test_env.get("cellCode", "test"),
+            sys_code=test_env.get("sysCode", "test-sys"),
             secret_name="auto-test-probe-secret-test-0001",
         )
 

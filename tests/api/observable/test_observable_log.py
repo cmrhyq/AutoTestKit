@@ -35,25 +35,25 @@ class TestObservableLog:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ObservableLogPublicParams:
+    def public_params(self, test_env) -> ObservableLogPublicParams:
         """提取可观测日志测试所需的公共参数。"""
         return ObservableLogPublicParams(
-            obs_namespace=api_env.get("obsNamespace", "paas-monitor"),
-            obs_cluster_name=api_env.get("obsClusterName", "kzm-101"),
-            obs_pod_name=api_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
-            obs_container_name=api_env.get("obsContainerName", "monitor-amdb-confs"),
-            obs_start_time=int(api_env.get("obsStartTime", 176145907000)),
-            obs_end_time=int(api_env.get("obsEndTime", 176145908000)),
-            obs_component_type=api_env.get("obsComponentType", "app"),
-            obs_size=int(api_env.get("obsSize", 1)),
-            obs_id=api_env.get("obsId", "2cNV25kBX1NeH2CondPI"),
-            obs_timestamp=int(api_env.get("obsTimestamp", 1760321444470)),
-            obs_offset=int(api_env.get("obsOffset", 100016405)),
-            obs_log_file_path=api_env.get(
+            obs_namespace=test_env.get("obsNamespace", "paas-monitor"),
+            obs_cluster_name=test_env.get("obsClusterName", "kzm-101"),
+            obs_pod_name=test_env.get("obsPodName", "monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r"),
+            obs_container_name=test_env.get("obsContainerName", "monitor-amdb-confs"),
+            obs_start_time=int(test_env.get("obsStartTime", 176145907000)),
+            obs_end_time=int(test_env.get("obsEndTime", 176145908000)),
+            obs_component_type=test_env.get("obsComponentType", "app"),
+            obs_size=int(test_env.get("obsSize", 1)),
+            obs_id=test_env.get("obsId", "2cNV25kBX1NeH2CondPI"),
+            obs_timestamp=int(test_env.get("obsTimestamp", 1760321444470)),
+            obs_offset=int(test_env.get("obsOffset", 100016405)),
+            obs_log_file_path=test_env.get(
                 "obsLogFilePath",
                 "/apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log"
             ),
-            obs_host_ip=api_env.get("obsHostIp", "100.10.32.101"),
+            obs_host_ip=test_env.get("obsHostIp", "100.10.32.101"),
         )
 
     @allure.title("根据四元组检索日志")

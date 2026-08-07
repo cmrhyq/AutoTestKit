@@ -12,8 +12,6 @@ from base.ui.fixtures import (
     browser,
     context,
     page,
-    ui_env,
-    ui_logger,
 )
 
 __all__ = [
@@ -28,6 +26,4 @@ __all__ = [
     'browser',
     'context',
     'page',
-    'ui_env',
-    'ui_logger',
 ]

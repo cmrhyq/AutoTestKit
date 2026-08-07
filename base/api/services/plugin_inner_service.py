@@ -32,7 +32,7 @@ class PluginInnerService(BaseService):
 
     - 鉴权：`apikey` 请求头（静态值，供 Portal 后台集成）+ `x-app-id: portal`
     - URL 前缀：`/plugin/server/api/v1/...`
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str):
@@ -49,7 +49,7 @@ class PluginInnerService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

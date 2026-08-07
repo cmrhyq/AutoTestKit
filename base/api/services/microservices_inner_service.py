@@ -49,7 +49,7 @@ class MicroservicesInnerService(BaseService):
     - 鉴权：`apikey` 请求头（值取自 `env yaml` 的 `ms_apikey`）
       + `username` / `tenantCode` 三件头
     - URL 前缀：`/ms-mesh/microservice-mesh-console/openapi/internal/...`
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str):
@@ -66,7 +66,7 @@ class MicroservicesInnerService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

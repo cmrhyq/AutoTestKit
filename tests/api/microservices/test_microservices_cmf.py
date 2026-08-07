@@ -42,16 +42,16 @@ class TestMicroservicesCmf:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> CmfPublicParams:
+    def public_params(self, test_env) -> CmfPublicParams:
         """提取 CMF 测试所需的公共参数。"""
         return CmfPublicParams(
-            control_plane_name=api_env.get("controlPlaneName"),
-            control_plane_code=api_env.get("controlPlaneCode"),
-            env_code=api_env.get("envCode"),
-            application_code=api_env.get("applicationCode"),
-            function_class_name=api_env.get("functionClassName"),
-            func_ser_name=api_env.get("funcSerName"),
-            func_ser_code=api_env.get("funcserCode"),
+            control_plane_name=test_env.get("controlPlaneName"),
+            control_plane_code=test_env.get("controlPlaneCode"),
+            env_code=test_env.get("envCode"),
+            application_code=test_env.get("applicationCode"),
+            function_class_name=test_env.get("functionClassName"),
+            func_ser_name=test_env.get("funcSerName"),
+            func_ser_code=test_env.get("funcserCode"),
         )
 
     # ==================== 服务信息 ====================

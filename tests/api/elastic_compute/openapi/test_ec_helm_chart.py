@@ -48,17 +48,17 @@ class TestEcOpenapiHelmChart:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> HelmOpenapiPublicParams:
+    def public_params(self, test_env) -> HelmOpenapiPublicParams:
         """提取 Helm Chart 测试所需的公共参数。"""
         return HelmOpenapiPublicParams(
-            cell_code=api_env.get("cellCode"),
-            sys_code=api_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            sys_code=test_env.get("sysCode"),
             release_name="auto-test-helm-release-0001",
             chart_name="nginx",
             chart_version="1.0.0",
-            chart_file_path=api_env.get("helmChartFilePath"),
-            image=api_env.get("nginxImageRepo"),
-            image_tag=api_env.get("nginxImageTag"),
+            chart_file_path=test_env.get("helmChartFilePath"),
+            image=test_env.get("nginxImageRepo"),
+            image_tag=test_env.get("nginxImageTag"),
             interval_seconds=3,
         )
 

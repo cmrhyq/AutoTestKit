@@ -71,7 +71,7 @@ class ElasticComputeNativeService(BaseService):
               或 `/elastic-compute/v2/k8s/clusters/{clusterId}/apis/{group}/{version}/...`
     - 响应模型：K8s 原生 JSON（apiVersion/metadata/spec/status），无 `{code, data}` 封装
     - 成功判定：HTTP 状态码（200 / 201 / 404 语义 direct passthrough）
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
@@ -87,7 +87,7 @@ class ElasticComputeNativeService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

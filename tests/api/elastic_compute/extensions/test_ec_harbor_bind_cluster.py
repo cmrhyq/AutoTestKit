@@ -27,20 +27,20 @@ class TestEcExtensionsHarborBindCluster:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> HarborBindPublicParams:
+    def public_params(self, test_env) -> HarborBindPublicParams:
         """提取 Harbor 绑定测试所需的公共参数。"""
         return HarborBindPublicParams(
-            cluster_id=int(api_env.get("clusterId", 1)),
-            harbor_name=api_env.get("harborName", "harbor-107"),
+            cluster_id=int(test_env.get("clusterId", 1)),
+            harbor_name=test_env.get("harborName", "harbor-107"),
         )
 
     @pytest.mark.order(1)

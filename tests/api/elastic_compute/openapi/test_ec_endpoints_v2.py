@@ -34,11 +34,11 @@ class TestEcOpenapiEndpointsV2:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> EndpointsV2PublicParams:
+    def public_params(self, test_env) -> EndpointsV2PublicParams:
         """提取 Endpoints 测试所需的公共参数。"""
         return EndpointsV2PublicParams(
-            cell_code=api_env.get("cellCode"),
-            sys_code=api_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            sys_code=test_env.get("sysCode"),
         )
 
     # ---------------------------- Test cases ----------------------------

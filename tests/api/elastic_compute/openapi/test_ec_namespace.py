@@ -38,16 +38,16 @@ class TestEcOpenapiNamespace:
 
     @pytest.fixture(scope="class")
     def public_params(self) -> NamespacePublicParams:
-        """Namespace 接口通过 api_env fixture 取值，返回占位 dataclass 保持 SOP 契约。"""
+        """Namespace 接口通过 test_env fixture 取值，返回占位 dataclass 保持 SOP 契约。"""
         return NamespacePublicParams()
 
     @allure.title("查询 Namespace 列表")
     @allure.description("查询指定单元下的 Namespace 列表并缓存首条 sysCode")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_list_namespaces(self, ec_service, api_env, api_cache):
+    def test_list_namespaces(self, ec_service, test_env, api_cache):
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("发送 GET 请求查询 Namespace 列表"):
-                cell_code = api_env.get("cellCode")
+                cell_code = test_env.get("cellCode")
                 response_json = ec_service.list_namespaces(cell_code)
             with AllureHelper.step("验证响应并缓存第一条 sysCode"):
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
@@ -62,14 +62,14 @@ class TestEcOpenapiNamespace:
     @allure.title("查询 Namespace 详情")
     @allure.description("查询指定单元与系统的 Namespace 详情")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_namespace_detail(self, ec_service, api_env, api_cache):
+    def test_get_namespace_detail(self, ec_service, test_env, api_cache):
         with AllureHelper.api_test(ec_service):
             with AllureHelper.step("确定 sys_code：优先取缓存 ec_first_sys_code，否则用 env sysCode"):
-                cell_code = api_env.get("cellCode")
+                cell_code = test_env.get("cellCode")
                 sys_code = (
                     api_cache.get("ec_first_sys_code")
                     if api_cache.has("ec_first_sys_code")
-                    else api_env.get("sysCode")
+                    else test_env.get("sysCode")
                 )
                 if not sys_code:
                     pytest.skip("缺少 upstream 依赖：无法解析 sys_code")

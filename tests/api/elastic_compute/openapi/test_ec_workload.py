@@ -51,17 +51,17 @@ class TestEcOpenapiWorkload:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> WorkloadPublicParams:
+    def public_params(self, test_env) -> WorkloadPublicParams:
         """提取 Workload 测试所需的公共参数。"""
         return WorkloadPublicParams(
-            cell_code=api_env.get("cellCode", "TEST"),
-            sys_code=api_env.get("sysCode", "test-admin"),
-            app_code=api_env.get("appCode", "test-app"),
+            cell_code=test_env.get("cellCode", "TEST"),
+            sys_code=test_env.get("sysCode", "test-admin"),
+            app_code=test_env.get("appCode", "test-app"),
             kind="Deployment",
-            name=api_env.get("workloadName", "app-nginx"),
-            image=api_env.get("image", "hpe_containers/nginx:latest"),
-            replicas=int(api_env.get("replicas", 1)),
-            file_path_in_pod=api_env.get("filePathInPod", "/docker-entrypoint.sh"),
+            name=test_env.get("workloadName", "app-nginx"),
+            image=test_env.get("image", "hpe_containers/nginx:latest"),
+            replicas=int(test_env.get("replicas", 1)),
+            file_path_in_pod=test_env.get("filePathInPod", "/docker-entrypoint.sh"),
         )
 
     # ==================== 测试用例 ====================

@@ -26,10 +26,10 @@ class TestPluginCount:
     TENANT = Tenant.ADMIN
 
     @pytest.fixture(scope="class")
-    def plugin_inner_service(self, api_env):
+    def plugin_inner_service(self, test_env):
         """创建 Plugin Inner API 服务实例"""
         service = PluginInnerService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()

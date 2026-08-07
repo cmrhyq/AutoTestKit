@@ -44,15 +44,15 @@ class TestMicroservicesIstio:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> IstioPublicParams:
+    def public_params(self, test_env) -> IstioPublicParams:
         """提取 Istio Gateway 测试所需的公共参数。"""
         return IstioPublicParams(
-            sys_code=api_env.get("sysCode"),
-            cell_code=api_env.get("cellCode"),
-            plane_code=api_env.get("planeCode"),
-            mesh_gateway_name=api_env.get("meshGatewayName"),
-            rule_name=api_env.get("ruleName"),
-            mesh_vs_name=api_env.get("meshVsName"),
+            sys_code=test_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            plane_code=test_env.get("planeCode"),
+            mesh_gateway_name=test_env.get("meshGatewayName"),
+            rule_name=test_env.get("ruleName"),
+            mesh_vs_name=test_env.get("meshVsName"),
         )
 
     # ==================== 入口网关实例 ====================

@@ -43,20 +43,20 @@ class TestEcExtensionsTenantQuota:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> TenantQuotaPublicParams:
+    def public_params(self, test_env) -> TenantQuotaPublicParams:
         """提取 Tenant Quota 测试所需的公共参数。"""
         return TenantQuotaPublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            tenant_code=api_env.get("adminTenantCode", "monitor-group"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            tenant_code=test_env.get("adminTenantCode", "monitor-group"),
         )
 
     # ==================== 1) 集群配额概览查询 ====================

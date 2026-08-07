@@ -28,13 +28,13 @@ from core.reporting.allure_helper import AllureHelper
 from core.constants import Tenant
 
 @pytest.fixture(scope="module")
-def public_params(api_env) -> IngressPublicParams:
+def public_params(test_env) -> IngressPublicParams:
     """提取 Ingress 测试所需的公共参数。"""
     return IngressPublicParams(
-        mesh_gateway_name=api_env.get("meshGatewayName"),
-        sys_code=api_env.get("sysCode"),
-        unit_code=api_env.get("unitCode"),
-        plane_code=api_env.get("planeCode"),
+        mesh_gateway_name=test_env.get("meshGatewayName"),
+        sys_code=test_env.get("sysCode"),
+        unit_code=test_env.get("unitCode"),
+        plane_code=test_env.get("planeCode"),
     )
 
 # =============================================================================

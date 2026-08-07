@@ -35,9 +35,9 @@ class TestEcOpenapiCrCluster:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> CrClusterPublicParams:
+    def public_params(self, test_env) -> CrClusterPublicParams:
         """提取 Cluster CR 测试所需的公共参数。"""
-        return CrClusterPublicParams(cell_code=api_env.get("cellCode"))
+        return CrClusterPublicParams(cell_code=test_env.get("cellCode"))
 
     # ==================== 测试方法 ====================
 

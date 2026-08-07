@@ -47,15 +47,15 @@ class TestMicroservicesUbm:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> UbmPublicParams:
+    def public_params(self, test_env) -> UbmPublicParams:
         """提取 UBM 测试所需的公共参数。"""
         return UbmPublicParams(
-            control_plane_code=api_env.get("controlPlaneCode"),
-            belong_code=api_env.get("belongCode"),
-            plane_code=api_env.get("planeCode"),
-            plane_name=api_env.get("planeName"),
-            cell_code=api_env.get("cellCode"),
-            cell_name=api_env.get("cellName"),
+            control_plane_code=test_env.get("controlPlaneCode"),
+            belong_code=test_env.get("belongCode"),
+            plane_code=test_env.get("planeCode"),
+            plane_name=test_env.get("planeName"),
+            cell_code=test_env.get("cellCode"),
+            cell_name=test_env.get("cellName"),
         )
 
     # ==================== UBM 查询接口 ====================

@@ -37,20 +37,20 @@ class TestEcExtensionsNginxRbac:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> NginxRbacPublicParams:
+    def public_params(self, test_env) -> NginxRbacPublicParams:
         """提取 Nginx RBAC 测试所需的公共参数。"""
         return NginxRbacPublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-ns"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-ns"),
             code="test-rbac",
         )
 

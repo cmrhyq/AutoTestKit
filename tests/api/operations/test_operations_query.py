@@ -47,9 +47,9 @@ class TestOperationsQuery:
 
     @allure.title("查询接口拨测日志详情")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_query_interface_synthetic_log(self, operation_service, api_env, api_cache):
+    def test_query_interface_synthetic_log(self, operation_service, test_env, api_cache):
         with AllureHelper.api_test(operation_service):
-            log_id = api_env.get("monitorYunboceRwfxId1", 1)
+            log_id = test_env.get("monitorYunboceRwfxId1", 1)
 
             with AllureHelper.step(f"发送 GET 请求查询接口拨测日志详情，id={log_id}"):
                 response_json = operation_service.query_interface_synthetic_log(log_id=log_id)
@@ -59,9 +59,9 @@ class TestOperationsQuery:
 
     @allure.title("查询服务拨测日志详情")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_query_service_synthetic_log(self, operation_service, api_env, api_cache):
+    def test_query_service_synthetic_log(self, operation_service, test_env, api_cache):
         with AllureHelper.api_test(operation_service):
-            log_id = api_env.get("monitorYunboceRwfxId2", 1)
+            log_id = test_env.get("monitorYunboceRwfxId2", 1)
 
             with AllureHelper.step(f"发送 GET 请求查询服务拨测日志详情，id={log_id}"):
                 response_json = operation_service.query_service_synthetic_log(log_id=log_id)

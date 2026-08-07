@@ -36,11 +36,11 @@ class TestEcNativeRoleBinding:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> RoleBindingNativePublicParams:
+    def public_params(self, test_env) -> RoleBindingNativePublicParams:
         """提取 RoleBinding 测试所需的公共参数。"""
         return RoleBindingNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-admin"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-admin"),
             name="native-test-rolebinding-001",
             role_name="test-role",
             service_account_name="test-sa",

@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from core.config import Settings
+from core.config import Settings, env_manager
 from core import DataCache
 from core.log import get_logger
 
@@ -181,8 +181,9 @@ def pytest_sessionfinish(session, exitstatus):
 
     # Clear data cache at session end
     cache = DataCache.get_instance()
+    cache_size = cache.size()
     cache.clear()
-    logger.info("Data cache cleared at session end")
+    logger.info(f"Data cache cleared at session end (dropped {cache_size} items)")
 
 
 
@@ -225,27 +226,28 @@ def pytest_collection_finish(session):
 # ==================== Session-Level Fixtures ====================
 @pytest.fixture(scope="session", autouse=True)
 def session_setup_teardown():
-    """
-    会话级设置和清理
+    """会话级生命周期日志锚点。
 
-    在测试会话开始时初始化测试框架，并在会话结束时执行清理工作。
-
-    此测试装置确保：
-    - 正确初始化测试环境
-    - 所有测试完成后清理会话级缓存
-    - 记录会话生命周期事件
+    仅记录 session 开始/结束事件，方便日志检索定位。
+    数据缓存清理由 `pytest_sessionfinish` hook 统一负责，避免多处 teardown 重复清理。
     """
     logger.info("Session fixture setup starting")
-    
     yield
-    
-    # Session teardown
     logger.info("Session fixture teardown starting")
-    
-    # Clear data cache to prevent data leakage between test sessions
-    cache = DataCache.get_instance()
-    cache.clear()
-    logger.info("Data cache cleared in session fixture")
+
+
+@pytest.fixture(scope="session")
+def test_env():
+    """全局测试环境配置（API + UI 共用）。
+
+    - 底层 `env_manager` 是模块级单例，配置在进程启动时从 `config/env_*.yaml` 加载一次；
+    - 该 fixture 只是把单例封装成 session-scope 别名，方便测试注入；
+    - API 与 UI 共享同一份 EnvConfig，避免同一配置在框架里出现两个语义相同的名字。
+
+    Returns:
+        EnvConfig: 支持 `.get(key)` 和 `["key"]` 两种访问方式的配置对象。
+    """
+    return env_manager.get_config()
 
 
 @pytest.fixture(scope="session")

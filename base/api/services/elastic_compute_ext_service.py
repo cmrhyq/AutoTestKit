@@ -101,7 +101,7 @@ class ElasticComputeExtService(BaseService):
       管理员场景走 `_get_admin_headers`；Workload 类走 `_get_workload_headers`）
     - URL 前缀：`/elastic-compute/v1/...` 与 `/elastic-compute/v2/...`
       （与 `openapi` 系接口的 `/openapi/elastic-compute/...` 前缀相区分）
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str):
@@ -118,7 +118,7 @@ class ElasticComputeExtService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

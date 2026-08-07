@@ -40,11 +40,11 @@ class TestEcOpenapiServiceV2:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ServiceV2PublicParams:
+    def public_params(self, test_env) -> ServiceV2PublicParams:
         """提取 Service 测试所需的公共参数。"""
         return ServiceV2PublicParams(
-            cell_code=api_env.get("cellCode", "test"),
-            sys_code=api_env.get("sysCode", "test-sys"),
+            cell_code=test_env.get("cellCode", "test"),
+            sys_code=test_env.get("sysCode", "test-sys"),
             svc_name="auto-test-probe-svc-test-0001",
         )
 

@@ -35,10 +35,10 @@ class TestEcNativePriorityClass:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, test_env):
         """提取 PriorityClass 测试所需的公共参数。"""
         return PriorityClassNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
+            cluster_id=str(test_env.get("clusterId", "1")),
             name="native-test-pc",
         )
 

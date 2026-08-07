@@ -35,11 +35,11 @@ class TestEcOpenapiServiceAccount:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ServiceAccountPublicParams:
+    def public_params(self, test_env) -> ServiceAccountPublicParams:
         """提取 ServiceAccount 测试所需的公共参数。"""
         return ServiceAccountPublicParams(
-            cell_code=api_env.get("cellCode", "test"),
-            sys_code=api_env.get("sysCode", "test-sys"),
+            cell_code=test_env.get("cellCode", "test"),
+            sys_code=test_env.get("sysCode", "test-sys"),
         )
 
     # ---------------------------- Test cases ----------------------------

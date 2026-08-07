@@ -36,10 +36,10 @@ class TestEcNativeNode:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> NodeNativePublicParams:
+    def public_params(self, test_env) -> NodeNativePublicParams:
         """提取 Node 测试所需的公共参数。"""
         return NodeNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
+            cluster_id=str(test_env.get("clusterId", "1")),
         )
 
     # ==================== 只读测试（每接口一函数）====================

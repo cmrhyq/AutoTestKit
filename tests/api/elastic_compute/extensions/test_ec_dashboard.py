@@ -24,19 +24,19 @@ class TestEcExtensionsDashboard:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> DashboardPublicParams:
+    def public_params(self, test_env) -> DashboardPublicParams:
         """提取 Dashboard 测试所需的公共参数。"""
         return DashboardPublicParams(
-            tenant_code=api_env.get("tenantCode", "tenant_admin"),
+            tenant_code=test_env.get("tenantCode", "tenant_admin"),
             start_time="1715759823000",
             end_time="1715759823000",
         )

@@ -43,25 +43,25 @@ class TestMicroservicesInnerIstio:
     TENANT = Tenant.MONITOR_GROUP
 
     @pytest.fixture(scope="class")
-    def inner_service(self, api_env):
+    def inner_service(self, test_env):
         service = MicroservicesInnerService(
-            base_url=api_env.get("apiInnerBaseUrl") or api_env.get("apiBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl") or test_env.get("apiBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> InnerIstioPublicParams:
+    def public_params(self, test_env) -> InnerIstioPublicParams:
         """提取 Inner Istio 测试所需的公共参数。"""
         return InnerIstioPublicParams(
-            mesh_gateway_name=api_env.get("meshGatewayName"),
-            mesh_vs_name=api_env.get("meshVsName"),
-            sys_code=api_env.get("sysCode"),
-            cell_code=api_env.get("cellCode"),
-            plane_code=api_env.get("planeCode"),
-            cluster_id=api_env.get("clusterId"),
-            tenant_code=api_env.get("tenantCode"),
-            basic_auth_username=api_env.get("basicAuthUsername"),
+            mesh_gateway_name=test_env.get("meshGatewayName"),
+            mesh_vs_name=test_env.get("meshVsName"),
+            sys_code=test_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            plane_code=test_env.get("planeCode"),
+            cluster_id=test_env.get("clusterId"),
+            tenant_code=test_env.get("tenantCode"),
+            basic_auth_username=test_env.get("basicAuthUsername"),
         )
 
     # ==================== KEM 统一操作 ====================

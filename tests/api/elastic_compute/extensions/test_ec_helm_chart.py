@@ -52,32 +52,32 @@ class TestEcExtensionsHelmChart:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> HelmChartPublicParams:
+    def public_params(self, test_env) -> HelmChartPublicParams:
         """提取 Helm/Chart 测试所需的公共参数。"""
         return HelmChartPublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-admin"),
-            cell_code=api_env.get("cellCode", "TEST"),
-            sys_code=api_env.get("sysCode", "test-admin"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-admin"),
+            cell_code=test_env.get("cellCode", "TEST"),
+            sys_code=test_env.get("sysCode", "test-admin"),
             chart_name="nginx",
             chart_version="0.1.0",
             release_name="inner-test-nginx-demo",
-            image=api_env.get("nginxImageRepo", "192.168.18.3:1121/hpe_containers/nginx"),
-            image_tag=api_env.get("nginxImageTag", "latest"),
-            paas_app_code=api_env.get("appCodeDeploy", "test-app"),
-            paas_owner=api_env.get("user", "test-admin"),
-            paas_tenant_code=api_env.get("tenantCode", "tenant-001"),
-            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
-            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
+            image=test_env.get("nginxImageRepo", "192.168.18.3:1121/hpe_containers/nginx"),
+            image_tag=test_env.get("nginxImageTag", "latest"),
+            paas_app_code=test_env.get("appCodeDeploy", "test-app"),
+            paas_owner=test_env.get("user", "test-admin"),
+            paas_tenant_code=test_env.get("tenantCode", "tenant-001"),
+            paas_env_code=test_env.get("paasEnvCode", "ENV1"),
+            paas_plane_code=test_env.get("paasPlaneCode", "PLANE1"),
         )
 
     # ==================== 1) 上传 Chart ====================
@@ -87,10 +87,10 @@ class TestEcExtensionsHelmChart:
     @allure.title("上传 Chart 包")
     @allure.description("上传本地 Chart 包到集群 Helm 仓库，作为后续 Install/List/Download 的前置")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_upload_helm_chart(self, ec_ext_service, public_params, api_env):
+    def test_upload_helm_chart(self, ec_ext_service, public_params, test_env):
         """上传 Chart 包，若文件缺失则 skip 后续全部依赖用例。"""
         cluster_id = public_params.cluster_id
-        chart_file_path = api_env.get("helmChartFilePath", "")
+        chart_file_path = test_env.get("helmChartFilePath", "")
 
         if not chart_file_path or not os.path.exists(chart_file_path):
             pytest.skip(f"helmChartFilePath 未配置或文件不存在: {chart_file_path!r}")

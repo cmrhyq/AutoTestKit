@@ -24,21 +24,21 @@ class TestEcExtensionsNamespaceQuota:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> NamespaceQuotaPublicParams:
+    def public_params(self, test_env) -> NamespaceQuotaPublicParams:
         """提取系统配额测试所需的公共参数。"""
         return NamespaceQuotaPublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            tenant_code=api_env.get("adminTenantCode", "tenant_admin"),
-            namespace=api_env.get("namespace", "test"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            tenant_code=test_env.get("adminTenantCode", "tenant_admin"),
+            namespace=test_env.get("namespace", "test"),
         )
 
     @pytest.mark.dependency(name="ns_quota_overview")

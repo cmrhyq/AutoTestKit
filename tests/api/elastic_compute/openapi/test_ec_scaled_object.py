@@ -37,14 +37,14 @@ class TestEcOpenapiScaledObject:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ScaledObjectPublicParams:
+    def public_params(self, test_env) -> ScaledObjectPublicParams:
         """提取 ScaledObject 测试所需的公共参数。"""
         return ScaledObjectPublicParams(
-            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            sys_code=api_env.get("sysCode", "test"),
+            cell_code=test_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=test_env.get("sysCode", "test"),
             so_name="test-scaled-object-001",
-            workload_kind=api_env.get("soWorkloadKind", "Deployment"),
-            workload_name=api_env.get("soWorkloadName", "auto-test-deploy-probe-ns-test-0002"),
+            workload_kind=test_env.get("soWorkloadKind", "Deployment"),
+            workload_name=test_env.get("soWorkloadName", "auto-test-deploy-probe-ns-test-0002"),
         )
 
     # ---------------------------- Test cases ----------------------------

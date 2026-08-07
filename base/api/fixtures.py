@@ -13,7 +13,6 @@ import allure
 from typing import Optional, Dict
 
 from base.api.services.base_service import BaseService
-from core.config import env_manager
 from core.log import get_logger
 from core.cache.data_cache import DataCache
 from core.config import Settings
@@ -33,12 +32,6 @@ def api_cache():
     """
     cache = DataCache.get_instance()
     return cache
-
-
-@pytest.fixture(scope="session")
-def api_env():
-    env = env_manager.get_config()
-    return env
 
 
 @pytest.fixture(scope="function")
@@ -67,7 +60,7 @@ def base_service():
 
 
 @pytest.fixture(scope="function")
-def authenticated_service(api_env):
+def authenticated_service(test_env):
     """
     Function-level authenticated BaseService fixture
     
@@ -75,7 +68,7 @@ def authenticated_service(api_env):
     根据环境变量自动选择认证方式（Bearer Token, Basic Auth, API Key）
     
     Args:
-        api_env: 环境配置字典
+        test_env: 环境配置字典
         
     Returns:
         BaseService: 带认证的 API 服务实例
@@ -87,22 +80,22 @@ def authenticated_service(api_env):
     auth_type = None
     auth_credentials = None
     
-    if api_env.get("bearerToken"):
+    if test_env.get("bearerToken"):
         auth_type = 'bearer'
-        auth_credentials = {'token': api_env.get("bearerToken")}
+        auth_credentials = {'token': test_env.get("bearerToken")}
         logger.info("Using Bearer token authentication")
-    elif api_env.get("basicAuthUsername") and api_env.get("basicAuthPassword"):
+    elif test_env.get("basicAuthUsername") and test_env.get("basicAuthPassword"):
         auth_type = 'basic'
         auth_credentials = {
-            'username': api_env.get("basicAuthUsername"),
-            'password': api_env.get("basicAuthPassword")
+            'username': test_env.get("basicAuthUsername"),
+            'password': test_env.get("basicAuthPassword")
         }
         logger.info("Using Basic authentication")
-    elif api_env.get("apiKey"):
+    elif test_env.get("apiKey"):
         auth_type = 'api_key'
         auth_credentials = {
-            'api_key': api_env.get("apiKey"),
-            'header_name': api_env.get("apiKeyHeader")
+            'api_key': test_env.get("apiKey"),
+            'header_name': test_env.get("apiKeyHeader")
         }
         logger.info("Using API Key authentication")
     else:
@@ -312,16 +305,10 @@ def setup_api_test_environment():
     
     yield
     
-    # 清理
     logger.info("Cleaning up API test environment")
-    
-    # 清理数据缓存
-    cache = DataCache.get_instance()
-    cache_size = cache.size()
-    cache.clear()
-    logger.info(f"Cleared {cache_size} items from data cache")
-    
-    # 附加日志到 Allure
+
+    # 数据缓存的清理由根 conftest.py::pytest_sessionfinish 统一负责。
+    # 此处仅做 Allure 日志附件收尾。
     from core.log.logger import TestLogger
     TestLogger.attach_log_to_allure()
     logger.info("Attached logs to Allure report")

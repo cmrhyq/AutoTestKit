@@ -42,21 +42,21 @@ class TestEcOpenapiLimitRange:
             yield svc
 
     @pytest.fixture(scope="class")
-    def std_params(self, api_env) -> LimitrangeStandardParams:
+    def std_params(self, test_env) -> LimitrangeStandardParams:
         """标准集群参数（cellCode / sysCode）。"""
         return LimitrangeStandardParams(
-            cell_code=api_env.get("cellCode"),
-            sys_code=api_env.get("sysCode"),
-            test_host_cluster=str(api_env.get("hostCellCode")),
+            cell_code=test_env.get("cellCode"),
+            sys_code=test_env.get("sysCode"),
+            test_host_cluster=str(test_env.get("hostCellCode")),
         )
 
     @pytest.fixture(scope="class")
-    def host_params(self, api_env) -> LimitrangeHostParams:
+    def host_params(self, test_env) -> LimitrangeHostParams:
         """托管集群参数（hostCellCode / hostSysCode）。"""
         return LimitrangeHostParams(
-            cell_code=api_env.get("hostCellCode"),
-            sys_code=api_env.get("hostSysCode"),
-            test_host_cluster=str(api_env.get("testHostCluster")),
+            cell_code=test_env.get("hostCellCode"),
+            sys_code=test_env.get("hostSysCode"),
+            test_host_cluster=str(test_env.get("testHostCluster")),
         )
 
     # ---------------------------- 标准集群分支 ----------------------------

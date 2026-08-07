@@ -34,7 +34,7 @@ class ObservableOpenService(BaseService):
     - 鉴权：`Authorization: Bearer <token>`
       （由测试层 `service_factory` 从 `TokenManager` 注入，必传）
     - URL 前缀：`/openapi/monitor-o11y/webgate-log-console/3rd/...`
-    - base_url：由 fixture `api_env["apiBaseUrl"]` 提供，必传
+    - base_url：由 fixture `test_env["apiBaseUrl"]` 提供，必传
     """
 
     def __init__(self, base_url: str, token: Optional[str] = None):
@@ -52,7 +52,7 @@ class ObservableOpenService(BaseService):
             raise ValueError(
                 "base_url is required. "
                 "Configure it in config/env_*.yaml (apiBaseUrl) "
-                "and pass via fixture: api_env.get('apiBaseUrl')"
+                "and pass via fixture: test_env.get('apiBaseUrl')"
             )
         super().__init__(
             base_url=base_url,

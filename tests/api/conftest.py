@@ -37,7 +37,7 @@ logger = get_logger(__name__)
 
 
 @pytest.fixture(scope="session")
-def _login_fn(api_env):
+def _login_fn(test_env):
     """登录回调工厂：接受 tenant_code，返回该租户的 token 字符串。
 
     - 使用未鉴权的 PortalOpenService 调用登录接口（token=None）
@@ -45,11 +45,11 @@ def _login_fn(api_env):
     - 该 fixture 仅在首次访问某租户时被 TokenManager 调用
     """
     portal = PortalOpenService(
-        base_url=api_env["apiBaseUrl"],
+        base_url=test_env["apiBaseUrl"],
     )
 
     def _login(tenant: str) -> str:
-        creds = (api_env.get("tenants") or {}).get(tenant)
+        creds = (test_env.get("tenants") or {}).get(tenant)
         assert creds, (
             f"config/env_*.yaml 的 tenants 中未配置 {tenant}，"
             f"请补充该租户的 username/password"
@@ -70,7 +70,7 @@ def _login_fn(api_env):
 
 
 @pytest.fixture(scope="session")
-def service_factory(api_env, _login_fn):
+def service_factory(test_env, _login_fn):
     """Service 构造工厂 + 租户绑定。
 
     调用签名：
@@ -89,7 +89,7 @@ def service_factory(api_env, _login_fn):
     def _factory(service_cls, tenant: str, **overrides):
         token = TokenManager.get_or_login(tenant, _login_fn)
         service = service_cls(
-            base_url=overrides.pop("base_url", api_env["apiBaseUrl"]),
+            base_url=overrides.pop("base_url", test_env["apiBaseUrl"]),
             token=token,
             **overrides,
         )

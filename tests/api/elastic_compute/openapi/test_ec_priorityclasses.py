@@ -35,11 +35,11 @@ class TestEcOpenapiPriorityClasses:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> PriorityClassPublicParams:
+    def public_params(self, test_env) -> PriorityClassPublicParams:
         """提取 PriorityClass 测试所需的公共参数。"""
         return PriorityClassPublicParams(
-            cell_code=api_env.get("cellCode", "TEST"),
-            pc_name=api_env.get("priorityClassName", "pc-test"),
+            cell_code=test_env.get("cellCode", "TEST"),
+            pc_name=test_env.get("priorityClassName", "pc-test"),
         )
 
     # -------------------- 测试用例 --------------------

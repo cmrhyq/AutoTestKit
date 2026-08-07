@@ -31,22 +31,22 @@ class TestEcExtensionsCustomResourceV1:
     TENANT = None
 
     @pytest.fixture(scope="class")
-    def ec_ext_service(self, api_env):
+    def ec_ext_service(self, test_env):
         """Extensions 类接口使用 apikey 鉴权，不需要 Bearer token。"""
         service = ElasticComputeExtService(
-            base_url=api_env.get("apiInnerBaseUrl"),
+            base_url=test_env.get("apiInnerBaseUrl"),
         )
         yield service
         service.close()
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> CustomResourcePublicParams:
+    def public_params(self, test_env) -> CustomResourcePublicParams:
         """提取 CustomResource 测试所需的公共参数。"""
         return CustomResourcePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
+            cluster_id=str(test_env.get("clusterId", "1")),
             group="test.example.com",
             version="v1",
-            namespace=api_env.get("namespace", "probe"),
+            namespace=test_env.get("namespace", "probe"),
             kind="Banana",
             name="test-banana-001",
         )

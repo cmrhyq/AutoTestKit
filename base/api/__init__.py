@@ -9,7 +9,6 @@ API 测试模块
 from base.api.services.base_service import BaseService
 from base.api.fixtures import (
     api_cache,
-    api_env,
     base_service,
     authenticated_service,
     custom_service,
@@ -22,7 +21,6 @@ __all__ = [
     
     # Fixtures
     'api_cache',
-    'api_env',
     'base_service',
     'authenticated_service',
     'custom_service',

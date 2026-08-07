@@ -33,11 +33,11 @@ class TestEcOpenapiReplicaSet:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ReplicaSetPublicParams:
+    def public_params(self, test_env) -> ReplicaSetPublicParams:
         """提取 ReplicaSet 测试所需的公共参数。"""
         return ReplicaSetPublicParams(
-            cell_code=api_env.get("cellCode", "TEST"),
-            sys_code=api_env.get("sysCode", "istio-ingress"),
+            cell_code=test_env.get("cellCode", "TEST"),
+            sys_code=test_env.get("sysCode", "istio-ingress"),
         )
 
     # ---------------------------- Test cases ----------------------------

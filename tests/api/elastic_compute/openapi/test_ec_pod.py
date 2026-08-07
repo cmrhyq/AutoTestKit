@@ -37,13 +37,13 @@ class TestEcOpenapiPod:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> PodPublicParams:
+    def public_params(self, test_env) -> PodPublicParams:
         """提取 Pod 测试所需的公共参数。"""
         return PodPublicParams(
-            cell_code=api_env.get("cellCode", "TEST"),
-            sys_code=api_env.get("sysCode", "test-admin"),
+            cell_code=test_env.get("cellCode", "TEST"),
+            sys_code=test_env.get("sysCode", "test-admin"),
             pod_name="openapi-test-nginx-pod",
-            pod_image=api_env.get("nginxImageName", "tools/nginx:x86"),
+            pod_image=test_env.get("nginxImageName", "tools/nginx:x86"),
             container_name="container0",
         )
 

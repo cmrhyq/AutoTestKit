@@ -71,14 +71,14 @@ class SystemConfigManager:
             FileNotFoundError: 配置文件不存在
             ValueError: 配置文件格式错误
         """
-        yaml_file = self.config_dir / "config_system.yaml"
+        yaml_file = self.config_dir / "system_config.yaml"
 
         if yaml_file.exists():
             config_data = self._load_yaml(yaml_file)
         else:
             raise FileNotFoundError(
                 f"配置文件不存在: {yaml_file}\n"
-                f"请在 {self.config_dir} 目录下创建 config_system.yaml"
+                f"请在 {self.config_dir} 目录下创建 system_config.yaml"
             )
 
         self._config = SystemConfig(config_data)

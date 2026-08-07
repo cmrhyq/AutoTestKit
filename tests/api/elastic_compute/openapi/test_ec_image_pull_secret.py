@@ -39,11 +39,11 @@ class TestEcOpenapiImagePullSecret:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ImagePullSecretPublicParams:
+    def public_params(self, test_env) -> ImagePullSecretPublicParams:
         """提取 ImagePullSecret 测试所需的公共参数。"""
         return ImagePullSecretPublicParams(
-            cell_code=api_env.get("cellCode"),
-            sys_code=api_env.get("sysCode"),
+            cell_code=test_env.get("cellCode"),
+            sys_code=test_env.get("sysCode"),
         )
 
     @allure.title("创建 ImagePullSecret")

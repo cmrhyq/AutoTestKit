@@ -38,18 +38,18 @@ class TestEcNativeService:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ServiceNativePublicParams:
+    def public_params(self, test_env) -> ServiceNativePublicParams:
         """提取 Service 测试所需的公共参数。"""
         return ServiceNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-admin"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-admin"),
             name="native-test-nginx-svc",
-            paas_app_code=api_env.get("appCodeDeploy", "test-app-svc"),
-            paas_env_code=api_env.get("paasEnvCode", "ENV1"),
-            paas_owner=api_env.get("user", "panji_probe"),
-            paas_plane_code=api_env.get("paasPlaneCode", "PLANE1"),
-            paas_tenant_code=api_env.get("paasTenantCode", "tenant-001"),
-            paas_unit_code=api_env.get("paasUnitCode", "TEST"),
+            paas_app_code=test_env.get("appCodeDeploy", "test-app-svc"),
+            paas_env_code=test_env.get("paasEnvCode", "ENV1"),
+            paas_owner=test_env.get("user", "panji_probe"),
+            paas_plane_code=test_env.get("paasPlaneCode", "PLANE1"),
+            paas_tenant_code=test_env.get("paasTenantCode", "tenant-001"),
+            paas_unit_code=test_env.get("paasUnitCode", "TEST"),
             paas_workload_name="native-test-nginx-deploy",
         )
 

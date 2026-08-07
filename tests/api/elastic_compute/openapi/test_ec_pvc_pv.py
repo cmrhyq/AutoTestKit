@@ -35,14 +35,14 @@ class TestEcOpenapiPvcPv:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> PvcPvPublicParams:
+    def public_params(self, test_env) -> PvcPvPublicParams:
         """提取 PVC/PV 测试所需的公共参数。"""
         return PvcPvPublicParams(
-            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            sys_code=api_env.get("sysCode", "test"),
-            pvc_name=api_env.get("pvcName", "test-hpa-001"),
-            pv_name=api_env.get("pvName", "test-pv-001"),
-            storage_class_name=api_env.get("storageClassName", "test-sc-001"),
+            cell_code=test_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=test_env.get("sysCode", "test"),
+            pvc_name=test_env.get("pvcName", "test-hpa-001"),
+            pv_name=test_env.get("pvName", "test-pv-001"),
+            storage_class_name=test_env.get("storageClassName", "test-sc-001"),
         )
 
     # -------------------- 测试用例 --------------------

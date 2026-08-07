@@ -38,21 +38,21 @@ class TestEcOpenapiRecoveryResource:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> RecoveryResourcePublicParams:
+    def public_params(self, test_env) -> RecoveryResourcePublicParams:
         """提取容灾组件测试所需的公共参数。"""
         return RecoveryResourcePublicParams(
-            cell_code=api_env.get("cellCode", "PROD_PLANE1_CELL3"),
-            sys_code=api_env.get("sysCode", "test"),
+            cell_code=test_env.get("cellCode", "PROD_PLANE1_CELL3"),
+            sys_code=test_env.get("sysCode", "test"),
             resource_name="test-resource-deploy-001",
             app_name="app-nginx-test",
             kind="Deployment",
-            image=api_env.get("nginxImageName", "hpe_containers/nginx:latest"),
-            tenant_code=api_env.get("paasTenantCode", "monitor-group"),
-            app_code=api_env.get("grantAppCode", "probe-deploy"),
-            plane_code=api_env.get("planeCode", "PLANE"),
-            unit_code=api_env.get("unitCode", "test"),
-            env_code=api_env.get("paasEnvCode", "PROD"),
-            user=api_env.get("user", "PROD"),
+            image=test_env.get("nginxImageName", "hpe_containers/nginx:latest"),
+            tenant_code=test_env.get("paasTenantCode", "monitor-group"),
+            app_code=test_env.get("grantAppCode", "probe-deploy"),
+            plane_code=test_env.get("planeCode", "PLANE"),
+            unit_code=test_env.get("unitCode", "test"),
+            env_code=test_env.get("paasEnvCode", "PROD"),
+            user=test_env.get("user", "PROD"),
         )
 
     # ---------------------------- Test cases ----------------------------

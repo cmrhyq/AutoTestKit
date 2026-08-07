@@ -34,11 +34,11 @@ class TestEcOpenapiNode:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> NodePublicParams:
+    def public_params(self, test_env) -> NodePublicParams:
         """提取 Node 测试所需的公共参数。"""
         return NodePublicParams(
-            cell_code=api_env.get("cellCode"),
-            node_ip=api_env.get("nodeIp"),
+            cell_code=test_env.get("cellCode"),
+            node_ip=test_env.get("nodeIp"),
         )
 
     @allure.title("查询指定 Node")

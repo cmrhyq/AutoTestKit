@@ -36,14 +36,14 @@ class TestEcOpenapiImage:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> ImagePublicParams:
+    def public_params(self, test_env) -> ImagePublicParams:
         """提取 Image 测试所需的公共参数。"""
         return ImagePublicParams(
-            cluster_id=api_env.get("clusterId"),
-            namespace=api_env.get("namespace"),
-            project_name=api_env.get("copyProjectName"),
-            image_name=api_env.get("copyRepName"),
-            image_version=api_env.get("copyImageTag"),
+            cluster_id=test_env.get("clusterId"),
+            namespace=test_env.get("namespace"),
+            project_name=test_env.get("copyProjectName"),
+            image_name=test_env.get("copyRepName"),
+            image_version=test_env.get("copyImageTag"),
         )
 
     @allure.title("获取镜像列表")

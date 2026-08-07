@@ -36,17 +36,17 @@ class TestPortalOpenAPI:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env):
+    def public_params(self, test_env):
         """提取 Portal OpenAPI 测试所需的公共参数。"""
         return {
-            "portal_username": api_env.get("portalUsername"),
-            "portal_user_id": api_env.get("portalUserId"),
-            "cell_code": api_env.get("cellCode"),
-            "tenant_code": api_env.get("tenantCode"),
-            "prod_inst_name": api_env.get("prodInstName"),
-            "sync_phone": api_env.get("syncPhone"),
-            "sync_email": api_env.get("syncEmail"),
-            "sync_username": api_env.get("syncUsername"),
+            "portal_username": test_env.get("portalUsername"),
+            "portal_user_id": test_env.get("portalUserId"),
+            "cell_code": test_env.get("cellCode"),
+            "tenant_code": test_env.get("tenantCode"),
+            "prod_inst_name": test_env.get("prodInstName"),
+            "sync_phone": test_env.get("syncPhone"),
+            "sync_email": test_env.get("syncEmail"),
+            "sync_username": test_env.get("syncUsername"),
         }
 
     # ==================== 域信息查询 ====================

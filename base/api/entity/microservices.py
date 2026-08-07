@@ -284,7 +284,7 @@ class MeshNode(object):
 
 @dataclass
 class UbmPublicParams(object):
-    """UBM OpenAPI 测试公共参数（对应 api_env 键均使用 snake_case 暴露给测试层）。"""
+    """UBM OpenAPI 测试公共参数（对应 test_env 键均使用 snake_case 暴露给测试层）。"""
     control_plane_code: Optional[str] = None
     belong_code: Optional[str] = None
     plane_code: Optional[str] = None

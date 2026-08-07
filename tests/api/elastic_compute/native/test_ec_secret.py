@@ -38,13 +38,13 @@ class TestEcNativeSecret:
             yield svc
 
     @pytest.fixture(scope="class")
-    def public_params(self, api_env) -> SecretNativePublicParams:
+    def public_params(self, test_env) -> SecretNativePublicParams:
         """提取 Secret 测试所需的公共参数。"""
         return SecretNativePublicParams(
-            cluster_id=str(api_env.get("clusterId", "1")),
-            namespace=api_env.get("namespace", "test-admin"),
+            cluster_id=str(test_env.get("clusterId", "1")),
+            namespace=test_env.get("namespace", "test-admin"),
             name="native-test-secret-001",
-            paas_owner=api_env.get("user", "panji_probe"),
+            paas_owner=test_env.get("user", "panji_probe"),
         )
 
     @pytest.mark.dependency(name="secret_query_and_cleanup")
