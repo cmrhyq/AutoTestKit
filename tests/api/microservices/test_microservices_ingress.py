@@ -102,6 +102,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("分页查询 nginx 参数模板列表")
+    @allure.description("分页查询 nginx 参数模板列表（page=1, rows=10），断言响应包含 code 字段")
     def test_list_nginx_param(self, ingress_service):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求分页查询 nginx 参数模板"):
@@ -132,6 +133,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("新增 ingress 网关实例")
+    @allure.description("基于 public_params 构造 ingress 实体新增网关实例，断言响应包含 code 字段")
     def test_add_ingress_instance(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 POST 请求新增 ingress 网关实例"):
@@ -142,6 +144,7 @@ class TestMsIngressGateway:
                 assert "code" in response_json
 
     @allure.title("根据编码查询 ingress 网关实例详情")
+    @allure.description("按 code + sys_code + unit_code + plane_code 组合精确查询 ingress 网关实例详情，断言响应包含 code 字段")
     def test_get_ingress_instance_by_code(self, ingress_service, public_params):
         with AllureHelper.api_test(ingress_service):
             with AllureHelper.step("发送 GET 请求查询 ingress 网关实例详情"):

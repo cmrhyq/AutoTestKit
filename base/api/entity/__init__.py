@@ -55,9 +55,6 @@ from base.api.entity.observable import (
 from base.api.entity.operation import (
     MetricQuery,
 )
-from base.api.entity.plugin import (
-    McpValidatePayload,
-)
 from base.api.entity.portal import (
     ApplicationEntity,
     BasicCodeEntity,

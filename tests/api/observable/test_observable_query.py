@@ -34,6 +34,7 @@ class TestObservableQuery:
             yield svc
 
     @allure.title("查询模型列表")
+    @allure.description("按分页参数拉取可观测模型列表（含 logo/props/relations/graph/confsCount 各扩展字段），断言响应为字典")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_query_models(self, observable_service, api_cache):
         with AllureHelper.api_test(observable_service):

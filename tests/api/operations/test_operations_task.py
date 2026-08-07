@@ -28,6 +28,7 @@ class TestOperationsTask:
             yield svc
 
     @allure.title("通过任务名称执行巡检任务")
+    @allure.description("按 test_env.taskName 触发一次巡检任务执行，断言接口有效响应（resultCode 非 000000 时 data 字段仍存在）")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_execute_inspection_task(self, operation_service, test_env, api_cache):
         with AllureHelper.api_test(operation_service):

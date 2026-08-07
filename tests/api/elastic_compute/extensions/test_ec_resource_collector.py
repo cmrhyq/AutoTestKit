@@ -46,6 +46,7 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(2)
     @allure.title("查询全量应用服务列表")
+    @allure.description("查询弹性计算所纳管集群的全量应用服务列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_workloads(self, ec_ext_service):
         """查询全量应用服务列表，断言业务码为 2000。"""
@@ -58,6 +59,7 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(3)
     @allure.title("查询裸金属主机列表")
+    @allure.description("查询集群下的裸金属主机列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_physical_hosts(self, ec_ext_service):
         """查询裸金属主机列表，断言业务码为 2000。"""
@@ -70,6 +72,7 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(4)
     @allure.title("查询裸金属主机数量")
+    @allure.description("统计集群下裸金属主机数量，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_physical_host_number(self, ec_ext_service):
         """查询裸金属主机数量，断言业务码为 2000。"""
@@ -82,6 +85,7 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(5)
     @allure.title("查询集群资源信息")
+    @allure.description("查询集群整体资源分布与使用情况，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_cluster_resource(self, ec_ext_service):
         """查询集群资源信息，断言业务码为 2000。"""
@@ -94,6 +98,7 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(6)
     @allure.title("查询集群配额信息")
+    @allure.description("查询集群维度的配额分配情况，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_cluster_quota(self, ec_ext_service):
         """查询集群配额信息，断言业务码为 2000。"""
@@ -106,6 +111,7 @@ class TestEcExtensionsResourceCollector:
 
     @pytest.mark.order(7)
     @allure.title("查询租户配额信息")
+    @allure.description("查询租户维度的配额分配情况，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_metrics_tenant_quota(self, ec_ext_service):
         """查询租户配额信息，断言业务码为 2000。"""

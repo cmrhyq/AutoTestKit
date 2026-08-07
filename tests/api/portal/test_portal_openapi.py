@@ -53,6 +53,7 @@ class TestPortalOpenAPI:
 
     @pytest.mark.dependency()
     @allure.title("获取一级域")
+    @allure.description("查询一级域列表并将首条 systemId 缓存为 firstFieldId 供后续创建系统使用，断言业务码为 0 且返回不少于 2 条一级域")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_first_field_info(self, portal_open_service, api_cache):
         with AllureHelper.api_test(portal_open_service):
@@ -70,6 +71,7 @@ class TestPortalOpenAPI:
 
     @pytest.mark.dependency()
     @allure.title("获取二级域")
+    @allure.description("查询二级域列表并将首条 moduleId 缓存为 secondFieldId 供后续创建系统使用，断言业务码为 0 且返回不少于 2 条二级域")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_second_field_info(self, portal_open_service, api_cache):
         with AllureHelper.api_test(portal_open_service):
@@ -88,6 +90,7 @@ class TestPortalOpenAPI:
     # ==================== 集群平面单元 CRUD ====================
 
     @allure.title("新增集群平面单元")
+    @allure.description("按 prod_inst_name 新增集群平面单元，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_create_cluster_plane(self, portal_open_service, public_params):
         with AllureHelper.api_test(portal_open_service):
@@ -118,6 +121,7 @@ class TestPortalOpenAPI:
                 logger.info(f"已缓存instanceId: {instance_id}")
 
     @allure.title("修改集群平面单元")
+    @allure.description("按缓存 instanceId 修改集群平面单元（PATCH），断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_cluster_plane(self, portal_open_service, public_params, api_cache):
         with AllureHelper.api_test(portal_open_service):
@@ -133,6 +137,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("删除集群平面单元")
+    @allure.description("按缓存 instanceId 删除集群平面单元，属于集群平面 CRUD 用例的收尾步骤，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_cluster_plane(self, portal_open_service, api_cache):
         with AllureHelper.api_test(portal_open_service):
@@ -186,6 +191,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("获取菜单权限数据")
+    @allure.description("查询当前租户下可访问的菜单权限数据，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_menu_permission_data(self, portal_open_service):
         with AllureHelper.api_test(portal_open_service):
@@ -214,6 +220,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] in [0, -1], "响应Code应等于0或-1"
 
     @allure.title("绑定租户")
+    @allure.description("按 portalUserId 与 portalUsername 绑定当前用户到租户，断言业务码为 0")
     @allure.severity(allure.severity_level.NORMAL)
     def test_user_bind_tenant(self, portal_open_service, public_params):
         with AllureHelper.api_test(portal_open_service):
@@ -229,6 +236,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] == 0, "响应Code应等于0"
 
     @allure.title("绑定角色")
+    @allure.description("按 portalUserId 与 portalUsername 为已绑定租户的用户授予默认角色，断言业务码为 0")
     @allure.severity(allure.severity_level.NORMAL)
     def test_user_bind_role(self, portal_open_service, public_params):
         with AllureHelper.api_test(portal_open_service):
@@ -312,6 +320,7 @@ class TestPortalOpenAPI:
     # ==================== 应用管理 ====================
 
     @allure.title("创建应用")
+    @allure.description("在缓存 systemId1 下创建测试应用 portal_open_api_test_app，将新建应用的 applicationSourceId 缓存供后续更新/授权/删除使用；断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_create_application(self, portal_open_service, api_cache):
         system_id = api_cache.get("systemId1")
@@ -382,6 +391,7 @@ class TestPortalOpenAPI:
     # ==================== 更新操作 ====================
 
     @allure.title("更新系统")
+    @allure.description("按缓存 systemId1 更新测试系统信息，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_system(self, portal_open_service, public_params, api_cache):
         system_id = api_cache.get("systemId1")
@@ -404,6 +414,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("更新应用")
+    @allure.description("按缓存 applicationSourceId 与 systemId1 更新测试应用信息，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_update_application(self, portal_open_service, api_cache):
         app_id = api_cache.get("applicationSourceId")
@@ -422,6 +433,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("查询应用列表")
+    @allure.description("按 app_code 查询应用列表，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_query_application_list(self, portal_open_service):
         with AllureHelper.api_test(portal_open_service):
@@ -451,6 +463,7 @@ class TestPortalOpenAPI:
     # ==================== 资源配额管理 ====================
 
     @allure.title("系统资源配额详情")
+    @allure.description("按 cell/tenant/system 三元组查询系统资源配额详情，将 cpuTotal 缓存供后续断言使用，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_system_resource_quota_detail(self, portal_open_service, public_params, api_cache):
         with AllureHelper.api_test(portal_open_service):
@@ -475,6 +488,7 @@ class TestPortalOpenAPI:
     # ==================== 清理：删除资源 ====================
 
     @allure.title("系统资源配额释放")
+    @allure.description("按 cell/tenant/system 三元组释放已分配的系统资源配额，属于清理链路的一环，断言响应为字典")
     @allure.severity(allure.severity_level.NORMAL)
     def test_system_resource_quota_remove(self, portal_open_service, public_params):
         with AllureHelper.api_test(portal_open_service):
@@ -490,6 +504,7 @@ class TestPortalOpenAPI:
                 assert isinstance(response_json, Dict), "响应应该是字典类型"
 
     @allure.title("删除应用")
+    @allure.description("按缓存 applicationSourceId 删除测试应用，用例编排链路的收尾步骤，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_application(self, portal_open_service, api_cache):
         app_id = api_cache.get("applicationSourceId")
@@ -505,6 +520,7 @@ class TestPortalOpenAPI:
                 assert response_json["code"] == ApiCode.SUCCESS, "响应Code应等于 ApiCode.SUCCESS"
 
     @allure.title("删除系统")
+    @allure.description("按缓存 systemId1 删除测试系统 portal_open_api_test_sys，用例编排链路的最终收尾步骤，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_delete_system(self, portal_open_service, api_cache):
         system_id = api_cache.get("systemId1")

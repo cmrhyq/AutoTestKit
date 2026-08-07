@@ -31,7 +31,7 @@ import pytest
 from base.api.services.portal_open_service import PortalOpenService, PortalUserEntity
 from core.auth import TokenManager
 from core.log import get_logger
-from core.constants import ApiCode, Tenant
+from core.constants import ApiCode
 
 logger = get_logger(__name__)
 

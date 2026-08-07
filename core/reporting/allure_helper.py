@@ -8,7 +8,7 @@ Allure 辅助工具模块
 import json
 import traceback
 from contextlib import contextmanager
-from typing import Any, Optional, Generator
+from typing import Optional, Generator
 import allure
 
 

@@ -55,6 +55,7 @@ class TestEcExtensionsSystemBind:
     @pytest.mark.dependency(name="system_bind_check_quota")
     @pytest.mark.order(1)
     @allure.title("查询系统是否有配额信息")
+    @allure.description("绑定用户前置检查：确认目标系统在指定租户下已分配配额，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_check_system_quota(self, ec_ext_service, public_params):
         """查询系统配额，断言业务码为 2000。"""
@@ -91,6 +92,7 @@ class TestEcExtensionsSystemBind:
     @pytest.mark.dependency(name="system_bind_unbind_user", depends=["system_bind_bind_user"])
     @pytest.mark.order(3)
     @allure.title("解除用户与系统绑定接口")
+    @allure.description("解除用户与系统的绑定关系；仅在上一步 bind 成功（api_cache 中 bind_code=2000）时执行，断言业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_unbind_system_user(self, ec_ext_service, public_params, api_cache):
         """解除用户与系统绑定；仅在 bind 成功时执行。"""

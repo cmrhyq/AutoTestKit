@@ -35,6 +35,7 @@ class TestPluginCount:
         service.close()
 
     @allure.title("统计插件安装数")
+    @allure.description("统计当前环境下的插件安装数量，断言响应为字典且包含 data 字段")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_count(self, plugin_inner_service, api_cache):
         with AllureHelper.api_test(plugin_inner_service):

@@ -33,6 +33,7 @@ class TestPluginInfo:
             yield svc
 
     @allure.title("查询指定插件的安装信息")
+    @allure.description("按 test_env.pluginName 查询指定插件的安装信息，断言响应为字典且包含 code 字段")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_plugin_install_info(self, plugin_open_service, test_env, api_cache):
         with AllureHelper.api_test(plugin_open_service):

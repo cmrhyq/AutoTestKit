@@ -545,6 +545,7 @@ class TestEcExtensionsHelmChart:
     @pytest.mark.dependency(name="helm_chart_delete", depends=["helm_batch_uninstall_v2"])
     @pytest.mark.order(17)
     @allure.title("删除指定 Chart")
+    @allure.description("删除 Helm Chart 完成资源回收，断言业务码为 2000")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_delete_helm_chart(self, ec_ext_service, public_params):
         """删除 Chart，断言业务码为 2000。"""

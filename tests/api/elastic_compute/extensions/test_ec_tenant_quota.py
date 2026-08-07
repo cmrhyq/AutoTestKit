@@ -63,6 +63,7 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(1)
     @allure.title("集群配额概览查询")
+    @allure.description("按 cluster_id 查询集群维度的配额概览，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_cluster_quota(self, ec_ext_service, public_params):
         """集群配额概览查询，断言业务码为 2000。"""
@@ -78,6 +79,7 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(2)
     @allure.title("租户资源配额总览")
+    @allure.description("按 tenant_code 查询租户资源配额总览，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_overview(self, ec_ext_service, public_params):
         """租户资源配额总览，断言业务码为 2000。"""
@@ -93,6 +95,7 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(3)
     @allure.title("租户资源配额详情")
+    @allure.description("按 cluster_id + tenant_code 查询租户资源配额详情，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_detail(self, ec_ext_service, public_params):
         """租户资源配额详情，断言业务码为 2000。"""
@@ -109,6 +112,7 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(4)
     @allure.title("租户资源配额单集群总览")
+    @allure.description("按 cluster_id + tenant_code 查询单集群下的租户配额总览，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_cluster_quota(self, ec_ext_service, public_params):
         """租户资源配额单集群总览，断言业务码为 2000。"""
@@ -125,6 +129,7 @@ class TestEcExtensionsTenantQuota:
 
     @pytest.mark.order(5)
     @allure.title("租户可调整资源配额查询")
+    @allure.description("查询指定集群下租户可调整（scale）的资源配额，断言业务码为 2000")
     @allure.severity(allure.severity_level.NORMAL)
     def test_get_tenant_quota_scale(self, ec_ext_service, public_params):
         """租户可调整资源配额查询，断言业务码为 2000。"""
