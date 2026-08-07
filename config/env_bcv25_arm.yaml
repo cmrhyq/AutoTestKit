@@ -156,11 +156,6 @@ grantAppCode: test-probe-deploy1
 portalUsername: hyq
 # 上面用户对应的id
 portalUserId: 202012
-prodInstName: 1210
-# 用户创建接口参数
-syncPhone: FZfAKlL4LhFOuegCAVR0cA==
-syncEmail: /9VWlMdY7PShZj72q53jIQ==
-syncUsername: YV9l97xXmCphM0kLY8IptQ==
 
 #---------------------- 运营运维 ----------------------
 # 磐基->运维视图->运营运维->巡检中心->巡检任务->任务名称

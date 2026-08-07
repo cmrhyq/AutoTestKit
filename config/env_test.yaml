@@ -110,10 +110,6 @@ grantAppCode: test-probe-deploy1
 # ---------------------- 门户Open接口参数 ----------------------
 portalUsername: test-user
 portalUserId: 100001
-prodInstName: test-inst
-syncPhone: test-phone-token
-syncEmail: test-email-token
-syncUsername: test-username-token
 
 
 # ---------------------- 运营运维 ----------------------

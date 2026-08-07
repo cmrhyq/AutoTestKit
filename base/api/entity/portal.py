@@ -182,6 +182,26 @@ class InnerUserEntity(object):
 
 
 # ==================== Portal Open API 实体 ====================
+@dataclass
+class PortalOpenPublicParams(object):
+    """
+    portal_user_id: 用户id
+    portal_username: 用户名
+    cell_code: 系统的cell code
+    tenant_code: 租户code
+    prod_inst_name: name
+    sync_phone: 同步的手机号，DES加密
+    sync_email: 同步的邮箱，DES加密
+    sync_username: 同步的用户名，AES加密
+    """
+    portal_username: str
+    portal_user_id: str
+    cell_code: str
+    tenant_code: str
+    prod_inst_name: str = "test-inst1210"
+    sync_phone: str = "FZfAKlL4LhFOuegCAVR0cA=="
+    sync_email: str = "/9VWlMdY7PShZj72q53jIQ=="
+    sync_username: str = "YV9l97xXmCphM0kLY8IptQ=="
 
 
 @dataclass

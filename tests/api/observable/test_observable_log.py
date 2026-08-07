@@ -51,7 +51,7 @@ class TestObservableLog:
             obs_offset=int(test_env.get("obsOffset", 100016405)),
             obs_log_file_path=test_env.get(
                 "obsLogFilePath",
-                "/apps/monitor/oblogs/ns/paas-compmgmt/pod/monitor-cmdb-confs-deploy-6ff6c6669b-nsz4r/monitor-amdb-confs/stdout.log"
+                "/stdout.log"
             ),
             obs_host_ip=test_env.get("obsHostIp", "100.10.32.101"),
         )
