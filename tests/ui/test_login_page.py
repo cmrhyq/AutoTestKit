@@ -2,7 +2,7 @@ import pytest
 import allure
 from playwright.sync_api import Page
 
-from base.ui.pages.login_page import LoginPage
+from base.ui.pages.sandbox.login_page import LoginPage
 from core import get_logger
 from core.reporting.allure_helper import AllureHelper
 

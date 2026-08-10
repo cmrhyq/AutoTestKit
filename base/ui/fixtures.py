@@ -232,43 +232,70 @@ def _capture_failure_screenshot(page: Page, test_name: str, failure_type: str) -
 @pytest.fixture(scope="session")
 def authenticated_context(browser: Browser) -> Generator[BrowserContext, None, None]:
     """
-    Session-scoped 已认证的浏览器上下文 fixture
+    Session-scoped 浏览器上下文 fixture（登录状态的复用基座）
 
-    在整个测试会话中只登录一次，后续所有测试复用已登录的 context。
-    适用于需要登录后测试多个页面的场景，避免每个测试重复登录。
+    这是一个 **基础实现**，本身并不执行任何登录操作，只是按框架统一的
+    `_build_context_options()` 创建一个 session 级 BrowserContext 并配置好
+    默认超时。名字里的 "authenticated" 表达的是它的 **用途契约**：
+    业务测试项目应在自己的 conftest 里通过 pytest 的 fixture override
+    机制（同名同 scope 覆盖）注入实际的登录逻辑，从而让整个测试会话内
+    的所有测试共享已登录状态，避免重复登录。
 
-    用法：在测试类/模块中使用此 fixture，然后通过 context 创建 page。
-    登录逻辑通过子类或外部 conftest 注入。
+    使用要点：
+    1. 直接使用本基础版本时，得到的 context **尚未登录**，主要用于框架内
+       演示或不需要认证的会话级场景。
+    2. 覆盖时 **必须保持 `scope="session"`**，否则会因作用域不兼容而报错。
+    3. 覆盖版本应复用 `_build_context_options()`（或至少传入等价的 SSL、
+       viewport、no_viewport 设置），否则会失去框架统一的配置能力。
+    4. `module_page` fixture 直接消费本 fixture，覆盖后会自动生效。
 
     Args:
-        browser: 浏览器实例
+        browser: session 级浏览器实例（来自 `browser` fixture）
 
     Yields:
-        BrowserContext: 已认证的浏览器上下文
+        BrowserContext: 已配置默认超时的浏览器上下文（基础版本未登录）
 
-    使用示例（在 conftest.py 中）：
+    覆盖示例 A —— 通过 UI 登录（在 tests/ui/conftest.py 中）::
+
+        import pytest
+        from base.ui.fixtures import _build_context_options
+
         @pytest.fixture(scope="session")
         def authenticated_context(browser, test_env):
-            context = browser.new_context(
-                viewport={"width": 1440, "height": 960}
-            )
+            context = browser.new_context(**_build_context_options())
             page = context.new_page()
-            page.goto(test_env.get("paas_url") + "/#/login")
-            page.fill("#username", test_env.get("admin_user"))
-            page.fill("#password", test_env.get("admin_password"))
+            page.goto(test_env["login_url"])
+            page.fill("#username", test_env["username"])
+            page.fill("#password", test_env["password"])
             page.click("#login-btn")
             page.wait_for_load_state("networkidle")
-            page.close()
+            page.close()  # 关闭登录页，但 context 保留 cookies/localStorage
+            yield context
+            context.close()
+
+    覆盖示例 B —— 通过 storage_state 复用已保存的登录态（推荐，速度更快）::
+
+        import pytest
+        from base.ui.fixtures import _build_context_options
+
+        @pytest.fixture(scope="session")
+        def authenticated_context(browser):
+            options = _build_context_options()
+            options["storage_state"] = "auth/state.json"  # 提前保存好的登录态
+            context = browser.new_context(**options)
             yield context
             context.close()
     """
-    logger.info("Creating authenticated browser context")
+    logger.info("Creating base browser context (no login performed by default)")
 
     context = browser.new_context(**_build_context_options())
     context.set_default_timeout(Settings.BROWSER_TIMEOUT)
     context.set_default_navigation_timeout(Settings.PAGE_LOAD_TIMEOUT)
 
-    logger.info("Authenticated context created (login should be performed by override)")
+    logger.info(
+        "Base authenticated_context ready; downstream conftest should override "
+        "this fixture to inject actual login logic"
+    )
 
     yield context
 
