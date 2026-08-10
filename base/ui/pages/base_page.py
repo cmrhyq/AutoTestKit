@@ -16,7 +16,7 @@ from core.constants import (
     PlaywrightLoadState,
     PlaywrightWaitUntil,
 )
-from core.constants.bussiness import MenuName
+from core.constants.bussiness import SystemMenu
 from core.log.logger import get_logger
 from core.reporting.allure_helper import AllureHelper
 
@@ -1005,7 +1005,7 @@ class BasePage:
             raise
 
     # ==================== 定制化方法
-    def switch_top_menu(self, menu_name: MenuName):
+    def switch_top_menu(self, menu_name: SystemMenu):
         """
         沙箱切换顶部导航菜单（首页/沙箱/AI可观测）
         Args:
