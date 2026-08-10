@@ -21,12 +21,14 @@ class TestAPIFixtures:
         assert base_service.session is not None
         assert base_service.logger is not None
     
-    def test_api_logger_fixture(self, api_logger):
-        """测试 api_logger fixture"""
-        assert api_logger is not None
-        assert hasattr(api_logger, 'info')
-        assert hasattr(api_logger, 'error')
-        assert hasattr(api_logger, 'warning')
+    def test_api_logger_fixture(self):
+        """测试模块级 logger"""
+        from base.api.fixtures import logger
+
+        assert logger is not None
+        assert hasattr(logger, 'info')
+        assert hasattr(logger, 'error')
+        assert hasattr(logger, 'warning')
     
     def test_api_cache_fixture(self, api_cache):
         """测试 api_cache fixture"""

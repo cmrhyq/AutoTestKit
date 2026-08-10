@@ -6,8 +6,10 @@ from datetime import datetime
 
 import pytest
 
-from core.config import Settings
-from core import TestLogger, DataCache
+from core.config import Settings, env_manager
+from core import DataCache, get_logger
+
+logger = get_logger(__name__)
 
 
 # ==================== Pytest Hooks for Parallel Execution ====================
@@ -23,8 +25,6 @@ def pytest_configure(config):
     - 清理 Trace/视频录制文件
     - Allure 的环境信息
     """
-    logger = TestLogger.get_logger("PytestConfigure")
-    
     # 清理 trace_videos 目录
     trace_dir = os.path.join(str(Settings.PROJECT_ROOT), "trace_videos")
     if os.path.exists(trace_dir):
@@ -118,7 +118,6 @@ def pytest_sessionstart(session):
     在创建 Session 对象之后、执行数据收集之前调用，并进入运行测试循环。
     由于此时 allure-results 目录已被清理，因此在此处创建 environment.properties 文件是合适的。
     """
-    logger = TestLogger.get_logger("SessionStart")
     logger.info("Test Session Starting")
     logger.info(f"Session ID: {session.sessionid if hasattr(session, 'sessionid') else 'N/A'}")
     logger.info(f"Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -137,8 +136,6 @@ def pytest_sessionfinish(session, exitstatus):
     - 清理会话级缓存
     - 最终日志记录和报告
     """
-    logger = TestLogger.get_logger("SessionFinish")
-
     logger.info("Test Session Finishing")
     logger.info(f"Exit Status: {exitstatus}")
     logger.info(f"End Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -187,7 +184,6 @@ def pytest_runtest_logreport(report):
             report.config._test_results.append(result)
         
         # Log test result details
-        logger = TestLogger.get_logger("TestReport")
         logger.info(f"Test: {report.nodeid}")
         logger.info(f"Status: {report.outcome}")
         logger.info(f"Duration: {report.duration:.2f}s")
@@ -197,7 +193,6 @@ def pytest_collection_finish(session):
     """
     在收集和修改完成后调用。
     """
-    logger = TestLogger.get_logger("Collection")
     logger.info(f"Collected {len(session.items)} test items")
     
     # Log test distribution information if using xdist
@@ -219,7 +214,6 @@ def session_setup_teardown():
     - 所有测试完成后清理会话级缓存
     - 记录会话生命周期事件
     """
-    logger = TestLogger.get_logger("SessionFixture")
     logger.info("Session fixture setup starting")
     
     yield
@@ -257,6 +251,33 @@ def cpu_cores():
     return multiprocessing.cpu_count()
 
 
+@pytest.fixture(scope="session")
+def test_env():
+    """
+    Session 级测试环境配置 fixture（UI/API 通用）
+
+    通过 env_manager 读取当前激活环境的配置字典，供 UI 和 API 测试共享，
+    替代原先分散在 base/ui 与 base/api 中的 ui_env / api_env。
+
+    Returns:
+        dict: 当前环境配置字典
+    """
+    return env_manager.get_config()
+
+
+@pytest.fixture(scope="session")
+def api_cache():
+    """
+    Session 级数据缓存 fixture（UI/API 通用）
+
+    提供 DataCache 单例实例用于跨测试共享数据，替代原先位于 base/api 的同名 fixture。
+
+    Returns:
+        DataCache: 数据缓存单例实例
+    """
+    return DataCache.get_instance()
+
+
 # ==================== Function-Level Fixtures ====================
 
 @pytest.fixture(scope="function", autouse=True)
@@ -268,8 +289,6 @@ def test_logger(request):
     测试完成后，日志会自动附加到 Allure 报告中。
 
     """
-    logger = TestLogger.get_logger(f"Test.{request.node.name}")
-
     logger.info(f"Test started: {request.node.name}")
     logger.info(f"Test location: {request.node.nodeid}")
     

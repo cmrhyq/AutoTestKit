@@ -4,16 +4,17 @@ UI 测试基础页面类
 该模块实现 Page Object Model (POM) 模式的基础页面类，提供所有页面对象的通用功能。
 包括页面导航、元素等待、常用操作、截图和日志记录等功能。
 """
-
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, Union
 from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError
 
 from core.config import Settings
-from core.log.logger import TestLogger
+from core.log.logger import get_logger
 from core.reporting.allure_helper import AllureHelper
+
+
+logger = get_logger(__name__)
 
 
 class BasePage:
@@ -30,22 +31,20 @@ class BasePage:
     所有具体的页面对象类都应该继承此类。
     """
     
-    def __init__(self, page: Page, logger: Optional[logging.Logger] = None):
+    def __init__(self, page: Page):
         """
         初始化基础页面对象
         
         Args:
             page: Playwright Page 对象
-            logger: 日志记录器，如果为 None 则创建默认日志记录器
         """
         self.page = page
-        self.logger = logger or TestLogger.get_logger(self.__class__.__name__)
         self.dialog_text = None  # 存储弹窗文本
         
         # 设置默认超时时间
         self.page.set_default_timeout(Settings.BROWSER_TIMEOUT)
         
-        self.logger.debug(f"Initialized {self.__class__.__name__}")
+        logger.debug(f"Initialized {self.__class__.__name__}")
     
     def navigate(self, url: str, wait_until: str = "domcontentloaded") -> None:
         """
@@ -64,19 +63,19 @@ class BasePage:
             page.navigate("https://example.com/login", wait_until="load")
         """
         try:
-            self.logger.info(f"Navigating to URL: {url}")
+            logger.info(f"Navigating to URL: {url}")
             
             with AllureHelper.step(f"Navigate to {url}"):
                 self.page.goto(url, wait_until=wait_until, timeout=Settings.PAGE_LOAD_TIMEOUT)
             
-            self.logger.info(f"Successfully navigated to: {url}")
+            logger.info(f"Successfully navigated to: {url}")
             
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout while navigating to {url}: {e}")
+            logger.error(f"Timeout while navigating to {url}: {e}")
             self._capture_failure_screenshot(f"navigation_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
-            self.logger.error(f"Failed to navigate to {url}: {e}")
+            logger.error(f"Failed to navigate to {url}: {e}")
             self._capture_failure_screenshot(f"navigation_error_{self._get_timestamp()}")
             raise
     
@@ -111,20 +110,20 @@ class BasePage:
             timeout = Settings.BROWSER_TIMEOUT
         
         try:
-            self.logger.debug(f"Waiting for element: {selector} (state: {state}, timeout: {timeout}ms)")
+            logger.debug(f"Waiting for element: {selector} (state: {state}, timeout: {timeout}ms)")
             
             locator = self.page.locator(selector)
             locator.wait_for(state=state, timeout=timeout)
             
-            self.logger.debug(f"Element found: {selector}")
+            logger.debug(f"Element found: {selector}")
             return locator
             
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout waiting for element: {selector} (state: {state})")
+            logger.error(f"Timeout waiting for element: {selector} (state: {state})")
             self._capture_failure_screenshot(f"element_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
-            self.logger.error(f"Error waiting for element {selector}: {e}")
+            logger.error(f"Error waiting for element {selector}: {e}")
             self._capture_failure_screenshot(f"element_error_{self._get_timestamp()}")
             raise
     
@@ -149,7 +148,7 @@ class BasePage:
             page.click("button.primary", force=True)
         """
         try:
-            self.logger.info(f"Clicking element: {selector}")
+            logger.info(f"Clicking element: {selector}")
             
             with AllureHelper.step(f"Click element: {selector}"):
                 if wait_before_click:
@@ -159,14 +158,14 @@ class BasePage:
                 
                 locator.click(force=force, timeout=timeout or Settings.BROWSER_TIMEOUT)
             
-            self.logger.info(f"Successfully clicked: {selector}")
+            logger.info(f"Successfully clicked: {selector}")
             
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout while clicking element: {selector}")
+            logger.error(f"Timeout while clicking element: {selector}")
             self._capture_failure_screenshot(f"click_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
-            self.logger.error(f"Failed to click element {selector}: {e}")
+            logger.error(f"Failed to click element {selector}: {e}")
             self._capture_failure_screenshot(f"click_error_{self._get_timestamp()}")
             raise
     
@@ -191,7 +190,7 @@ class BasePage:
             page.fill("input[name='email']", "test@example.com", clear_first=False)
         """
         try:
-            self.logger.info(f"Filling element {selector} with text: {text}")
+            logger.info(f"Filling element {selector} with text: {text}")
             
             with AllureHelper.step(f"Fill '{selector}' with '{text}'"):
                 locator = self.wait_for_element(selector, timeout=timeout)
@@ -201,14 +200,14 @@ class BasePage:
                 
                 locator.fill(text, timeout=timeout or Settings.BROWSER_TIMEOUT)
             
-            self.logger.info(f"Successfully filled {selector}")
+            logger.info(f"Successfully filled {selector}")
             
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout while filling element: {selector}")
+            logger.error(f"Timeout while filling element: {selector}")
             self._capture_failure_screenshot(f"fill_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
-            self.logger.error(f"Failed to fill element {selector}: {e}")
+            logger.error(f"Failed to fill element {selector}: {e}")
             self._capture_failure_screenshot(f"fill_error_{self._get_timestamp()}")
             raise
     
@@ -232,20 +231,20 @@ class BasePage:
             error_msg = page.get_text(".error-message")
         """
         try:
-            self.logger.debug(f"Getting text from element: {selector}")
+            logger.debug(f"Getting text from element: {selector}")
             
             locator = self.wait_for_element(selector, timeout=timeout)
             text = locator.inner_text(timeout=timeout or Settings.BROWSER_TIMEOUT)
             
-            self.logger.debug(f"Got text from {selector}: {text}")
+            logger.debug(f"Got text from {selector}: {text}")
             return text
             
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout while getting text from element: {selector}")
+            logger.error(f"Timeout while getting text from element: {selector}")
             self._capture_failure_screenshot(f"get_text_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
-            self.logger.error(f"Failed to get text from element {selector}: {e}")
+            logger.error(f"Failed to get text from element {selector}: {e}")
             self._capture_failure_screenshot(f"get_text_error_{self._get_timestamp()}")
             raise
     
@@ -271,16 +270,16 @@ class BasePage:
             value = page.get_attribute("input#email", "value")
         """
         try:
-            self.logger.debug(f"Getting attribute '{attribute}' from element: {selector}")
+            logger.debug(f"Getting attribute '{attribute}' from element: {selector}")
             
             locator = self.wait_for_element(selector, timeout=timeout)
             value = locator.get_attribute(attribute, timeout=timeout or Settings.BROWSER_TIMEOUT)
             
-            self.logger.debug(f"Got attribute '{attribute}' from {selector}: {value}")
+            logger.debug(f"Got attribute '{attribute}' from {selector}: {value}")
             return value
             
         except Exception as e:
-            self.logger.error(f"Failed to get attribute '{attribute}' from {selector}: {e}")
+            logger.error(f"Failed to get attribute '{attribute}' from {selector}: {e}")
             self._capture_failure_screenshot(f"get_attribute_error_{self._get_timestamp()}")
             raise
     
@@ -343,11 +342,11 @@ class BasePage:
             page.wait_for_url(re.compile(r".*/profile/\d+"))
         """
         try:
-            self.logger.info(f"Waiting for URL pattern: {url_pattern}")
+            logger.info(f"Waiting for URL pattern: {url_pattern}")
             self.page.wait_for_url(url_pattern, timeout=timeout or Settings.BROWSER_TIMEOUT)
-            self.logger.info(f"URL matched pattern: {url_pattern}")
+            logger.info(f"URL matched pattern: {url_pattern}")
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout waiting for URL pattern: {url_pattern}")
+            logger.error(f"Timeout waiting for URL pattern: {url_pattern}")
             self._capture_failure_screenshot(f"url_timeout_{self._get_timestamp()}")
             raise
     
@@ -377,7 +376,7 @@ class BasePage:
             if name is None:
                 name = f"screenshot_{self._get_timestamp()}"
             
-            self.logger.info(f"Taking screenshot: {name}")
+            logger.info(f"Taking screenshot: {name}")
             
             # 截取截图
             screenshot_bytes = self.page.screenshot(
@@ -395,7 +394,7 @@ class BasePage:
             with open(screenshot_path, 'wb') as f:
                 f.write(screenshot_bytes)
             
-            self.logger.info(f"Screenshot saved: {screenshot_path}")
+            logger.info(f"Screenshot saved: {screenshot_path}")
             
             # 附加到 Allure 报告
             if attach_to_allure:
@@ -404,7 +403,7 @@ class BasePage:
             return screenshot_bytes
             
         except Exception as e:
-            self.logger.error(f"Failed to take screenshot: {e}")
+            logger.error(f"Failed to take screenshot: {e}")
             raise
     
     def scroll_to_element(self, selector: str, timeout: Optional[int] = None) -> None:
@@ -419,12 +418,12 @@ class BasePage:
             page.scroll_to_element("#footer")
         """
         try:
-            self.logger.debug(f"Scrolling to element: {selector}")
+            logger.debug(f"Scrolling to element: {selector}")
             locator = self.wait_for_element(selector, timeout=timeout)
             locator.scroll_into_view_if_needed(timeout=timeout or Settings.BROWSER_TIMEOUT)
-            self.logger.debug(f"Scrolled to element: {selector}")
+            logger.debug(f"Scrolled to element: {selector}")
         except Exception as e:
-            self.logger.error(f"Failed to scroll to element {selector}: {e}")
+            logger.error(f"Failed to scroll to element {selector}: {e}")
             raise
     
     def select_option(
@@ -453,7 +452,7 @@ class BasePage:
             page.select_option("#country", index=0)
         """
         try:
-            self.logger.info(f"Selecting option from {selector}")
+            logger.info(f"Selecting option from {selector}")
             locator = self.wait_for_element(selector, timeout=timeout)
             
             if value is not None:
@@ -465,9 +464,9 @@ class BasePage:
             else:
                 raise ValueError("Must provide value, label, or index")
             
-            self.logger.info(f"Successfully selected option from {selector}")
+            logger.info(f"Successfully selected option from {selector}")
         except Exception as e:
-            self.logger.error(f"Failed to select option from {selector}: {e}")
+            logger.error(f"Failed to select option from {selector}: {e}")
             self._capture_failure_screenshot(f"select_error_{self._get_timestamp()}")
             raise
     
@@ -483,12 +482,12 @@ class BasePage:
             page.check("#agree-terms")
         """
         try:
-            self.logger.info(f"Checking element: {selector}")
+            logger.info(f"Checking element: {selector}")
             locator = self.wait_for_element(selector, timeout=timeout)
             locator.check(timeout=timeout or Settings.BROWSER_TIMEOUT)
-            self.logger.info(f"Successfully checked: {selector}")
+            logger.info(f"Successfully checked: {selector}")
         except Exception as e:
-            self.logger.error(f"Failed to check element {selector}: {e}")
+            logger.error(f"Failed to check element {selector}: {e}")
             self._capture_failure_screenshot(f"check_error_{self._get_timestamp()}")
             raise
     
@@ -504,12 +503,12 @@ class BasePage:
             page.uncheck("#newsletter")
         """
         try:
-            self.logger.info(f"Unchecking element: {selector}")
+            logger.info(f"Unchecking element: {selector}")
             locator = self.wait_for_element(selector, timeout=timeout)
             locator.uncheck(timeout=timeout or Settings.BROWSER_TIMEOUT)
-            self.logger.info(f"Successfully unchecked: {selector}")
+            logger.info(f"Successfully unchecked: {selector}")
         except Exception as e:
-            self.logger.error(f"Failed to uncheck element {selector}: {e}")
+            logger.error(f"Failed to uncheck element {selector}: {e}")
             self._capture_failure_screenshot(f"uncheck_error_{self._get_timestamp()}")
             raise
     
@@ -524,7 +523,7 @@ class BasePage:
             current_url = page.get_current_url()
         """
         url = self.page.url
-        self.logger.debug(f"Current URL: {url}")
+        logger.debug(f"Current URL: {url}")
         return url
     
     def get_title(self) -> str:
@@ -538,7 +537,7 @@ class BasePage:
             title = page.get_title()
         """
         title = self.page.title()
-        self.logger.debug(f"Page title: {title}")
+        logger.debug(f"Page title: {title}")
         return title
     
     def reload(self, timeout: Optional[int] = None) -> None:
@@ -552,11 +551,11 @@ class BasePage:
             page.reload()
         """
         try:
-            self.logger.info("Reloading page")
+            logger.info("Reloading page")
             self.page.reload(timeout=timeout or Settings.PAGE_LOAD_TIMEOUT)
-            self.logger.info("Page reloaded successfully")
+            logger.info("Page reloaded successfully")
         except Exception as e:
-            self.logger.error(f"Failed to reload page: {e}")
+            logger.error(f"Failed to reload page: {e}")
             raise
     
     def go_back(self, timeout: Optional[int] = None) -> None:
@@ -570,11 +569,11 @@ class BasePage:
             page.go_back()
         """
         try:
-            self.logger.info("Going back to previous page")
+            logger.info("Going back to previous page")
             self.page.go_back(timeout=timeout or Settings.PAGE_LOAD_TIMEOUT)
-            self.logger.info("Navigated back successfully")
+            logger.info("Navigated back successfully")
         except Exception as e:
-            self.logger.error(f"Failed to go back: {e}")
+            logger.error(f"Failed to go back: {e}")
             raise
     
     def go_forward(self, timeout: Optional[int] = None) -> None:
@@ -588,11 +587,11 @@ class BasePage:
             page.go_forward()
         """
         try:
-            self.logger.info("Going forward to next page")
+            logger.info("Going forward to next page")
             self.page.go_forward(timeout=timeout or Settings.PAGE_LOAD_TIMEOUT)
-            self.logger.info("Navigated forward successfully")
+            logger.info("Navigated forward successfully")
         except Exception as e:
-            self.logger.error(f"Failed to go forward: {e}")
+            logger.error(f"Failed to go forward: {e}")
             raise
     
     def wait_for_load_state(
@@ -614,11 +613,11 @@ class BasePage:
             page.wait_for_load_state("networkidle")
         """
         try:
-            self.logger.debug(f"Waiting for load state: {state}")
+            logger.debug(f"Waiting for load state: {state}")
             self.page.wait_for_load_state(state, timeout=timeout or Settings.PAGE_LOAD_TIMEOUT)
-            self.logger.debug(f"Page reached load state: {state}")
+            logger.debug(f"Page reached load state: {state}")
         except Exception as e:
-            self.logger.error(f"Timeout waiting for load state {state}: {e}")
+            logger.error(f"Timeout waiting for load state {state}: {e}")
             raise
 
     def post_add_locator_handler(self, selector):
@@ -626,7 +625,7 @@ class BasePage:
         添加元素定位器处理器,selector是定位器，用于关闭系统中随意弹出的弹窗
         """
         def handler(locator):
-            self.logger.info(f"Element locator handler closes the popup and locates the element: {locator}")
+            logger.info(f"Element locator handler closes the popup and locates the element: {locator}")
             locator.click()
 
         self.page.add_locator_handler(selector, handler)
@@ -679,7 +678,7 @@ class BasePage:
             page.open_menu("配置", second_level_index=1)
         """
         menu_path = ' > '.join(filter(None, [first_level, second_level, third_level, fourth_level]))
-        self.logger.info(f"Opening menu: {menu_path}")
+        logger.info(f"Opening menu: {menu_path}")
         
         try:
             with AllureHelper.step(f"Navigate menu: {menu_path}"):
@@ -703,7 +702,7 @@ class BasePage:
                         next_locator = self.page.get_by_text(next_level, exact=True).nth(levels[i + 1][1])
                         try:
                             if next_locator.is_visible(timeout=500):
-                                self.logger.debug(f"Menu '{level_name}' already expanded, skipping")
+                                logger.debug(f"Menu '{level_name}' already expanded, skipping")
                                 continue
                         except Exception:
                             pass
@@ -711,16 +710,16 @@ class BasePage:
                     locator.click()
                     if wait_after_click:
                         self.page.wait_for_load_state(state="load")
-                    self.logger.debug(f"Clicked menu: {level_name}")
+                    logger.debug(f"Clicked menu: {level_name}")
                 
-                self.logger.info("Menu navigation completed")
+                logger.info("Menu navigation completed")
                 
         except PlaywrightTimeoutError as e:
-            self.logger.error(f"Timeout while navigating menu: {e}")
+            logger.error(f"Timeout while navigating menu: {e}")
             self._capture_failure_screenshot(f"menu_timeout_{self._get_timestamp()}")
             raise
         except Exception as e:
-            self.logger.error(f"Failed to navigate menu: {e}")
+            logger.error(f"Failed to navigate menu: {e}")
             self._capture_failure_screenshot(f"menu_error_{self._get_timestamp()}")
             raise
 
@@ -754,14 +753,14 @@ class BasePage:
             )
         """
         resolved_path = self._resolve_file_path(file_path)
-        self.logger.info(f"{description}: uploading file via input - {resolved_path}")
+        logger.info(f"{description}: uploading file via input - {resolved_path}")
         
         try:
             with AllureHelper.step(f"{description}: {Path(resolved_path).name}"):
                 locator.set_input_files(resolved_path)
-            self.logger.info(f"{description}: file uploaded successfully")
+            logger.info(f"{description}: file uploaded successfully")
         except Exception as e:
-            self.logger.error(f"{description}: file upload failed - {e}")
+            logger.error(f"{description}: file upload failed - {e}")
             self._capture_failure_screenshot(f"upload_input_error_{self._get_timestamp()}")
             raise
     
@@ -789,7 +788,7 @@ class BasePage:
             )
         """
         resolved_path = self._resolve_file_path(file_path)
-        self.logger.info(f"{description}: uploading file via chooser - {resolved_path}")
+        logger.info(f"{description}: uploading file via chooser - {resolved_path}")
         
         try:
             with AllureHelper.step(f"{description}: {Path(resolved_path).name}"):
@@ -797,9 +796,9 @@ class BasePage:
                     trigger_locator.click()
                 file_chooser = fc_info.value
                 file_chooser.set_files(resolved_path)
-            self.logger.info(f"{description}: file uploaded via chooser successfully")
+            logger.info(f"{description}: file uploaded via chooser successfully")
         except Exception as e:
-            self.logger.error(f"{description}: file chooser upload failed - {e}")
+            logger.error(f"{description}: file chooser upload failed - {e}")
             self._capture_failure_screenshot(f"upload_chooser_error_{self._get_timestamp()}")
             raise
 
@@ -832,7 +831,7 @@ class BasePage:
             save_dir = str(Settings.PROJECT_ROOT / "data")
         
         Path(save_dir).mkdir(parents=True, exist_ok=True)
-        self.logger.info(f"{description}: starting file download to {save_dir}")
+        logger.info(f"{description}: starting file download to {save_dir}")
         
         try:
             with AllureHelper.step(f"{description}"):
@@ -842,10 +841,10 @@ class BasePage:
                 save_path = str(Path(save_dir) / download.suggested_filename)
                 download.save_as(save_path)
                 
-            self.logger.info(f"{description}: file saved - {save_path} (from {download.url})")
+            logger.info(f"{description}: file saved - {save_path} (from {download.url})")
             return save_path
         except Exception as e:
-            self.logger.error(f"{description}: file download failed - {e}")
+            logger.error(f"{description}: file download failed - {e}")
             self._capture_failure_screenshot(f"download_error_{self._get_timestamp()}")
             raise
 
@@ -896,7 +895,7 @@ class BasePage:
                 dialog.accept()
                 return
             
-            self.logger.info(f"Dialog detected: type={dialog.type}, message={dialog.message}")
+            logger.info(f"Dialog detected: type={dialog.type}, message={dialog.message}")
             
             if action == "text":
                 self.dialog_text = dialog.message
@@ -909,10 +908,10 @@ class BasePage:
                 else:
                     dialog.accept()
             
-            self.logger.info(f"Dialog handled: action={action}")
+            logger.info(f"Dialog handled: action={action}")
         
         self.page.once("dialog", _handler)
-        self.logger.info(f"Dialog handler registered: action={action}, type_filter={dialog_type}")
+        logger.info(f"Dialog handler registered: action={action}, type_filter={dialog_type}")
 
     # ==================== Tab/窗口切换 ====================
     
@@ -956,7 +955,7 @@ class BasePage:
             target_page.bring_to_front()
             target_page.wait_for_load_state("load", timeout=Settings.PAGE_LOAD_TIMEOUT)
             
-            self.logger.info(
+            logger.info(
                 f"{description}: switched to tab[{tab_index}], "
                 f"total: {len(pages)}, title: {target_page.title()}"
             )
@@ -967,7 +966,7 @@ class BasePage:
         except IndexError:
             raise
         except Exception as e:
-            self.logger.error(f"{description}: tab switch failed - {e}")
+            logger.error(f"{description}: tab switch failed - {e}")
             self._capture_failure_screenshot(f"tab_switch_error_{self._get_timestamp()}")
             raise
     
@@ -997,10 +996,10 @@ class BasePage:
             new_page = new_page_info.value
             new_page.wait_for_load_state("load", timeout=Settings.PAGE_LOAD_TIMEOUT)
             
-            self.logger.info(f"New tab opened: {new_page.title()}")
+            logger.info(f"New tab opened: {new_page.title()}")
             return new_page
         except Exception as e:
-            self.logger.error(f"Failed to wait for new tab: {e}")
+            logger.error(f"Failed to wait for new tab: {e}")
             raise
 
     # ==================== 内部辅助方法 ====================
@@ -1046,12 +1045,12 @@ class BasePage:
             page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
         """
         try:
-            self.logger.debug(f"Executing script: {script[:50]}...")
+            logger.debug(f"Executing script: {script[:50]}...")
             result = self.page.evaluate(script, *args)
-            self.logger.debug("Script executed successfully")
+            logger.debug("Script executed successfully")
             return result
         except Exception as e:
-            self.logger.error(f"Failed to execute script: {e}")
+            logger.error(f"Failed to execute script: {e}")
             raise
     
     def _capture_failure_screenshot(self, name: str) -> None:
@@ -1064,7 +1063,7 @@ class BasePage:
         try:
             self.take_screenshot(name, full_page=False, attach_to_allure=True)
         except Exception as e:
-            self.logger.warning(f"Failed to capture failure screenshot: {e}")
+            logger.warning(f"Failed to capture failure screenshot: {e}")
     
     @staticmethod
     def _get_timestamp() -> str:

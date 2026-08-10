@@ -1,6 +1,10 @@
 from base.ui.pages.base_page import BasePage
 from playwright.sync_api import Page, expect
 
+from core import get_logger
+
+logger = get_logger(__name__)
+
 
 class LoginPage(BasePage):
 
@@ -13,7 +17,7 @@ class LoginPage(BasePage):
             page: Playwright Page 对象
         """
         super().__init__(page)
-        self.logger.info("Login Page Initialized")
+        logger.info("Login Page Initialized")
 
         self.input_username = page.get_by_placeholder("请输入用户名")
         self.input_password = page.get_by_placeholder("请输入密码")

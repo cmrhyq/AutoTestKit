@@ -12,6 +12,9 @@ JSONPlaceholder API 测试示例
 import pytest
 import allure
 from base.api.services.jsonplaceholder_service import JSONPlaceholderService
+from core.log.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @pytest.mark.api
@@ -21,16 +24,16 @@ class TestUserAPI:
     """用户相关 API 测试"""
     
     @pytest.fixture(scope="class")
-    def json_service(self, api_logger):
+    def json_service(self):
         """创建 JSONPlaceholder 服务实例"""
-        service = JSONPlaceholderService(logger=api_logger)
+        service = JSONPlaceholderService(logger=logger)
         yield service
         service.close()
     
     @allure.title("测试获取所有用户列表")
     @allure.description("验证能够成功获取所有用户列表，并检查返回数据的结构")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_all_users(self, json_service, api_logger):
+    def test_get_all_users(self, json_service):
         """测试获取所有用户列表"""
         with allure.step("发送 GET 请求获取所有用户"):
             users = json_service.get_all_users()
@@ -46,7 +49,7 @@ class TestUserAPI:
             assert "email" in first_user, "用户对象应包含 email 字段"
             assert "username" in first_user, "用户对象应包含 username 字段"
         
-        api_logger.info(f"成功获取 {len(users)} 个用户")
+        logger.info(f"成功获取 {len(users)} 个用户")
         allure.attach(
             f"用户总数: {len(users)}",
             name="用户统计",
@@ -56,7 +59,7 @@ class TestUserAPI:
     @allure.title("测试根据 ID 获取用户信息")
     @allure.description("验证能够根据用户 ID 获取特定用户的详细信息")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_user_by_id(self, json_service, api_cache, api_logger):
+    def test_get_user_by_id(self, json_service, api_cache):
         """测试根据 ID 获取用户信息，并缓存用户数据"""
         user_id = 1
         
@@ -73,7 +76,7 @@ class TestUserAPI:
         with allure.step("缓存用户数据供后续测试使用"):
             api_cache.set("test_user", user)
             api_cache.set("test_user_id", user["id"])
-            api_logger.info(f"已缓存用户: {user['name']} (ID: {user['id']})")
+            logger.info(f"已缓存用户: {user['name']} (ID: {user['id']})")
         
         allure.attach(
             str(user),
@@ -84,7 +87,7 @@ class TestUserAPI:
     @allure.title("测试获取用户的文章列表")
     @allure.description("验证能够获取指定用户发布的所有文章")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_user_posts(self, json_service, api_cache, api_logger):
+    def test_get_user_posts(self, json_service, api_cache):
         """测试获取用户的文章列表"""
         # 从缓存中获取用户 ID
         user_id = api_cache.get("test_user_id", 1)
@@ -104,7 +107,7 @@ class TestUserAPI:
             assert "body" in first_post, "文章应包含 body 字段"
             assert first_post["userId"] == user_id, f"文章的 userId 应该是 {user_id}"
         
-        api_logger.info(f"用户 {user_id} 共有 {len(posts)} 篇文章")
+        logger.info(f"用户 {user_id} 共有 {len(posts)} 篇文章")
         allure.attach(
             f"文章总数: {len(posts)}",
             name="文章统计",
@@ -114,7 +117,7 @@ class TestUserAPI:
     @allure.title("测试获取用户的待办事项")
     @allure.description("验证能够获取指定用户的所有待办事项")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_user_todos(self, json_service, api_cache, api_logger):
+    def test_get_user_todos(self, json_service, api_cache):
         """测试获取用户的待办事项"""
         user_id = api_cache.get("test_user_id", 1)
         
@@ -137,7 +140,7 @@ class TestUserAPI:
         completed_count = sum(1 for todo in todos if todo["completed"])
         incomplete_count = len(todos) - completed_count
         
-        api_logger.info(
+        logger.info(
             f"用户 {user_id} 共有 {len(todos)} 个待办事项 "
             f"(已完成: {completed_count}, 未完成: {incomplete_count})"
         )
@@ -156,16 +159,16 @@ class TestPostAPI:
     """文章相关 API 测试"""
     
     @pytest.fixture(scope="class")
-    def json_service(self, api_logger):
+    def json_service(self):
         """创建 JSONPlaceholder 服务实例"""
-        service = JSONPlaceholderService(logger=api_logger)
+        service = JSONPlaceholderService(logger=logger)
         yield service
         service.close()
     
     @allure.title("测试创建新文章")
     @allure.description("验证能够成功创建新文章，并缓存文章 ID 供后续测试使用")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_create_post(self, json_service, api_cache, api_logger):
+    def test_create_post(self, json_service, api_cache):
         """测试创建新文章并缓存文章 ID"""
         user_id = 1
         title = "测试文章标题"
@@ -187,7 +190,7 @@ class TestPostAPI:
         with allure.step("缓存文章 ID 供后续测试使用"):
             api_cache.set("created_post_id", post["id"])
             api_cache.set("created_post", post)
-            api_logger.info(f"已创建并缓存文章 ID: {post['id']}")
+            logger.info(f"已创建并缓存文章 ID: {post['id']}")
         
         allure.attach(
             str(post),
@@ -198,7 +201,7 @@ class TestPostAPI:
     @allure.title("测试获取文章详情")
     @allure.description("验证能够根据文章 ID 获取文章的详细信息")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_get_post_by_id(self, json_service, api_logger):
+    def test_get_post_by_id(self, json_service):
         """测试根据 ID 获取文章详情"""
         post_id = 1
         
@@ -213,7 +216,7 @@ class TestPostAPI:
             assert len(post["title"]) > 0, "文章标题不应为空"
             assert len(post["body"]) > 0, "文章内容不应为空"
         
-        api_logger.info(f"成功获取文章: {post['title']}")
+        logger.info(f"成功获取文章: {post['title']}")
         allure.attach(
             str(post),
             name="文章详细信息",
@@ -223,7 +226,7 @@ class TestPostAPI:
     @allure.title("测试更新文章")
     @allure.description("验证能够更新已存在的文章信息")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_update_post(self, json_service, api_logger):
+    def test_update_post(self, json_service):
         """测试更新文章（使用已存在的文章 ID）"""
         # 使用已存在的文章 ID（JSONPlaceholder 有 100 篇文章，ID 1-100）
         post_id = 1
@@ -243,7 +246,7 @@ class TestPostAPI:
             assert updated_post["title"] == new_title, "文章标题应该已更新"
             assert updated_post["body"] == new_body, "文章内容应该已更新"
         
-        api_logger.info(f"成功更新文章 ID: {post_id}")
+        logger.info(f"成功更新文章 ID: {post_id}")
         allure.attach(
             str(updated_post),
             name="更新后的文章信息",
@@ -253,7 +256,7 @@ class TestPostAPI:
     @allure.title("测试部分更新文章")
     @allure.description("验证能够部分更新文章的某些字段")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_patch_post(self, json_service, api_logger):
+    def test_patch_post(self, json_service):
         """测试部分更新文章"""
         post_id = 1
         new_title = "通过 PATCH 更新的标题"
@@ -268,7 +271,7 @@ class TestPostAPI:
             assert patched_post["id"] == post_id, f"文章 ID 应该保持为 {post_id}"
             assert patched_post["title"] == new_title, "文章标题应该已更新"
         
-        api_logger.info(f"成功部分更新文章 ID: {post_id}")
+        logger.info(f"成功部分更新文章 ID: {post_id}")
         allure.attach(
             str(patched_post),
             name="部分更新后的文章信息",
@@ -278,7 +281,7 @@ class TestPostAPI:
     @allure.title("测试删除文章")
     @allure.description("验证能够删除指定的文章")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_delete_post(self, json_service, api_cache, api_logger):
+    def test_delete_post(self, json_service, api_cache):
         """测试删除文章"""
         post_id = api_cache.get("created_post_id", 1)
         
@@ -288,7 +291,7 @@ class TestPostAPI:
         with allure.step("验证删除操作结果"):
             assert result is True, "删除操作应该成功"
         
-        api_logger.info(f"成功删除文章 ID: {post_id}")
+        logger.info(f"成功删除文章 ID: {post_id}")
         allure.attach(
             f"已删除文章 ID: {post_id}",
             name="删除结果",
@@ -298,7 +301,7 @@ class TestPostAPI:
     @allure.title("测试获取文章的评论")
     @allure.description("验证能够获取指定文章的所有评论")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_get_post_comments(self, json_service, api_logger):
+    def test_get_post_comments(self, json_service):
         """测试获取文章的评论"""
         post_id = 1
         
@@ -318,7 +321,7 @@ class TestPostAPI:
             assert "body" in first_comment, "评论应包含 body 字段"
             assert first_comment["postId"] == post_id, f"评论的 postId 应该是 {post_id}"
         
-        api_logger.info(f"文章 {post_id} 共有 {len(comments)} 条评论")
+        logger.info(f"文章 {post_id} 共有 {len(comments)} 条评论")
         allure.attach(
             f"评论总数: {len(comments)}",
             name="评论统计",
@@ -333,9 +336,9 @@ class TestDataExtractionAndCaching:
     """数据提取和缓存功能测试"""
     
     @pytest.fixture(scope="class")
-    def json_service(self, api_logger):
+    def json_service(self):
         """创建 JSONPlaceholder 服务实例"""
-        service = JSONPlaceholderService(logger=api_logger)
+        service = JSONPlaceholderService(logger=logger)
         yield service
         service.close()
     
@@ -349,7 +352,7 @@ class TestDataExtractionAndCaching:
     @allure.title("测试提取并缓存用户 ID")
     @allure.description("验证能够从 API 响应中提取特定字段并缓存")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_extract_and_cache_user_id(self, json_service, api_cache, api_logger):
+    def test_extract_and_cache_user_id(self, json_service, api_cache):
         """测试提取并缓存用户 ID"""
         user_id = 5
         
@@ -363,7 +366,7 @@ class TestDataExtractionAndCaching:
             retrieved_id = api_cache.get("user_id")
             assert retrieved_id == user_id, "从缓存获取的 ID 应该匹配"
         
-        api_logger.info(f"成功提取并缓存用户 ID: {cached_id}")
+        logger.info(f"成功提取并缓存用户 ID: {cached_id}")
         allure.attach(
             f"缓存的用户 ID: {cached_id}",
             name="缓存数据",
@@ -373,7 +376,7 @@ class TestDataExtractionAndCaching:
     @allure.title("测试提取并缓存完整用户对象")
     @allure.description("验证能够缓存完整的 API 响应对象")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_extract_and_cache_full_user(self, json_service, api_cache, api_logger):
+    def test_extract_and_cache_full_user(self, json_service, api_cache):
         """测试提取并缓存完整用户对象"""
         user_id = 3
         
@@ -389,7 +392,7 @@ class TestDataExtractionAndCaching:
             cached_user = api_cache.get("full_user")
             assert cached_user == user_data, "缓存的用户对象应该匹配"
         
-        api_logger.info(f"成功缓存完整用户对象: {user_data['name']}")
+        logger.info(f"成功缓存完整用户对象: {user_data['name']}")
         allure.attach(
             str(user_data),
             name="缓存的用户对象",
@@ -399,7 +402,7 @@ class TestDataExtractionAndCaching:
     @allure.title("测试创建文章并缓存")
     @allure.description("验证能够创建资源并立即缓存返回的数据")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_create_and_cache_post(self, json_service, api_cache, api_logger):
+    def test_create_and_cache_post(self, json_service, api_cache):
         """测试创建文章并缓存"""
         user_id = 1
         title = "缓存测试文章"
@@ -422,7 +425,7 @@ class TestDataExtractionAndCaching:
             cached_post = api_cache.get("new_post")
             assert cached_post == post_data, "缓存的文章对象应该匹配"
         
-        api_logger.info(f"成功创建并缓存文章 ID: {post_data.get('id')}")
+        logger.info(f"成功创建并缓存文章 ID: {post_data.get('id')}")
         allure.attach(
             str(post_data),
             name="缓存的文章对象",
@@ -432,7 +435,7 @@ class TestDataExtractionAndCaching:
     @allure.title("测试跨测试用例的数据共享")
     @allure.description("验证缓存的数据能够在不同测试用例之间共享")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_data_sharing_between_tests(self, json_service, api_cache, api_logger):
+    def test_data_sharing_between_tests(self, json_service, api_cache):
         """测试跨测试用例的数据共享"""
         # 第一步：创建并缓存数据
         with allure.step("步骤 1: 创建并缓存用户 ID"):
@@ -460,7 +463,7 @@ class TestDataExtractionAndCaching:
             comments = json_service.get_post_comments(cached_post_id)
             assert len(comments) > 0, "文章应该有评论"
         
-        api_logger.info(
+        logger.info(
             f"成功演示数据共享: 用户 {user_id} -> 文章 {first_post_id} -> {len(comments)} 条评论"
         )
         
@@ -478,16 +481,16 @@ class TestErrorHandling:
     """API 错误处理测试"""
     
     @pytest.fixture(scope="class")
-    def json_service(self, api_logger):
+    def json_service(self):
         """创建 JSONPlaceholder 服务实例"""
-        service = JSONPlaceholderService(logger=api_logger)
+        service = JSONPlaceholderService(logger=logger)
         yield service
         service.close()
     
     @allure.title("测试处理不存在的资源")
     @allure.description("验证当请求不存在的资源时，能够正确处理 404 错误")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_handle_not_found_error(self, json_service, api_logger):
+    def test_handle_not_found_error(self, json_service):
         """测试处理 404 错误"""
         invalid_id = 99999
         
@@ -495,7 +498,7 @@ class TestErrorHandling:
             with pytest.raises(Exception) as exc_info:
                 json_service.get_user_by_id(invalid_id)
         
-        api_logger.info(f"成功捕获 404 错误: {str(exc_info.value)}")
+        logger.info(f"成功捕获 404 错误: {str(exc_info.value)}")
         allure.attach(
             str(exc_info.value),
             name="错误信息",
@@ -505,7 +508,7 @@ class TestErrorHandling:
     @allure.title("测试状态码验证")
     @allure.description("验证状态码验证功能能够正确工作")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_status_code_validation(self, json_service, api_logger):
+    def test_status_code_validation(self, json_service):
         """测试状态码验证功能"""
         with allure.step("发送请求并验证状态码"):
             response = json_service.get("/users/1")
@@ -522,7 +525,7 @@ class TestErrorHandling:
             is_valid_multi = json_service.validate_status_code(response, [200, 201])
             assert is_valid_multi is True, "状态码 200 应该在 [200, 201] 中"
         
-        api_logger.info("状态码验证功能测试通过")
+        logger.info("状态码验证功能测试通过")
         allure.attach(
             "状态码验证功能正常工作",
             name="验证结果",
