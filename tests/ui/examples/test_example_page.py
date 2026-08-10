@@ -20,11 +20,11 @@ import allure
 from playwright.sync_api import Page
 
 from base.ui.pages.example_page import ExamplePage
-from core.log.logger import TestLogger
+from core.log import get_logger
+
+logger = get_logger(__name__)
 from core.reporting.allure_helper import AllureHelper
 from core.cache.data_cache import DataCache
-
-
 @pytest.mark.ui
 @allure.feature("Example Page")
 @allure.story("Page Navigation and Content")
@@ -47,7 +47,7 @@ class TestExamplePageBasics:
         2. 页面 URL 正确
         3. 页面标题正确
         """
-        logger = TestLogger.get_logger("test_page_opens_successfully")
+        
         logger.info("=== Starting test: Page opens successfully ===")
 
         # 步骤 1: 创建页面对象并打开页面
@@ -86,7 +86,7 @@ class TestExamplePageBasics:
         1. H1 元素可见
         2. H1 文本内容正确
         """
-        logger = TestLogger.get_logger("test_page_heading")
+        
         logger.info("=== Starting test: Page heading ===")
 
         # 打开页面
@@ -128,7 +128,7 @@ class TestExamplePageBasics:
         2. 描述文本不为空
         3. 描述包含预期关键词
         """
-        logger = TestLogger.get_logger("test_page_description")
+        
         logger.info("=== Starting test: Page description ===")
 
         # 打开页面
@@ -169,7 +169,7 @@ class TestExamplePageBasics:
         2. 链接 href 属性正确
         3. 链接指向 IANA 网站
         """
-        logger = TestLogger.get_logger("test_more_info_link")
+        
         logger.info("=== Starting test: More info link ===")
 
         # 打开页面
@@ -195,8 +195,6 @@ class TestExamplePageBasics:
             logger.info(f"Stored link in cache: {href}")
 
         logger.info("=== Test completed successfully ===")
-
-
 @pytest.mark.ui
 @allure.feature("Example Page")
 @allure.story("Page Verification")
@@ -219,7 +217,7 @@ class TestExamplePageVerification:
         2. 页面 URL 正确
         3. 页面状态正常
         """
-        logger = TestLogger.get_logger("test_page_integrity")
+        
         logger.info("=== Starting test: Page integrity ===")
 
         # 打开页面
@@ -256,7 +254,7 @@ class TestExamplePageVerification:
         2. 描述元素可见
         3. 链接元素可见
         """
-        logger = TestLogger.get_logger("test_elements_visibility")
+        
         logger.info("=== Starting test: Elements visibility ===")
 
         # 打开页面
@@ -284,8 +282,6 @@ class TestExamplePageVerification:
 
         logger.info("=== All elements are visible ===")
         logger.info("=== Test completed successfully ===")
-
-
 @pytest.mark.ui
 @allure.feature("Framework Features")
 @allure.story("Logging and Reporting")
@@ -308,7 +304,7 @@ class TestFrameworkFeatures:
         2. 日志自动附加到 Allure
         3. 日志格式化
         """
-        logger = TestLogger.get_logger("test_logging_demo")
+        
 
         # 记录不同级别的日志
         logger.debug("This is a DEBUG level log message")
@@ -344,7 +340,7 @@ class TestFrameworkFeatures:
         2. 截图附加到 Allure
         3. 完整页面截图
         """
-        logger = TestLogger.get_logger("test_screenshot_demo")
+        
         logger.info("=== Starting screenshot demo ===")
 
         # 打开页面
@@ -382,7 +378,7 @@ class TestFrameworkFeatures:
         2. 数据从缓存检索
         3. 缓存数据验证
         """
-        logger = TestLogger.get_logger("test_data_cache_demo")
+        
         logger.info("=== Starting data cache demo ===")
 
         # 获取缓存实例
@@ -430,7 +426,5 @@ class TestFrameworkFeatures:
         }, "Cached Data")
 
         logger.info("=== Data cache demo completed ===")
-
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--alluredir=allure-results"])

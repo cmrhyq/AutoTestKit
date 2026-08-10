@@ -8,6 +8,9 @@
 from typing import Optional
 from playwright.sync_api import Page
 from base.ui.pages.base_page import BasePage
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 class ExamplePage(BasePage):
@@ -41,7 +44,7 @@ class ExamplePage(BasePage):
             page: Playwright Page 对象
         """
         super().__init__(page)
-        self.logger.info("ExamplePage initialized")
+        logger.info("ExamplePage initialized")
     
     def open(self) -> 'ExamplePage':
         """
@@ -60,7 +63,7 @@ class ExamplePage(BasePage):
         """
         self.wait_for_element(self.HEADING)
         self.wait_for_load_state("networkidle")
-        self.logger.info("Example page loaded successfully")
+        logger.info("Example page loaded successfully")
     
     def get_heading_text(self) -> str:
         """
@@ -70,7 +73,7 @@ class ExamplePage(BasePage):
             str: 标题文本
         """
         text = self.get_text(self.HEADING)
-        self.logger.info(f"Heading text: {text}")
+        logger.info(f"Heading text: {text}")
         return text
     
     def get_description_text(self) -> str:
@@ -81,14 +84,14 @@ class ExamplePage(BasePage):
             str: 描述文本
         """
         text = self.get_text(self.DESCRIPTION)
-        self.logger.info(f"Description text: {text}")
+        logger.info(f"Description text: {text}")
         return text
     
     def click_more_info_link(self) -> None:
         """
         点击 "More information" 链接
         """
-        self.logger.info("Clicking 'More information' link")
+        logger.info("Clicking 'More information' link")
         self.click(self.MORE_INFO_LINK)
     
     def is_heading_visible(self) -> bool:
@@ -108,7 +111,7 @@ class ExamplePage(BasePage):
             Optional[str]: 链接 URL
         """
         href = self.get_attribute(self.MORE_INFO_LINK, "href")
-        self.logger.info(f"More info link href: {href}")
+        logger.info(f"More info link href: {href}")
         return href
     
     def verify_page_loaded(self) -> bool:
@@ -136,14 +139,14 @@ class ExamplePage(BasePage):
             ])
             
             if all_checks_passed:
-                self.logger.info("Page verification passed")
+                logger.info("Page verification passed")
             else:
-                self.logger.warning("Page verification failed")
+                logger.warning("Page verification failed")
             
             return all_checks_passed
             
         except Exception as e:
-            self.logger.error(f"Page verification error: {e}")
+            logger.error(f"Page verification error: {e}")
             return False
 
 
@@ -181,7 +184,7 @@ class SearchPage(BasePage):
             page: Playwright Page 对象
         """
         super().__init__(page)
-        self.logger.info("SearchPage initialized")
+        logger.info("SearchPage initialized")
     
     def open(self) -> 'SearchPage':
         """
@@ -204,7 +207,7 @@ class SearchPage(BasePage):
         Returns:
             SearchPage: 当前页面对象（支持链式调用）
         """
-        self.logger.info(f"Searching for: {query}")
+        logger.info(f"Searching for: {query}")
         
         # 填充搜索框
         self.fill(self.SEARCH_INPUT, query)
@@ -215,7 +218,7 @@ class SearchPage(BasePage):
         # 等待搜索结果加载
         self.wait_for_element(self.SEARCH_RESULTS, timeout=10000)
         
-        self.logger.info("Search completed")
+        logger.info("Search completed")
         return self
     
     def get_search_results_count(self) -> int:
@@ -228,10 +231,10 @@ class SearchPage(BasePage):
         try:
             results = self.page.locator(self.SEARCH_RESULTS)
             count = results.count()
-            self.logger.info(f"Found {count} search results")
+            logger.info(f"Found {count} search results")
             return count
         except Exception as e:
-            self.logger.error(f"Failed to count search results: {e}")
+            logger.error(f"Failed to count search results: {e}")
             return 0
     
     def get_first_result_text(self) -> str:
@@ -242,7 +245,7 @@ class SearchPage(BasePage):
             str: 第一个搜索结果的文本
         """
         text = self.get_text(self.FIRST_RESULT)
-        self.logger.info(f"First result text: {text[:50]}...")
+        logger.info(f"First result text: {text[:50]}...")
         return text
     
     def has_search_results(self) -> bool:

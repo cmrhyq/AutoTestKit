@@ -6,11 +6,25 @@ from datetime import datetime
 
 import pytest
 
-from core.config import Settings
-from core import TestLogger, DataCache
+from core.config import Settings, env_manager
+from core import DataCache
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 # ==================== Pytest Hooks for Parallel Execution ====================
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    将测试结果附加到测试项，以便 fixture 可以访问（用于 UI 测试失败截图等）。
+    """
+    outcome = yield
+    report = outcome.get_result()
+
+    # 将测试结果附加到测试项，以便 fixture 可以访问
+    setattr(item, f"rep_{report.when}", report)
 
 def pytest_configure(config):
     """
@@ -23,7 +37,6 @@ def pytest_configure(config):
     - 清理 Trace/视频录制文件
     - Allure 的环境信息
     """
-    logger = TestLogger.get_logger("PytestConfigure")
     
     # 清理 trace_videos 目录
     trace_dir = os.path.join(str(Settings.PROJECT_ROOT), "trace_videos")
@@ -76,10 +89,6 @@ def pytest_configure(config):
         else:
             logger.info("Parallel execution not enabled (use -n auto or -n <number>)")
     
-    # 存储测试结果以便汇总
-    if not hasattr(config, '_test_results'):
-        config._test_results = []
-    
     logger.info("Pytest configuration completed")
 
 
@@ -109,8 +118,7 @@ def _create_allure_environment_properties():
             if Settings.API_BASE_URL:
                 f.write(f"API.Base.URL={Settings.API_BASE_URL}\n")
     except Exception as e:
-        import logging
-        logging.warning(f"Failed to create Allure environment properties: {e}")
+        logger.warning(f"Failed to create Allure environment properties: {e}")
 
 
 def pytest_sessionstart(session):
@@ -118,7 +126,6 @@ def pytest_sessionstart(session):
     在创建 Session 对象之后、执行数据收集之前调用，并进入运行测试循环。
     由于此时 allure-results 目录已被清理，因此在此处创建 environment.properties 文件是合适的。
     """
-    logger = TestLogger.get_logger("SessionStart")
     logger.info("Test Session Starting")
     logger.info(f"Session ID: {session.sessionid if hasattr(session, 'sessionid') else 'N/A'}")
     logger.info(f"Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -132,72 +139,46 @@ def pytest_sessionfinish(session, exitstatus):
     """
     在整个测试运行结束后，返回退出状态之前调用。
 
-    此钩子执行以下操作：
-    - 汇总所有工作进程的测试结果
-    - 清理会话级缓存
-    - 最终日志记录和报告
+    使用 pytest 原生 terminalreporter 汇总测试结果（并行安全，无竞态问题）。
     """
-    logger = TestLogger.get_logger("SessionFinish")
-
     logger.info("Test Session Finishing")
     logger.info(f"Exit Status: {exitstatus}")
     logger.info(f"End Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # Aggregate test results
-    if hasattr(session.config, '_test_results'):
-        results = session.config._test_results
-        total = len(results)
-        passed = sum(1 for r in results if r.get('outcome') == 'passed')
-        failed = sum(1 for r in results if r.get('outcome') == 'failed')
-        skipped = sum(1 for r in results if r.get('outcome') == 'skipped')
-        
-        logger.info("Test Results Summary:")
-        logger.info(f"  Total: {total}")
-        logger.info(f"  Passed: {passed}")
-        logger.info(f"  Failed: {failed}")
-        logger.info(f"  Skipped: {skipped}")
-        
-        if total > 0:
-            pass_rate = (passed / total) * 100
-            logger.info(f"  Pass Rate: {pass_rate:.2f}%")
-    
+
+    # 使用 pytest 原生 terminalreporter 获取统计（并行安全）
+    # 仅在 controller 节点（非 xdist worker）汇总，避免每个 worker 重复打印
+    if not hasattr(session.config, 'workerinput'):
+        reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+        if reporter:
+            passed = len(reporter.stats.get("passed", []))
+            failed = len(reporter.stats.get("failed", []))
+            skipped = len(reporter.stats.get("skipped", []))
+            error = len(reporter.stats.get("error", []))
+            total = passed + failed + skipped + error
+
+            logger.info("Test Results Summary:")
+            logger.info(f"  Total: {total}")
+            logger.info(f"  Passed: {passed}")
+            logger.info(f"  Failed: {failed}")
+            logger.info(f"  Skipped: {skipped}")
+            logger.info(f"  Error: {error}")
+
+            if total > 0:
+                pass_rate = (passed / total) * 100
+                logger.info(f"  Pass Rate: {pass_rate:.2f}%")
+        else:
+            logger.warning("terminalreporter plugin not available, skipping results summary")
+
     # Clear data cache at session end
     cache = DataCache.get_instance()
     cache.clear()
     logger.info("Data cache cleared at session end")
 
 
-
-def pytest_runtest_logreport(report):
-    """
-    在生成测试报告后调用。
-
-    此钩子收集测试结果，以便在并行工作进程中进行汇总，
-    并确保与 Allure 正确集成。
-    """
-    if report.when == 'call' and hasattr(report, 'config'):
-        # Store test result for aggregation
-        if hasattr(report.config, '_test_results'):
-            result = {
-                'nodeid': report.nodeid,
-                'outcome': report.outcome,
-                'duration': report.duration,
-                'when': report.when,
-            }
-            report.config._test_results.append(result)
-        
-        # Log test result details
-        logger = TestLogger.get_logger("TestReport")
-        logger.info(f"Test: {report.nodeid}")
-        logger.info(f"Status: {report.outcome}")
-        logger.info(f"Duration: {report.duration:.2f}s")
-
-
 def pytest_collection_finish(session):
     """
     在收集和修改完成后调用。
     """
-    logger = TestLogger.get_logger("Collection")
     logger.info(f"Collected {len(session.items)} test items")
     
     # Log test distribution information if using xdist
@@ -219,7 +200,6 @@ def session_setup_teardown():
     - 所有测试完成后清理会话级缓存
     - 记录会话生命周期事件
     """
-    logger = TestLogger.get_logger("SessionFixture")
     logger.info("Session fixture setup starting")
     
     yield
@@ -257,6 +237,33 @@ def cpu_cores():
     return multiprocessing.cpu_count()
 
 
+@pytest.fixture(scope="session")
+def test_env():
+    """
+    Session 级测试环境配置 fixture（UI/API 通用）
+
+    通过 env_manager 读取当前激活环境的配置字典，供 UI 和 API 测试共享，
+    替代原先分散在 base/ui 与 base/api 中的 ui_env / api_env。
+
+    Returns:
+        dict: 当前环境配置字典
+    """
+    return env_manager.get_config()
+
+
+@pytest.fixture(scope="session")
+def api_cache():
+    """
+    Session 级数据缓存 fixture（UI/API 通用）
+
+    提供 DataCache 单例实例用于跨测试共享数据，替代原先位于 base/api 的同名 fixture。
+
+    Returns:
+        DataCache: 数据缓存单例实例
+    """
+    return DataCache.get_instance()
+
+
 # ==================== Function-Level Fixtures ====================
 
 @pytest.fixture(scope="function", autouse=True)
@@ -266,10 +273,7 @@ def test_logger(request):
 
     为每个测试提供日志记录器，并记录测试的开始/结束信息。
     测试完成后，日志会自动附加到 Allure 报告中。
-
     """
-    logger = TestLogger.get_logger(f"Test.{request.node.name}")
-
     logger.info(f"Test started: {request.node.name}")
     logger.info(f"Test location: {request.node.nodeid}")
     
@@ -280,7 +284,6 @@ def test_logger(request):
     # Attach test log to Allure report
     try:
         from core.reporting.allure_helper import AllureHelper
-        import logging
         
         # Get the log file path for this test
         log_dir = Path(Settings.LOG_DIR)

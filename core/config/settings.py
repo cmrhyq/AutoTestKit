@@ -6,7 +6,7 @@
 """
 
 import os
-from typing import Optional, Literal
+from typing import Literal
 from pathlib import Path
 
 from core.config.env_config import env_manager
@@ -43,8 +43,12 @@ class Settings:
     # 浏览器启动参数
     BROWSER_ARGS: list = system.get("browser_args", "").split(",") if system.get("browser_args") else []
     # 视口大小
-    VIEWPORT_WIDTH: int = int(system.get("viewport_width", 1920))
-    VIEWPORT_HEIGHT: int = int(system.get("viewport_height", 1080))
+    # VIEWPORT_WIDTH: int = int(system.get("viewport_width", 1920))
+    # VIEWPORT_HEIGHT: int = int(system.get("viewport_height", 1080))
+    # 是否禁用viewport
+    NO_VIEWPORT: bool = system.get("no_viewport", "false") == "true"
+    # 慢动作模式，即每一个操作都暂停一段时间，模拟人类操作
+    SLOW_MODE: int = system.get("slow_mode", 300)
     # 是否启用浏览器开发者工具
     DEVTOOLS: bool = system.get("devtools", "false") == "true"
 
@@ -79,6 +83,14 @@ class Settings:
     )
     # 日志时间格式
     LOG_DATE_FORMAT: str = system.get("log_date_format", "%Y-%m-%d %H:%M:%S")
+    
+    # 单个日志文件最大大小（字节），默认 10MB
+    # 环境变量：LOG_MAX_BYTES
+    LOG_MAX_BYTES: int = int(os.getenv("LOG_MAX_BYTES", str(10 * 1024 * 1024)))
+    
+    # 日志备份文件数量，默认保留 5 个
+    # 环境变量：LOG_BACKUP_COUNT
+    LOG_BACKUP_COUNT: int = int(os.getenv("LOG_BACKUP_COUNT", "5"))
     
     # ==================== 并行执行配置 ====================
     # 并行 worker 数量：auto 表示自动检测 CPU 核心数，或指定具体数字
@@ -146,10 +158,6 @@ class Settings:
         if not (1 <= cls.SCREENSHOT_QUALITY <= 100):
             errors.append(f"SCREENSHOT_QUALITY must be between 1 and 100, got: {cls.SCREENSHOT_QUALITY}")
         
-        # 验证视口大小
-        if cls.VIEWPORT_WIDTH <= 0 or cls.VIEWPORT_HEIGHT <= 0:
-            errors.append(f"Viewport dimensions must be positive, got: {cls.VIEWPORT_WIDTH}x{cls.VIEWPORT_HEIGHT}")
-        
         return len(errors) == 0, errors
     
     @classmethod
@@ -165,7 +173,6 @@ class Settings:
                 "type": cls.BROWSER_TYPE,
                 "headless": cls.HEADLESS,
                 "timeout": cls.BROWSER_TIMEOUT,
-                "viewport": f"{cls.VIEWPORT_WIDTH}x{cls.VIEWPORT_HEIGHT}",
             },
             "logging": {
                 "level": cls.LOG_LEVEL,

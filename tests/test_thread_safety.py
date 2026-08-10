@@ -19,7 +19,7 @@ import time
 import pytest
 from pathlib import Path
 from core.cache.data_cache import DataCache
-from core.log.logger import TestLogger
+from core.log import get_logger
 
 
 class TestThreadSafety:
@@ -173,7 +173,7 @@ class TestThreadSafety:
         def log_worker(thread_id):
             """每个线程执行日志写入"""
             try:
-                logger = TestLogger.get_logger(f"test_thread_{thread_id}")
+                logger = get_logger(f"test_thread_{thread_id}")
                 for i in range(logs_per_thread):
                     logger.info(f"Thread {thread_id} - Log message {i}")
                     logger.debug(f"Thread {thread_id} - Debug message {i}")
@@ -217,7 +217,7 @@ class TestThreadSafety:
             """每个线程获取 logger 实例"""
             try:
                 logger_name = f"test_logger_{thread_id % 10}"  # 10个不同的logger名称
-                logger = TestLogger.get_logger(logger_name)
+                logger = get_logger(logger_name)
                 
                 with lock:
                     if logger_name not in loggers:
@@ -258,7 +258,7 @@ class TestThreadSafety:
         def mixed_worker(thread_id):
             """每个线程执行混合操作"""
             try:
-                logger = TestLogger.get_logger(f"mixed_thread_{thread_id}")
+                logger = get_logger(f"mixed_thread_{thread_id}")
                 
                 for i in range(operations_per_thread):
                     # 写入缓存
@@ -312,7 +312,7 @@ class TestThreadSafety:
         def stress_worker(thread_id):
             """每个线程执行大量操作"""
             try:
-                logger = TestLogger.get_logger(f"stress_thread_{thread_id}")
+                logger = get_logger(f"stress_thread_{thread_id}")
                 
                 for i in range(operations_per_thread):
                     # 快速的读写操作

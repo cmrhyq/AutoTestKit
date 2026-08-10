@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "standard_response.json",
+    "title": "Standard API Response",
+    "description": "标准 API 响应格式的 JSON Schema",
+    "type": "object",
+    "properties": {
+        "code": {
+            "type": "integer",
+            "description": "响应状态码，0 表示成功，非 0 表示错误"
+        },
+        "message": {
+            "type": "string",
+            "description": "响应消息，成功时为 success，失败时为错误描述"
+        },
+        "data": {
+            "description": "响应数据，可以是任意类型"
+        }
+    },
+    "required": ["code"],
+    "additionalProperties": true
+}
+

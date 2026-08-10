@@ -7,7 +7,9 @@ BasePage 基本功能测试
 import pytest
 from playwright.sync_api import Page
 from base.ui.pages.base_page import BasePage
-from core.log.logger import TestLogger
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 @pytest.mark.ui
@@ -17,7 +19,7 @@ class TestBasePage:
     @pytest.fixture(autouse=True)
     def setup_logger(self):
         """设置日志"""
-        TestLogger.setup_logger()
+        # logger auto-initialized by get_logger
 
     def test_initialization(self, page: Page):
         """测试 BasePage 初始化"""

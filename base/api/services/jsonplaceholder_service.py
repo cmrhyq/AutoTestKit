@@ -9,9 +9,11 @@ API 文档: https://jsonplaceholder.typicode.com/
 Requirements: 10.3
 """
 
-import logging
 from typing import Optional, List, Dict, Any
 from base.api.services.base_service import BaseService
+from core.log import get_logger
+
+logger = get_logger(__name__)
 
 
 class JSONPlaceholderService(BaseService):
@@ -31,21 +33,17 @@ class JSONPlaceholderService(BaseService):
         new_post = service.create_post(user_id=1, title="Test", body="Content")
     """
     
-    DEFAULT_BASE_URL = "https://jsonplaceholder.typicode.com"
-    
-    def __init__(self, base_url: str = None, logger: logging.Logger = None):
+    def __init__(self, base_url: str = None):
         """
         初始化 JSONPlaceholder 服务
         
         Args:
             base_url: API 基础 URL，默认使用 JSONPlaceholder 官方地址
-            logger: 日志记录器
         """
         super().__init__(
-            base_url=base_url or self.DEFAULT_BASE_URL,
-            logger=logger
+            base_url=base_url,
         )
-        self.logger.info(f"Initialized JSONPlaceholderService with URL: {self.base_url}")
+        logger.info(f"Initialized JSONPlaceholderService with URL: {self.base_url}")
     
     # ==================== 用户相关接口 ====================
     
@@ -56,7 +54,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 用户列表
         """
-        self.logger.info("Fetching all users")
+        logger.info("Fetching all users")
         response = self.get("/users")
         return response.json()
     
@@ -70,7 +68,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 用户信息
         """
-        self.logger.info(f"Fetching user with ID: {user_id}")
+        logger.info(f"Fetching user with ID: {user_id}")
         response = self.get(f"/users/{user_id}")
         return response.json()
     
@@ -84,7 +82,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 文章列表
         """
-        self.logger.info(f"Fetching posts for user ID: {user_id}")
+        logger.info(f"Fetching posts for user ID: {user_id}")
         response = self.get(f"/users/{user_id}/posts")
         return response.json()
     
@@ -98,7 +96,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 待办事项列表
         """
-        self.logger.info(f"Fetching todos for user ID: {user_id}")
+        logger.info(f"Fetching todos for user ID: {user_id}")
         response = self.get(f"/users/{user_id}/todos")
         return response.json()
     
@@ -111,7 +109,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 文章列表
         """
-        self.logger.info("Fetching all posts")
+        logger.info("Fetching all posts")
         response = self.get("/posts")
         return response.json()
     
@@ -125,7 +123,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 文章详情
         """
-        self.logger.info(f"Fetching post with ID: {post_id}")
+        logger.info(f"Fetching post with ID: {post_id}")
         response = self.get(f"/posts/{post_id}")
         return response.json()
     
@@ -146,7 +144,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 创建的文章信息（包含生成的 ID）
         """
-        self.logger.info(f"Creating post for user ID: {user_id}")
+        logger.info(f"Creating post for user ID: {user_id}")
         payload = {
             "userId": user_id,
             "title": title,
@@ -174,7 +172,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 更新后的文章信息
         """
-        self.logger.info(f"Updating post with ID: {post_id}")
+        logger.info(f"Updating post with ID: {post_id}")
         payload = {}
         if user_id is not None:
             payload["userId"] = user_id
@@ -201,7 +199,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 更新后的文章信息
         """
-        self.logger.info(f"Patching post with ID: {post_id}")
+        logger.info(f"Patching post with ID: {post_id}")
         response = self.patch(f"/posts/{post_id}", json=fields)
         return response.json()
     
@@ -215,7 +213,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             bool: 删除是否成功
         """
-        self.logger.info(f"Deleting post with ID: {post_id}")
+        logger.info(f"Deleting post with ID: {post_id}")
         response = self.delete(f"/posts/{post_id}")
         return response.status_code == 200
     
@@ -229,7 +227,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 评论列表
         """
-        self.logger.info(f"Fetching comments for post ID: {post_id}")
+        logger.info(f"Fetching comments for post ID: {post_id}")
         response = self.get(f"/posts/{post_id}/comments")
         return response.json()
     
@@ -242,7 +240,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 评论列表
         """
-        self.logger.info("Fetching all comments")
+        logger.info("Fetching all comments")
         response = self.get("/comments")
         return response.json()
     
@@ -256,7 +254,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 评论详情
         """
-        self.logger.info(f"Fetching comment with ID: {comment_id}")
+        logger.info(f"Fetching comment with ID: {comment_id}")
         response = self.get(f"/comments/{comment_id}")
         return response.json()
     
@@ -270,7 +268,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 评论列表
         """
-        self.logger.info(f"Fetching comments for post ID: {post_id} (via query)")
+        logger.info(f"Fetching comments for post ID: {post_id} (via query)")
         response = self.get("/comments", params={"postId": post_id})
         return response.json()
     
@@ -283,7 +281,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             List[Dict]: 待办事项列表
         """
-        self.logger.info("Fetching all todos")
+        logger.info("Fetching all todos")
         response = self.get("/todos")
         return response.json()
     
@@ -297,7 +295,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 待办事项详情
         """
-        self.logger.info(f"Fetching todo with ID: {todo_id}")
+        logger.info(f"Fetching todo with ID: {todo_id}")
         response = self.get(f"/todos/{todo_id}")
         return response.json()
     
@@ -318,7 +316,7 @@ class JSONPlaceholderService(BaseService):
         Returns:
             Dict: 创建的待办事项信息
         """
-        self.logger.info(f"Creating todo for user ID: {user_id}")
+        logger.info(f"Creating todo for user ID: {user_id}")
         payload = {
             "userId": user_id,
             "title": title,
