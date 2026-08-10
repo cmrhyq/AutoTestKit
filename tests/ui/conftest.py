@@ -37,10 +37,10 @@ def login(browser, test_env):
     """
     Sandbox UI 登录方法
     Args:
-        browser:
-        test_env:
+        browser: 浏览器实例
+        test_env: 测试环境变量
 
-    Returns:
+    Returns: None
 
     """
     context = browser.new_context(**_build_context_options())
