@@ -13,32 +13,11 @@ import allure
 from typing import Optional, Dict
 
 from base.api.services.base_service import BaseService
-from core.config import env_manager
 from core.log import get_logger
 from core.cache.data_cache import DataCache
 from core.config import Settings
 
-logger = get_logger("API")
-
-
-@pytest.fixture(scope="session")
-def api_cache():
-    """
-    Session-level data cache fixture
-    
-    提供数据缓存实例用于存储和共享 API 测试数据
-    
-    Returns:
-        DataCache: 数据缓存实例
-    """
-    cache = DataCache.get_instance()
-    return cache
-
-
-@pytest.fixture(scope="session")
-def api_env():
-    env = env_manager.get_config()
-    return env
+logger = get_logger(__name__)
 
 
 @pytest.fixture(scope="function")
@@ -64,7 +43,7 @@ def base_service():
 
 
 @pytest.fixture(scope="function")
-def authenticated_service(api_env):
+def authenticated_service(test_env):
     """
     Function-level authenticated BaseService fixture
     
@@ -72,7 +51,7 @@ def authenticated_service(api_env):
     根据环境变量自动选择认证方式（Bearer Token, Basic Auth, API Key）
     
     Args:
-        api_env: 环境配置字典
+        test_env: 环境配置字典
         
     Yields:
         BaseService: 配置好认证的 API 服务实例
@@ -81,22 +60,22 @@ def authenticated_service(api_env):
     auth_type = None
     auth_credentials = None
     
-    if api_env.get("bearer_token"):
+    if test_env.get("bearer_token"):
         auth_type = 'bearer'
-        auth_credentials = {'token': api_env.get("bearer_token")}
+        auth_credentials = {'token': test_env.get("bearer_token")}
         logger.info("Using Bearer token authentication")
-    elif api_env.get("basic_auth_username") and api_env.get("basic_auth_password"):
+    elif test_env.get("basic_auth_username") and test_env.get("basic_auth_password"):
         auth_type = 'basic'
         auth_credentials = {
-            'username': api_env.get("basic_auth_username"),
-            'password': api_env.get("basic_auth_password")
+            'username': test_env.get("basic_auth_username"),
+            'password': test_env.get("basic_auth_password")
         }
         logger.info("Using Basic authentication")
-    elif api_env.get("api_key"):
+    elif test_env.get("api_key"):
         auth_type = 'api_key'
         auth_credentials = {
-            'api_key': api_env.get("api_key"),
-            'header_name': api_env.get("api_key_header")
+            'api_key': test_env.get("api_key"),
+            'header_name': test_env.get("api_key_header")
         }
         logger.info("Using API Key authentication")
     else:

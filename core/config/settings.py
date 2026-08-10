@@ -6,7 +6,7 @@
 """
 
 import os
-from typing import Optional, Literal
+from typing import Literal
 from pathlib import Path
 
 from core.config.env_config import env_manager
@@ -158,10 +158,6 @@ class Settings:
         if not (1 <= cls.SCREENSHOT_QUALITY <= 100):
             errors.append(f"SCREENSHOT_QUALITY must be between 1 and 100, got: {cls.SCREENSHOT_QUALITY}")
         
-        # 验证视口大小
-        if cls.VIEWPORT_WIDTH <= 0 or cls.VIEWPORT_HEIGHT <= 0:
-            errors.append(f"Viewport dimensions must be positive, got: {cls.VIEWPORT_WIDTH}x{cls.VIEWPORT_HEIGHT}")
-        
         return len(errors) == 0, errors
     
     @classmethod
@@ -177,7 +173,6 @@ class Settings:
                 "type": cls.BROWSER_TYPE,
                 "headless": cls.HEADLESS,
                 "timeout": cls.BROWSER_TIMEOUT,
-                "viewport": f"{cls.VIEWPORT_WIDTH}x{cls.VIEWPORT_HEIGHT}",
             },
             "logging": {
                 "level": cls.LOG_LEVEL,

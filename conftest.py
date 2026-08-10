@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from core.config import Settings
+from core.config import Settings, env_manager
 from core import DataCache
 from core.log import get_logger
 
@@ -235,6 +235,33 @@ def cpu_cores():
         int: Number of CPU cores
     """
     return multiprocessing.cpu_count()
+
+
+@pytest.fixture(scope="session")
+def test_env():
+    """
+    Session 级测试环境配置 fixture（UI/API 通用）
+
+    通过 env_manager 读取当前激活环境的配置字典，供 UI 和 API 测试共享，
+    替代原先分散在 base/ui 与 base/api 中的 ui_env / api_env。
+
+    Returns:
+        dict: 当前环境配置字典
+    """
+    return env_manager.get_config()
+
+
+@pytest.fixture(scope="session")
+def api_cache():
+    """
+    Session 级数据缓存 fixture（UI/API 通用）
+
+    提供 DataCache 单例实例用于跨测试共享数据，替代原先位于 base/api 的同名 fixture。
+
+    Returns:
+        DataCache: 数据缓存单例实例
+    """
+    return DataCache.get_instance()
 
 
 # ==================== Function-Level Fixtures ====================

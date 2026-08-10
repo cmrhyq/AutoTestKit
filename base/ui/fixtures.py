@@ -9,9 +9,6 @@ UI 测试 Fixtures 模块
 - Trace/视频录制清理
 - 资源清理逻辑
 """
-import os
-import shutil
-
 import pytest
 from datetime import datetime
 from typing import Generator
@@ -23,7 +20,6 @@ from playwright.sync_api import (
     Page
 )
 
-from core.config import env_manager
 from core.config import Settings
 from core.log import get_logger
 
@@ -98,12 +94,6 @@ def browser(playwright_instance: Playwright) -> Generator[Browser, None, None]:
     logger.info("Browser closed successfully")
 
 
-@pytest.fixture(scope="session")
-def ui_env():
-    env = env_manager.get_config()
-    return env
-
-
 @pytest.fixture(scope="function")
 def context(browser: Browser) -> Generator[BrowserContext, None, None]:
     """
@@ -122,10 +112,6 @@ def context(browser: Browser) -> Generator[BrowserContext, None, None]:
     
     # 创建浏览器上下文，配置视口大小
     context = browser.new_context(
-        # viewport={
-        #     "width": Settings.VIEWPORT_WIDTH,
-        #     "height": Settings.VIEWPORT_HEIGHT
-        # },
         no_viewport=Settings.NO_VIEWPORT,
         ignore_https_errors=not Settings.VERIFY_SSL,
     )
@@ -133,8 +119,6 @@ def context(browser: Browser) -> Generator[BrowserContext, None, None]:
     # 设置默认超时
     context.set_default_timeout(Settings.BROWSER_TIMEOUT)
     context.set_default_navigation_timeout(Settings.PAGE_LOAD_TIMEOUT)
-    
-    logger.debug(f"Browser context created with viewport {Settings.VIEWPORT_WIDTH}x{Settings.VIEWPORT_HEIGHT}")
     
     yield context
     
@@ -261,23 +245,6 @@ def _capture_failure_screenshot(page: Page, test_name: str, failure_type: str) -
         logger.error(f"Failed to capture failure screenshot for {test_name}: {e}")
 
 
-@pytest.fixture(scope="function")
-def ui_logger(request: pytest.FixtureRequest) -> Logger:
-    """
-    UI 测试日志记录器 fixture
-    
-    为每个测试提供独立的日志记录器实例。
-    
-    Args:
-        request: Pytest 请求对象
-        
-    Returns:
-        TestLogger: 日志记录器实例
-    """
-    test_name = request.node.name
-    return get_logger(f"UITest.{request.node.name}")
-
-
 # ==================== 保持登录 Session Fixture ====================
 
 @pytest.fixture(scope="session")
@@ -299,15 +266,15 @@ def authenticated_context(browser: Browser) -> Generator[BrowserContext, None, N
         
     使用示例（在 conftest.py 中）：
         @pytest.fixture(scope="session")
-        def authenticated_context(browser, ui_env):
+        def authenticated_context(browser, test_env):
             context = browser.new_context(
                 viewport={"width": 1440, "height": 960}
             )
             page = context.new_page()
             # 执行登录操作
-            page.goto(ui_env.get("paas_url") + "/#/login")
-            page.fill("#username", ui_env.get("admin_user"))
-            page.fill("#password", ui_env.get("admin_password"))
+            page.goto(test_env.get("paas_url") + "/#/login")
+            page.fill("#username", test_env.get("admin_user"))
+            page.fill("#password", test_env.get("admin_password"))
             page.click("#login-btn")
             page.wait_for_load_state("networkidle")
             page.close()  # 关闭登录页面，保留 context 的认证状态
@@ -318,13 +285,10 @@ def authenticated_context(browser: Browser) -> Generator[BrowserContext, None, N
     
     # 创建带配置的 context
     context_options = {
-        "viewport": {
-            "width": Settings.VIEWPORT_WIDTH,
-            "height": Settings.VIEWPORT_HEIGHT
-        },
+        "no_viewport": Settings.NO_VIEWPORT,
         "ignore_https_errors": not Settings.VERIFY_SSL,
     }
-    
+
     # 如果无头模式需要指定分辨率
     if Settings.HEADLESS:
         context_options["viewport"] = {"width": 1440, "height": 960}
