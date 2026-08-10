@@ -4,10 +4,11 @@ UI 测试基础页面类
 该模块实现 Page Object Model (POM) 模式的基础页面类，提供所有页面对象的通用功能。
 包括页面导航、元素等待、常用操作、截图和日志记录等功能。
 """
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, Union
-from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError, expect
 
 from core.config import Settings
 from core.constants import (
@@ -15,6 +16,7 @@ from core.constants import (
     PlaywrightLoadState,
     PlaywrightWaitUntil,
 )
+from core.constants.bussiness import MenuName
 from core.log.logger import get_logger
 from core.reporting.allure_helper import AllureHelper
 
@@ -1001,6 +1003,31 @@ class BasePage:
         except Exception as e:
             logger.error(f"Failed to wait for new tab: {e}")
             raise
+
+    # ==================== 定制化方法
+    def switch_top_menu(self, menu_name: MenuName):
+        """
+        沙箱切换顶部导航菜单（首页/沙箱/AI可观测）
+        Args:
+            menu_name: 菜单名称
+
+        Returns:
+
+        """
+        top_menu_items = self.page.locator("div.layout-top-menu > div.top-menu-item")
+        top_menu_active_item = self.page.locator("div.layout-top-menu > div.top-menu-item.is-active")
+        if top_menu_active_item.count() > 0:
+            current_name = top_menu_active_item.first.text_content()
+            if current_name and menu_name in current_name:
+                logger.info(f"当前已处于【{menu_name}】菜单，无须切换")
+                return
+
+        target = top_menu_items.filter(has_text=re.compile(rf"^{re.escape(menu_name)}$")).first
+        expect(target).to_be_visible(timeout=120000)
+        target.click()
+        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_timeout(1000)
+        logger.info(f"切换顶部导航菜单到【{menu_name}】完成")
 
     # ==================== 内部辅助方法 ====================
     

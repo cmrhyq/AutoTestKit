@@ -33,7 +33,7 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest.fixture(scope="session")
-def login(browser, test_env):
+def login_context(browser, test_env):
     """
     Sandbox UI 登录方法
     Args:
