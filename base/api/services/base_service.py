@@ -24,6 +24,7 @@ from requests.exceptions import (
 
 from core.config import Settings
 from core.cache.data_cache import DataCache
+from core.constants import AuthType
 from core.log.logger import get_logger
 from utils.internet_utils import get_random_pc_ua
 
@@ -58,7 +59,7 @@ class BaseService:
         
         Args:
             base_url: API 基础 URL，如果为 None 则使用配置文件中的设置
-            auth_type: 认证类型，可选值：'bearer', 'basic', 'api_key'
+            auth_type: 认证类型，可选值见 :class:`core.constants.AuthType`
             auth_credentials: 认证凭证字典
         """
         self.base_url = base_url or Settings.API_BASE_URL
@@ -90,14 +91,14 @@ class BaseService:
             auth_type: 认证类型
             auth_credentials: 认证凭证
         """
-        if auth_type == 'bearer':
+        if auth_type == AuthType.BEARER:
             # Bearer Token 认证
             token = auth_credentials.get('token')
             if token:
                 self.session.headers.update({'Authorization': f'Bearer {token}'})
                 logger.info("Bearer token authentication configured")
         
-        elif auth_type == 'basic':
+        elif auth_type == AuthType.BASIC:
             # Basic Auth 认证
             username = auth_credentials.get('username')
             password = auth_credentials.get('password')
@@ -106,7 +107,7 @@ class BaseService:
                 self.session.auth = HTTPBasicAuth(username, password)
                 logger.info(f"Basic authentication configured for user: {username}")
         
-        elif auth_type == 'api_key':
+        elif auth_type == AuthType.API_KEY:
             # API Key 认证
             api_key = auth_credentials.get('api_key')
             header_name = auth_credentials.get('header_name')

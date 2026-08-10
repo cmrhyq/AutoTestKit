@@ -10,6 +10,11 @@ from typing import Any, Optional, Union
 from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError
 
 from core.config import Settings
+from core.constants import (
+    PlaywrightElementState,
+    PlaywrightLoadState,
+    PlaywrightWaitUntil,
+)
 from core.log.logger import get_logger
 from core.reporting.allure_helper import AllureHelper
 
@@ -46,21 +51,18 @@ class BasePage:
         
         logger.debug(f"Initialized {self.__class__.__name__}")
     
-    def navigate(self, url: str, wait_until: str = "domcontentloaded") -> None:
+    def navigate(self, url: str, wait_until: str = PlaywrightWaitUntil.DOMCONTENTLOADED) -> None:
         """
         导航到指定 URL
         
         Args:
             url: 目标 URL
-            wait_until: 等待条件，可选值：
-                - 'load': 等待 load 事件触发
-                - 'domcontentloaded': 等待 DOMContentLoaded 事件触发（默认）
-                - 'networkidle': 等待网络空闲
-                - 'commit': 等待网络响应接收完成
+            wait_until: 等待条件，见 :class:`core.constants.PlaywrightWaitUntil`。
+                默认 ``DOMCONTENTLOADED``。也接受原始字符串。
         
         使用示例:
             page.navigate("https://example.com")
-            page.navigate("https://example.com/login", wait_until="load")
+            page.navigate("https://example.com/login", wait_until=PlaywrightWaitUntil.LOAD)
         """
         try:
             logger.info(f"Navigating to URL: {url}")
@@ -83,7 +85,7 @@ class BasePage:
         self, 
         selector: str, 
         timeout: Optional[int] = None,
-        state: str = "visible"
+        state: str = PlaywrightElementState.VISIBLE
     ) -> Locator:
         """
         等待元素出现并返回定位器
@@ -596,21 +598,19 @@ class BasePage:
     
     def wait_for_load_state(
         self, 
-        state: str = "load",
+        state: str = PlaywrightLoadState.LOAD,
         timeout: Optional[int] = None
     ) -> None:
         """
         等待页面加载到指定状态
         
         Args:
-            state: 加载状态，可选值：
-                - 'load': 等待 load 事件
-                - 'domcontentloaded': 等待 DOMContentLoaded 事件
-                - 'networkidle': 等待网络空闲
+            state: 加载状态，见 :class:`core.constants.PlaywrightLoadState`。
+                默认 ``LOAD``。也接受原始字符串。
             timeout: 超时时间（毫秒）
             
         使用示例:
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state(PlaywrightLoadState.NETWORKIDLE)
         """
         try:
             logger.debug(f"Waiting for load state: {state}")
@@ -709,7 +709,7 @@ class BasePage:
                     
                     locator.click()
                     if wait_after_click:
-                        self.page.wait_for_load_state(state="load")
+                        self.page.wait_for_load_state(state=PlaywrightLoadState.LOAD)
                     logger.debug(f"Clicked menu: {level_name}")
                 
                 logger.info("Menu navigation completed")
@@ -953,7 +953,7 @@ class BasePage:
             
             target_page = pages[tab_index]
             target_page.bring_to_front()
-            target_page.wait_for_load_state("load", timeout=Settings.PAGE_LOAD_TIMEOUT)
+            target_page.wait_for_load_state(PlaywrightLoadState.LOAD, timeout=Settings.PAGE_LOAD_TIMEOUT)
             
             logger.info(
                 f"{description}: switched to tab[{tab_index}], "
@@ -994,7 +994,7 @@ class BasePage:
                 trigger_action()
             
             new_page = new_page_info.value
-            new_page.wait_for_load_state("load", timeout=Settings.PAGE_LOAD_TIMEOUT)
+            new_page.wait_for_load_state(PlaywrightLoadState.LOAD, timeout=Settings.PAGE_LOAD_TIMEOUT)
             
             logger.info(f"New tab opened: {new_page.title()}")
             return new_page

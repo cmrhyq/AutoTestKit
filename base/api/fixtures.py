@@ -13,6 +13,7 @@ import allure
 from typing import Optional, Dict
 
 from base.api.services.base_service import BaseService
+from core.constants import AuthType
 from core.log.logger import TestLogger, get_logger
 from core.cache.data_cache import DataCache
 from core.config import Settings
@@ -62,18 +63,18 @@ def authenticated_service(test_env):
     auth_credentials = None
     
     if test_env.get("bearer_token"):
-        auth_type = 'bearer'
+        auth_type = AuthType.BEARER
         auth_credentials = {'token': str(test_env.get("bearer_token"))}
         logger.info("Using Bearer token authentication")
     elif test_env.get("basic_auth_username") and test_env.get("basic_auth_password"):
-        auth_type = 'basic'
+        auth_type = AuthType.BASIC
         auth_credentials = {
             'username': str(test_env.get("basic_auth_username")),
             'password': str(test_env.get("basic_auth_password"))
         }
         logger.info("Using Basic authentication")
     elif test_env.get("api_key"):
-        auth_type = 'api_key'
+        auth_type = AuthType.API_KEY
         auth_credentials = {
             'api_key': str(test_env.get("api_key")),
             'header_name': str(test_env.get("api_key_header"))

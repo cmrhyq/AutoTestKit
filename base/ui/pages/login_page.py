@@ -2,6 +2,7 @@ from base.ui.pages.base_page import BasePage
 from playwright.sync_api import Page, expect
 
 from core import get_logger
+from core.constants import PlaywrightLoadState
 
 logger = get_logger(__name__)
 
@@ -44,7 +45,7 @@ class LoginPage(BasePage):
         self.input_password.fill(password)
         self.btn_login.click()
 
-        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_load_state(state=PlaywrightLoadState.LOAD)
         # 登录后等待直到期望的首页出现
         expect(self.page.get_by_text("首页").first).to_be_visible(timeout=30000)
 
@@ -55,7 +56,7 @@ class LoginPage(BasePage):
         self.input_username.fill(username)
         self.input_password.fill(old_password)
         self.btn_login.click()
-        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_load_state(state=PlaywrightLoadState.LOAD)
         expect(self.page).to_have_title("修改密码")
         self.input_old_password.fill(old_password)
         self.input_new_password.fill(new_password)
