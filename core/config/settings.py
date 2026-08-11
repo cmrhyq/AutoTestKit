@@ -35,7 +35,7 @@ class Settings:
     # 浏览器类型：chromium, firefox, webkit
     BROWSER_TYPE: Literal["chromium", "firefox", "webkit"] = system.get("browser_type", "chromium")
     # 是否使用无头模式运行浏览器
-    HEADLESS: bool = system.get("headless", "false") == "true"
+    HEADLESS: bool = system.get("headless", "false")
     # 浏览器操作超时时间（毫秒）
     BROWSER_TIMEOUT: int = int(system.get("browser_timeout", 30000))
     # 页面加载超时时间（毫秒）
@@ -43,11 +43,11 @@ class Settings:
     # 浏览器启动参数
     BROWSER_ARGS: list = system.get("browser_args", "").split(",") if system.get("browser_args") else []
     # 是否禁用viewport
-    NO_VIEWPORT: bool = system.get("no_viewport", "false") == "true"
+    NO_VIEWPORT: bool = system.get("no_viewport", "false")
     # 慢动作模式，即每一个操作都暂停一段时间，模拟人类操作
     SLOW_MODE: int = system.get("slow_mode", 300)
     # 是否启用浏览器开发者工具
-    DEVTOOLS: bool = system.get("devtools", "false") == "true"
+    DEVTOOLS: bool = system.get("devtools", "false")
 
     # ==================== API 配置 ====================
     API_BASE_URL: str = env.get("api_base_url", "http://localhost:8000")
@@ -58,7 +58,7 @@ class Settings:
     # API 读取超时时间（秒）
     API_READ_TIMEOUT: int = int(system.get("api_read_timeout", 30))
     # 是否验证 SSL 证书
-    VERIFY_SSL: bool = system.get("api_verify_ssl", "true") == "true"
+    VERIFY_SSL: bool = system.get("api_verify_ssl", "true")
 
     # ==================== 日志配置 ====================
     # 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -70,9 +70,9 @@ class Settings:
     # 日志文件名格式
     LOG_FILE_FORMAT: str = system.get("log_file_format", "test_{timestamp}.log")
     # 是否在控制台输出日志
-    LOG_TO_CONSOLE: bool = system.get("log_to_console", "true") == "true"
+    LOG_TO_CONSOLE: bool = system.get("log_to_console", "true")
     # 是否输出日志到文件
-    LOG_TO_FILE: bool = system.get("log_to_file", "true") == "true"
+    LOG_TO_FILE: bool = system.get("log_to_file", "true")
     # 日志格式
     LOG_FORMAT: str = system.get(
         "log_format",
@@ -85,7 +85,7 @@ class Settings:
     # 并行 worker 数量：auto 表示自动检测 CPU 核心数，或指定具体数字
     PARALLEL_WORKERS: str = system.get("parallel_workers", "auto")
     # 是否启用并行执行
-    ENABLE_PARALLEL: bool = system.get("enable_parallel", "true") == "true"
+    ENABLE_PARALLEL: bool = system.get("enable_parallel", "true")
     # 并行执行分发策略：loadscope, loadfile, loadgroup, load
     PARALLEL_DIST_MODE: Literal["loadscope", "loadfile", "loadgroup", "load"] = system.get(
         "parallel_dist_mode", "loadscope"
@@ -97,13 +97,13 @@ class Settings:
     # Allure 报告目录
     ALLURE_REPORT_DIR: str = system.get("allure_report_dir", "report/allure-report")
     # 是否清理旧的 Allure 结果
-    ALLURE_CLEAN_RESULTS: bool = system.get("allure_clean_results", "true") == "true"
+    ALLURE_CLEAN_RESULTS: bool = system.get("allure_clean_results", "true")
     
     # ==================== 截图配置 ====================
     # 截图保存目录
     SCREENSHOT_DIR: str = system.get("screenshot_dir", "screenshots")
     # 是否在失败时自动截图
-    SCREENSHOT_ON_FAILURE: bool = system.get("screenshot_on_failure", "true") == "true"
+    SCREENSHOT_ON_FAILURE: bool = system.get("screenshot_on_failure", "true")
     # 截图格式：png, jpeg
     SCREENSHOT_FORMAT: Literal["png", "jpeg"] = system.get("screenshot_format", "png")
     # 截图质量（仅对 jpeg 有效，1-100）
