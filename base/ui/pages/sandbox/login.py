@@ -9,7 +9,6 @@ logger = get_logger(__name__)
 
 class LoginPage(BasePage):
 
-    # ==================== 页面 URL ====================
     def __init__(self, page: Page):
         """
         初始化 Login Page 页面对象

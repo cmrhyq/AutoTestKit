@@ -3,7 +3,7 @@ import re
 from playwright.sync_api import Page, expect
 
 from base.ui.pages.base import BasePage
-from constants.bussiness import SystemMenu, SandboxMenu
+from core.constants.bussiness import SystemMenu, SandboxMenu
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -38,6 +38,30 @@ class HomePage(BasePage):
         self.tenant_switch = page.get_by_role("dialog", name=re.compile(r"个人设置")).locator(
             ".ep-select__wrapper, .ep-select__wrapper").first
 
+    def switch_top_menu(self, menu_name: SystemMenu):
+        """
+        沙箱切换顶部导航菜单（首页/沙箱/AI可观测）
+        Args:
+            menu_name: 菜单名称
+
+        Returns:
+
+        """
+        top_menu_items = self.page.locator("div.layout-top-menu > div.top-menu-item")
+        top_menu_active_item = self.page.locator("div.layout-top-menu > div.top-menu-item.is-active")
+        if top_menu_active_item.count() > 0:
+            current_name = top_menu_active_item.first.text_content()
+            if current_name and menu_name in current_name:
+                logger.info(f"当前已处于【{menu_name}】菜单，无须切换")
+                return
+
+        target = top_menu_items.filter(has_text=re.compile(rf"^{re.escape(menu_name)}$")).first
+        expect(target).to_be_visible(timeout=120000)
+        target.click()
+        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_timeout(1000)
+        logger.info(f"切换顶部导航菜单到【{menu_name}】完成")
+
     def open_personal_settings(self):
         """
         打开个人设置弹框
@@ -47,6 +71,14 @@ class HomePage(BasePage):
         self.page.wait_for_timeout(500)
         self.page.get_by_role("menuitem", name="个人设置").click()
         self.page.wait_for_timeout(500)
+
+    def expand_sidebar(self):
+        """展开侧边栏菜单（如果处于折叠状态）"""
+        unfold_btn = self.page.locator(".ri-menu-unfold-fill")
+        if unfold_btn.is_visible():
+            unfold_btn.click()
+            self.page.wait_for_timeout(500)
+            logger.info("侧边栏已展开")
 
     def verify_sandbox_menu(self, is_admin_view: bool = False):
         """
@@ -62,12 +94,12 @@ class HomePage(BasePage):
         """
         # 顶部切换到沙箱菜单
         self.switch_top_menu(SystemMenu.SANDBOX)
-        expect(self.page).to_have_title(SandboxMenu.SANDBOX_MANAGER)
+        expect(self.page).to_have_title(SandboxMenu.SANDBOX_MANAGE)
 
         # 校验左侧一级菜单
-        expect(self.page.get_by_text(SandboxMenu.SANDBOX_MANAGER).first).to_be_visible()
-        expect(self.page.get_by_text(SandboxMenu.IMAGE_MANAGER).first).to_be_visible()
-        expect(self.page.get_by_text(SandboxMenu.TEMPLATE_MANAGER).first).to_be_visible()
+        expect(self.page.get_by_text(SandboxMenu.SANDBOX_MANAGE).first).to_be_visible()
+        expect(self.page.get_by_text(SandboxMenu.IMAGE_MANAGE).first).to_be_visible()
+        expect(self.page.get_by_text(SandboxMenu.TEMPLATE_MANAGE).first).to_be_visible()
         expect(self.page.get_by_text(SandboxMenu.SDK_EXAMPLE).first).to_be_visible()
 
         # 沙箱集群：管理视图可见，用户视图不可见
@@ -79,23 +111,23 @@ class HomePage(BasePage):
 
         # 点击展开沙箱管理，校验下级：沙箱管理、运维看板
         # self.home_page.open_menu("沙箱管理")
-        expect(self.page.get_by_text(SandboxMenu.SANDBOX_MANAGER).nth(1)).to_be_visible()
+        expect(self.page.get_by_text(SandboxMenu.SANDBOX_MANAGE).nth(1)).to_be_visible()
         expect(self.page.get_by_text(SandboxMenu.MAINTENANCE_DASHBOARD).first).to_be_visible()
 
         # 管理视图：点击展开沙箱集群，校验下级：沙箱集群、节点管理
         if is_admin_view:
             self.open_menu(SandboxMenu.SANDBOX_CLUSTER)
-            expect(self.page.get_by_text(SandboxMenu.CLUSTER_MANAGER).first).to_be_visible()
-            expect(self.page.get_by_text(SandboxMenu.NODE_MANAGER).first).to_be_visible()
+            expect(self.page.get_by_text(SandboxMenu.CLUSTER_MANAGE).first).to_be_visible()
+            expect(self.page.get_by_text(SandboxMenu.NODE_MANAGE).first).to_be_visible()
 
         # 点击展开镜像管理，校验下级：镜像库管理、镜像管理
-        self.open_menu(SandboxMenu.IMAGE_MANAGER)
-        expect(self.page.get_by_text(SandboxMenu.IMAGE_LIBRARY_MANAGER).first).to_be_visible()
-        expect(self.page.get_by_text(SandboxMenu.IMAGE_MANAGER).nth(1)).to_be_visible()
+        self.open_menu(SandboxMenu.IMAGE_MANAGE)
+        expect(self.page.get_by_text(SandboxMenu.IMAGE_LIBRARY_MANAGE).first).to_be_visible()
+        expect(self.page.get_by_text(SandboxMenu.IMAGE_MANAGE).nth(1)).to_be_visible()
 
         # 点击展开模板管理，校验下级：模板管理、构建记录
-        self.open_menu(SandboxMenu.TEMPLATE_MANAGER)
-        expect(self.page.get_by_text(SandboxMenu.TEMPLATE_MANAGER).nth(1)).to_be_visible()
+        self.open_menu(SandboxMenu.TEMPLATE_MANAGE)
+        expect(self.page.get_by_text(SandboxMenu.TEMPLATE_MANAGE).nth(1)).to_be_visible()
         expect(self.page.get_by_text(SandboxMenu.BUILD_RECORD).first).to_be_visible()
 
         # 点击展开SDK使用示例，校验下级：SDK使用示例
