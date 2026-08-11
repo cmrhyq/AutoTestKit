@@ -132,7 +132,7 @@ pytest examples/ui_test_example.py -v
 """
 
 import pytest
-from base.ui.pages.base_page import BasePage
+from base.ui.pages.base import BasePage
 
 
 @pytest.mark.ui

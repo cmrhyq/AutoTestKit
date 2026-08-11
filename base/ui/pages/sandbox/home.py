@@ -2,7 +2,7 @@ import re
 
 from playwright.sync_api import Page, expect
 
-from base.ui.pages.base_page import BasePage
+from base.ui.pages.base import BasePage
 from constants.bussiness import SystemMenu, SandboxMenu
 from core import get_logger
 

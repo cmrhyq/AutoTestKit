@@ -302,7 +302,7 @@ ALLURE_CLEAN_RESULTS = True  # 是否清理旧结果
 使用 Playwright 进行浏览器自动化测试：
 
 ```python
-from base.ui.pages.base_page import BasePage
+from base.ui.pages.base import BasePage
 
 
 def test_example_ui(page, logger):
@@ -567,7 +567,7 @@ print(summary)
 
 ```python
 import pytest
-from base.ui.pages.base_page import BasePage
+from base.ui.pages.base import BasePage
 
 
 @pytest.mark.ui
