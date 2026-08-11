@@ -11,6 +11,7 @@ from core.constants.playwright import (
     PlaywrightLoadState,
     PlaywrightWaitUntil,
 )
+from core.constants.ui import UITimeout
 
 __all__ = [
     "AuthType",
@@ -18,4 +19,5 @@ __all__ = [
     "PlaywrightElementState",
     "PlaywrightLoadState",
     "PlaywrightWaitUntil",
+    "UITimeout",
 ]
