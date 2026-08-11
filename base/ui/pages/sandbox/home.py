@@ -44,8 +44,7 @@ class HomePage(BasePage):
         Args:
             menu_name: 菜单名称
 
-        Returns:
-
+        Returns: None
         """
         top_menu_items = self.page.locator("div.layout-top-menu > div.top-menu-item")
         top_menu_active_item = self.page.locator("div.layout-top-menu > div.top-menu-item.is-active")

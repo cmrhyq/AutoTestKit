@@ -1,6 +1,7 @@
 from playwright.sync_api import Page
 
 from base.ui.pages.base import BasePage
+from constants.bussiness import SandboxFramePath
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -32,3 +33,12 @@ class SdkExamplePage(BasePage):
 
         # 使用示例表格
         self.table_example = self.frame.get_by_role("table").first
+
+    def navigate_to(self, base_url: str) -> None:
+        """
+        通过URL直接导航进入SDK使用示例页面（菜单点击可能不刷新iframe）
+        """
+        logger.info(f"导航到SDK使用示例: {SandboxFramePath.SDK_EXAMPLE}")
+        self.page.goto(base_url + SandboxFramePath.SDK_EXAMPLE, timeout=60000)
+        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_timeout(1000)

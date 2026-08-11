@@ -1,6 +1,7 @@
 from playwright.sync_api import Page
 
 from base.ui.pages.base import BasePage
+from constants.bussiness import SandboxFramePath
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -27,3 +28,12 @@ class BuildRecordPage(BasePage):
 
         # 数据表格
         self.table_data = self.frame.get_by_role("table").first
+
+    def navigate_to(self, base_url: str) -> None:
+        """
+        通过URL直接导航进入构建记录页面（菜单点击可能不刷新iframe）
+        """
+        logger.info(f"导航到构建记录: {SandboxFramePath.BUILD_RECORD}")
+        self.page.goto(base_url + SandboxFramePath.BUILD_RECORD, timeout=60000)
+        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_timeout(1000)

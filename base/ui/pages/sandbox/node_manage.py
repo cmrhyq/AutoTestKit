@@ -1,6 +1,7 @@
 from playwright.sync_api import Page
 
 from base.ui.pages.base import BasePage
+from constants.bussiness import SandboxFramePath
 from core import get_logger
 
 logger = get_logger(__name__)
@@ -28,3 +29,12 @@ class NodeManagePage(BasePage):
 
         # 数据表格（第2个table，第1个为表头）
         self.table_data = self.frame.get_by_role("table").nth(1)
+
+    def navigate_to(self, base_url: str) -> None:
+        """
+        通过URL直接导航进入节点管理页面（菜单点击可能不刷新iframe）
+        """
+        logger.info(f"导航到节点管理: {SandboxFramePath.NODE_MANAGE}")
+        self.page.goto(base_url + SandboxFramePath.NODE_MANAGE, timeout=60000)
+        self.page.wait_for_load_state(state="load")
+        self.page.wait_for_timeout(1000)
