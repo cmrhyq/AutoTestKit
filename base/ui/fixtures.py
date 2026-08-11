@@ -42,13 +42,13 @@ def _build_context_options() -> Dict[str, Any]:
         Dict[str, Any]: 传递给 browser.new_context 的关键字参数
     """
     options: Dict[str, Any] = {
-        "no_viewport": Settings.NO_VIEWPORT,
         "ignore_https_errors": not Settings.VERIFY_SSL,
     }
 
-    # 无头模式下强制指定视口，保证渲染尺寸一致
     if Settings.HEADLESS and not Settings.NO_VIEWPORT:
-        options["viewport"] = {"width": 1920, "height": 1080}
+        options["viewport"] = {"width": 1440, "height": 900}
+    else:
+        options["no_viewport"] = Settings.NO_VIEWPORT
 
     return options
 
