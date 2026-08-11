@@ -1,10 +1,13 @@
 import re
+from typing import Optional
 
 from playwright.sync_api import Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from base.ui.pages.base import BasePage
-from constants.bussiness import SandboxFramePath
 from core import get_logger
+from core.constants import UITimeout
+from core.constants.bussiness import SandboxFramePath
 
 logger = get_logger(__name__)
 
@@ -55,107 +58,152 @@ class SandboxManagePage(BasePage):
         通过URL直接导航进入沙箱管理页面（菜单点击可能不刷新iframe）
         """
         logger.info(f"导航到沙箱管理: {SandboxFramePath.SANDBOX_MANAGE}")
-        self.page.goto(base_url + SandboxFramePath.SANDBOX_MANAGE, timeout=60000)
+        self.page.goto(base_url + SandboxFramePath.SANDBOX_MANAGE, timeout=UITimeout.NAVIGATION_TIMEOUT)
         self.page.wait_for_load_state(state="load")
-        self.page.wait_for_timeout(1000)
+        expect(self.tab_alive).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
 
     # ==================== tab 切换 ====================
 
-    def switch_to_alive(self):
-        # 切换到存活沙箱tab
+    def switch_to_alive(self) -> None:
+        """切换到存活沙箱tab，并等待 tab 激活。"""
         logger.info("切换到存活沙箱tab")
         self.tab_alive.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_tab_active(self.tab_alive, "存活沙箱")
 
-    def switch_to_history(self):
-        # 切换到历史沙箱tab
+    def switch_to_history(self) -> None:
+        """切换到历史沙箱tab，并等待 tab 激活。"""
         logger.info("切换到历史沙箱tab")
         self.tab_history.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_tab_active(self.tab_history, "历史沙箱")
 
-    def auto_refresh(self):
+    def _wait_tab_active(self, tab, tab_name: str) -> None:
+        """等待 tab 变为激活状态；无法通过属性判定时退化为短稳定等待。"""
+        try:
+            expect(tab).to_have_attribute(
+                "aria-selected", "true", timeout=UITimeout.STABILIZE
+            )
+        except (PlaywrightTimeoutError, AssertionError):
+            logger.debug(f"tab【{tab_name}】未通过 aria-selected 判定激活，退化为短稳定等待")
+            self.page.wait_for_timeout(UITimeout.SHORT)
+
+    def auto_refresh(self) -> None:
+        """开启 5s 自动刷新。"""
         self.link_auto_refresh.click()
+        expect(self.item_refresh_5s).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
         self.item_refresh_5s.click()
 
     # ==================== 存活沙箱搜索 ====================
 
-    def search_alive_sandbox(self, tenant_name: str = None, sandbox_id_or_template: str = None):
-        # 在存活沙箱tab按条件搜索（实际无"模板类别"下拉，仅租户名称+沙箱ID两个textbox）
+    def search_alive_sandbox(
+            self,
+            tenant_name: Optional[str] = None,
+            sandbox_id_or_template: Optional[str] = None,
+    ) -> None:
+        """在存活沙箱tab按条件搜索（实际无"模板类别"下拉，仅租户名称+沙箱ID两个textbox）。"""
         logger.info(f"搜索存活沙箱: tenant={tenant_name}, id/template={sandbox_id_or_template}")
         if tenant_name:
-            if self.input_tenant_alive.is_visible():
-                self.input_tenant_alive.fill(tenant_name)
+            try:
+                if self.input_tenant_alive.is_visible(timeout=UITimeout.ANIMATION):
+                    self.input_tenant_alive.fill(tenant_name)
+            except PlaywrightTimeoutError:
+                logger.debug("存活沙箱-租户名称输入框不可见，跳过填写")
         if sandbox_id_or_template:
-            if self.input_sandbox_id.is_visible():
-                self.input_sandbox_id.fill(sandbox_id_or_template)
-        # 查询
+            try:
+                if self.input_sandbox_id.is_visible(timeout=UITimeout.ANIMATION):
+                    self.input_sandbox_id.fill(sandbox_id_or_template)
+            except PlaywrightTimeoutError:
+                logger.debug("存活沙箱-沙箱ID输入框不可见，跳过填写")
         self.btn_search_alive.click()
-        self.page.wait_for_timeout(1000)
+        # 等待表格刷新可见，避免读取旧数据
+        try:
+            expect(self.table_data).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
+        except (PlaywrightTimeoutError, AssertionError):
+            logger.debug("查询后表格未可见，忽略")
 
     def get_alive_sandbox_count(self) -> int:
-        # 获取存活沙箱数据行数
+        """获取存活沙箱数据行数。"""
         try:
             return self.table_data.get_by_role("row").count()
-        except Exception:
+        except PlaywrightTimeoutError:
+            logger.debug("读取存活沙箱行数超时，返回 0")
             return 0
 
     def is_sandbox_alive(self, sandbox_id: str) -> bool:
-        # 检查指定沙箱ID是否在存活沙箱列表中
+        """检查指定沙箱ID是否在存活沙箱列表中。"""
         try:
             self.search_alive_sandbox(sandbox_id_or_template=sandbox_id)
-            row = self.table_data.get_by_role("row", name=re.compile(re.escape(sandbox_id))).first
-            return row.is_visible()
-        except Exception:
+            row = self.table_data.get_by_role(
+                "row", name=re.compile(re.escape(sandbox_id))
+            ).first
+            return row.is_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
+        except PlaywrightTimeoutError:
             return False
 
     # ==================== 删除沙箱实例 ====================
 
-    def click_delete_sandbox(self, sandbox_id: str):
-        # 点击沙箱的删除按钮
+    def click_delete_sandbox(self, sandbox_id: str) -> None:
+        """点击指定沙箱的删除按钮。"""
         logger.info(f"点击沙箱【{sandbox_id}】的删除按钮")
         row = self.table_data.get_by_role("row", name=re.compile(re.escape(sandbox_id))).first
-        expect(row).to_be_visible()
+        expect(row).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
         row.get_by_role("button", name="删除").click()
-        self.page.wait_for_timeout(800)
+        # 等待确认弹窗出现
+        expect(self.msg_box).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
 
-    def confirm_delete(self):
-        # 确认删除沙箱实例
-        if self.msg_box.is_visible():
-            self.msg_box.get_by_role("button", name=re.compile(r"删除")).last.click()
-            self.page.wait_for_timeout(1000)
+    def confirm_delete(self) -> None:
+        """确认删除沙箱实例。"""
+        try:
+            if self.msg_box.is_visible(timeout=UITimeout.ANIMATION):
+                self.msg_box.get_by_role(
+                    "button", name=re.compile(r"删除")
+                ).last.click()
+                expect(self.msg_box).to_be_hidden(
+                    timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT
+                )
+        except PlaywrightTimeoutError:
+            logger.debug("确认删除弹窗不可见，跳过")
 
     # ==================== 历史沙箱 ====================
 
-    def search_history_sandbox(self, tenant_name: str = None):
-        # 在历史沙箱tab搜索
+    def search_history_sandbox(self, tenant_name: Optional[str] = None) -> None:
+        """在历史沙箱tab按条件搜索。"""
         logger.info(f"搜索历史沙箱: tenant={tenant_name}")
         if tenant_name:
-            if self.input_tenant_history.is_visible():
-                self.input_tenant_history.fill(tenant_name)
+            try:
+                if self.input_tenant_history.is_visible(timeout=UITimeout.ANIMATION):
+                    self.input_tenant_history.fill(tenant_name)
+            except PlaywrightTimeoutError:
+                logger.debug("历史沙箱-租户名称输入框不可见，跳过填写")
         self.btn_search_history.click()
-        self.page.wait_for_timeout(1000)
+        try:
+            expect(self.table_data).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
+        except (PlaywrightTimeoutError, AssertionError):
+            logger.debug("查询后表格未可见，忽略")
 
     def get_history_sandbox_count(self) -> int:
-        # 获取历史沙箱行数
+        """获取历史沙箱数据行数。"""
         try:
             return self.table_data.get_by_role("row").count()
-        except Exception:
+        except PlaywrightTimeoutError:
+            logger.debug("读取历史沙箱行数超时，返回 0")
             return 0
 
     # ==================== 指标统计 ====================
 
     def get_alive_metrics(self) -> dict:
-        # 获取存活沙箱tab的统计卡片数据（CPU/内存/磁盘/沙箱数）
-        metrics = {}
-        try:
-            # 统计卡片文本中通常包含"CPU使用率"、"内存使用率"等关键词
-            for label in ["CPU使用率", "内存使用率", "磁盘", "正在运行"]:
-                try:
-                    el = self.frame.locator(f"text=/{label}.*\\d+/").first
-                    if el.is_visible():
-                        metrics[label] = el.text_content().strip()
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        """获取存活沙箱tab的统计卡片数据（CPU/内存/磁盘/沙箱数）。
+
+        Returns:
+            dict: 形如 ``{"CPU使用率": "CPU使用率 12%", ...}`` 的字典，
+            读取不到的指标不会出现在 key 中。
+        """
+        metrics: dict = {}
+        # 统计卡片文本中通常包含"CPU使用率"、"内存使用率"等关键词
+        for label in ("CPU使用率", "内存使用率", "磁盘", "正在运行"):
+            try:
+                el = self.frame.locator(f"text=/{re.escape(label)}.*\\d+/").first
+                if el.is_visible(timeout=UITimeout.ANIMATION):
+                    metrics[label] = (el.text_content() or "").strip()
+            except PlaywrightTimeoutError:
+                logger.debug(f"指标【{label}】不可见，跳过")
         return metrics

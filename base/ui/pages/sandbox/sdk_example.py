@@ -1,8 +1,9 @@
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 
 from base.ui.pages.base import BasePage
-from constants.bussiness import SandboxFramePath
 from core import get_logger
+from core.constants import UITimeout
+from core.constants.bussiness import SandboxFramePath
 
 logger = get_logger(__name__)
 
@@ -39,6 +40,6 @@ class SdkExamplePage(BasePage):
         通过URL直接导航进入SDK使用示例页面（菜单点击可能不刷新iframe）
         """
         logger.info(f"导航到SDK使用示例: {SandboxFramePath.SDK_EXAMPLE}")
-        self.page.goto(base_url + SandboxFramePath.SDK_EXAMPLE, timeout=60000)
+        self.page.goto(base_url + SandboxFramePath.SDK_EXAMPLE, timeout=UITimeout.NAVIGATION_TIMEOUT)
         self.page.wait_for_load_state(state="load")
-        self.page.wait_for_timeout(1000)
+        expect(self.title_sdk_example).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)

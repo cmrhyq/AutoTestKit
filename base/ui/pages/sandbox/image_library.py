@@ -1,10 +1,13 @@
 import re
+from typing import List
 
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from base.ui.pages.base import BasePage
-from constants.bussiness import SandboxFramePath
 from core import get_logger
+from core.constants import UITimeout
+from core.constants.bussiness import SandboxFramePath
 
 logger = get_logger(__name__)
 
@@ -40,74 +43,72 @@ class ImageLibraryPage(BasePage):
         通过URL直接导航进入镜像库管理页面（菜单点击可能不刷新iframe）
         """
         logger.info(f"导航到镜像库管理: {SandboxFramePath.IMAGE_LIBRARY_MANAGE}")
-        self.page.goto(base_url + SandboxFramePath.IMAGE_LIBRARY_MANAGE, timeout=60000)
+        self.page.goto(base_url + SandboxFramePath.IMAGE_LIBRARY_MANAGE, timeout=UITimeout.NAVIGATION_TIMEOUT)
         self.page.wait_for_load_state(state="load")
-        self.page.wait_for_timeout(1000)
+        expect(self.tab_system_image).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
 
-    def switch_to_system_image(self):
-        """
-        切换到系统镜像tab
-        """
+    def switch_to_system_image(self) -> None:
+        """切换到系统镜像tab，并等待 tab 激活。"""
         logger.info("切换到系统镜像tab")
         self.tab_system_image.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_tab_active(self.tab_system_image, "系统镜像")
 
-    def switch_to_custom_image(self):
-        """
-        切换到自定义镜像tab
-        """
+    def switch_to_custom_image(self) -> None:
+        """切换到自定义镜像tab，并等待 tab 激活。"""
         logger.info("切换到自定义镜像tab")
         self.tab_custom_image.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_tab_active(self.tab_custom_image, "自定义镜像")
 
-    def search_image(self, image_name: str):
-        """
-        搜索镜像
-        """
+    def _wait_tab_active(self, tab, tab_name: str) -> None:
+        """等待 tab 变为激活状态；无法通过属性判定时退化为短稳定等待。"""
+        try:
+            expect(tab).to_have_attribute(
+                "aria-selected", "true", timeout=UITimeout.STABILIZE
+            )
+        except (PlaywrightTimeoutError, AssertionError):
+            logger.debug(f"tab【{tab_name}】未通过 aria-selected 判定激活，退化为短稳定等待")
+            self.page.wait_for_timeout(UITimeout.SHORT)
+
+    def search_image(self, image_name: str) -> None:
+        """按名称搜索镜像。"""
         logger.info(f"搜索镜像: {image_name}")
         self.input_search.fill(image_name)
         self.btn_search.click()
-        self.page.wait_for_timeout(800)
+        self.page.wait_for_timeout(UITimeout.QUERY)
 
     def get_first_system_image_name(self) -> str:
-        """
-        获取系统镜像列表中第一条镜像名称
-        """
+        """获取系统镜像列表第一条镜像名称（第 2 列）。找不到返回空串。"""
         try:
             first_row = self.table_body.get_by_role("row").first
             # 镜像名称通常在第2列
             cells = first_row.locator("td")
             if cells.count() >= 2:
-                return cells.nth(1).text_content().strip()
-        except Exception:
-            pass
+                return (cells.nth(1).text_content() or "").strip()
+        except PlaywrightTimeoutError:
+            logger.debug("获取第一条镜像名称超时")
         return ""
 
-    def get_all_system_image_names(self) -> list:
-        """
-        获取系统镜像列表中所有镜像名称
-        """
-        names = []
+    def get_all_system_image_names(self) -> List[str]:
+        """获取系统镜像列表所有镜像名称（第 2 列）。"""
+        names: List[str] = []
         try:
             rows = self.table_body.get_by_role("row")
             for i in range(rows.count()):
                 cells = rows.nth(i).locator("td")
                 if cells.count() >= 2:
-                    names.append(cells.nth(1).text_content().strip())
-        except Exception:
-            pass
+                    names.append((cells.nth(1).text_content() or "").strip())
+        except PlaywrightTimeoutError:
+            logger.debug("遍历镜像列表超时")
         return names
 
     def get_image_id_by_name(self, image_name: str) -> str:
-        """
-        按镜像名称获取镜像ID
-        """
+        """按镜像名称获取镜像ID（第 1 列）。找不到返回空串。"""
         try:
             row = self.table_body.get_by_role(
                 "row", name=re.compile(re.escape(image_name))
             ).first
-            if row.is_visible():
-                return row.locator("td").first.text_content().strip()
-        except Exception:
-            pass
+            if row.is_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT):
+                return (row.locator("td").first.text_content() or "").strip()
+        except PlaywrightTimeoutError:
+            logger.debug(f"按名称获取镜像ID超时: {image_name}")
         return ""

@@ -1,10 +1,12 @@
 import re
 
 from playwright.sync_api import Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from base.ui.pages.base import BasePage
-from core.constants.bussiness import SystemMenu, SandboxMenu
 from core import get_logger
+from core.constants import UITimeout
+from core.constants.bussiness import SystemMenu, SandboxMenu
 
 logger = get_logger(__name__)
 
@@ -55,29 +57,37 @@ class HomePage(BasePage):
                 return
 
         target = top_menu_items.filter(has_text=re.compile(rf"^{re.escape(menu_name)}$")).first
-        expect(target).to_be_visible(timeout=120000)
+        expect(target).to_be_visible(timeout=UITimeout.TOP_MENU_SWITCH_TIMEOUT)
         target.click()
         self.page.wait_for_load_state(state="load")
-        self.page.wait_for_timeout(1000)
+        # 顶部菜单切换后侧边栏动画需要一小段稳定时间
+        self.page.wait_for_timeout(UITimeout.STABILIZE)
         logger.info(f"切换顶部导航菜单到【{menu_name}】完成")
 
     def open_personal_settings(self):
         """
         打开个人设置弹框
         """
-        expect(self.btn_user_menu).to_be_visible()
+        expect(self.btn_user_menu).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
         self.btn_user_menu.click()
-        self.page.wait_for_timeout(500)
-        self.page.get_by_role("menuitem", name="个人设置").click()
-        self.page.wait_for_timeout(500)
+        # 等待菜单项可见，避免固定 sleep
+        expect(self.menuitem_personal_settings).to_be_visible(
+            timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT
+        )
+        self.menuitem_personal_settings.click()
+        # 弹框渐入动画
+        self.page.wait_for_timeout(UITimeout.ANIMATION)
 
     def expand_sidebar(self):
         """展开侧边栏菜单（如果处于折叠状态）"""
         unfold_btn = self.page.locator(".ri-menu-unfold-fill")
-        if unfold_btn.is_visible():
-            unfold_btn.click()
-            self.page.wait_for_timeout(500)
-            logger.info("侧边栏已展开")
+        try:
+            if unfold_btn.is_visible(timeout=UITimeout.ANIMATION):
+                unfold_btn.click()
+                self.page.wait_for_timeout(UITimeout.ANIMATION)
+                logger.info("侧边栏已展开")
+        except PlaywrightTimeoutError:
+            logger.debug("侧边栏展开按钮不可见，跳过")
 
     def verify_sandbox_menu(self, is_admin_view: bool = False):
         """
