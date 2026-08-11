@@ -61,27 +61,55 @@ class SandboxFramePath(str, Enum):
 # ================== 模板构建状态 枚举 ==================
 @dataclass
 class SandboxTemplateStatus(str, Enum):
-    """
-    自定义模板构建/发布状态文案。
+    """自定义模板的构建/发布状态文案枚举。
 
-    Note:
-        - SUCCESS / FAILED 为轮询终态；
-        - 其它值用于状态展示读取。
+    枚举值直接与前端展示文本对齐，可通过 ``value`` 与 DOM 中的
+    ``text_content()`` 结果直接比较：
+
+        >>> SandboxTemplateStatus.SUCCESS.value == "成功"
+        True
+
+    使用场景：
+        - **判定构建终态**：模板创建后需要轮询等待
+          "成功" / "失败" 之一出现，此时应使用 :meth:`terminal_values`；
+        - **读取当前状态**：从表格单元格中匹配已知状态文本，
+          此时应使用 :meth:`all_values` 做 ``in`` 判断。
+
+    .. Note::
+        - :attr:`SUCCESS` / :attr:`FAILED` 为轮询终态，出现后应终止轮询；
+        - 其它枚举值仅用于状态展示读取，不作为终态判定依据。
     """
+
+    #: 构建中（非终态，轮询时应继续等待）
     BUILDING = "构建中"
+    #: 构建成功（终态）
     SUCCESS = "成功"
+    #: 构建失败（终态）
     FAILED = "失败"
+    #: 已构建、可用
     AVAILABLE = "可用"
+    #: 已发布至运行时
     PUBLISHED = "已发布"
+    #: 未发布
     UNPUBLISHED = "未发布"
+    #: 通用正常状态
     NORMAL = "正常"
 
     @classmethod
     def terminal_values(cls) -> tuple:
-        """轮询构建结果时的终态文本集合。"""
+        """返回轮询构建结果时的**终态**文本集合。
+
+        Returns:
+            tuple[str, ...]: ``("成功", "失败")``。任一出现即应停止轮询。
+        """
         return (cls.SUCCESS.value, cls.FAILED.value)
 
     @classmethod
     def all_values(cls) -> tuple:
-        """全部状态文本集合。"""
+        """返回枚举中所有状态的文本集合。
+
+        Returns:
+            tuple[str, ...]: 所有状态文本，用于在表格 ``<td>`` 中做
+            ``txt in valid_values`` 的成员判断。
+        """
         return tuple(item.value for item in cls)

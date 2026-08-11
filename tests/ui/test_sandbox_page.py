@@ -177,8 +177,10 @@ class TestSandboxPage:
             self.build_record_page.assert_no_alert()
             self.build_record_page.take_screenshot("沙箱-模板管理-构建记录", True)
 
+    @pytest.mark.dependency()
     @allure.title("SDK使用示例")
     @allure.description("""检查页面元素（iframe内）：SDK使用示例标题、下载SDK使用pdf按钮、SDK安装章节标题、使用示例表格""")
+    @allure.severity(allure.severity_level.NORMAL)
     def test_sdk_example(self) -> None:
         with allure.step("页面检查"):
             logger.info("进入【SDK使用示例】页面")
