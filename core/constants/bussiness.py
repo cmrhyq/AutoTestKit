@@ -57,3 +57,31 @@ class SandboxFramePath(str, Enum):
     TEMPLATE_MANAGE = "/iframe/sandbox-web/admin/templateManage"
     BUILD_RECORD = "/iframe/sandbox-web/templates/builds1"
     SDK_EXAMPLE = "/iframe/sandbox-web/sdk/examples1"
+
+# ================== 模板构建状态 枚举 ==================
+@dataclass
+class SandboxTemplateStatus(str, Enum):
+    """
+    自定义模板构建/发布状态文案。
+
+    Note:
+        - SUCCESS / FAILED 为轮询终态；
+        - 其它值用于状态展示读取。
+    """
+    BUILDING = "构建中"
+    SUCCESS = "成功"
+    FAILED = "失败"
+    AVAILABLE = "可用"
+    PUBLISHED = "已发布"
+    UNPUBLISHED = "未发布"
+    NORMAL = "正常"
+
+    @classmethod
+    def terminal_values(cls) -> tuple:
+        """轮询构建结果时的终态文本集合。"""
+        return (cls.SUCCESS.value, cls.FAILED.value)
+
+    @classmethod
+    def all_values(cls) -> tuple:
+        """全部状态文本集合。"""
+        return tuple(item.value for item in cls)
