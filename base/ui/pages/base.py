@@ -8,8 +8,11 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, Union
-from playwright.sync_api import Page, Locator, TimeoutError as PlaywrightTimeoutError, expect
 
+from playwright.sync_api import Locator, Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+
+from base.ui.pages.alert_mixin import AlertMixin
 from core.config import Settings
 from core.constants import (
     PlaywrightElementState,
@@ -20,11 +23,10 @@ from core.constants.bussiness import SystemMenu
 from core.log.logger import get_logger
 from core.reporting.allure_helper import AllureHelper
 
-
 logger = get_logger(__name__)
 
 
-class BasePage:
+class BasePage(AlertMixin):
     """
     基础页面类
     
@@ -37,7 +39,7 @@ class BasePage:
     
     所有具体的页面对象类都应该继承此类。
     """
-    
+
     def __init__(self, page: Page):
         """
         初始化基础页面对象
@@ -47,12 +49,12 @@ class BasePage:
         """
         self.page = page
         self.dialog_text = None  # 存储弹窗文本
-        
+
         # 设置默认超时时间
         self.page.set_default_timeout(Settings.BROWSER_TIMEOUT)
-        
+
         logger.debug(f"Initialized {self.__class__.__name__}")
-    
+
     def navigate(self, url: str, wait_until: str = PlaywrightWaitUntil.DOMCONTENTLOADED) -> None:
         """
         导航到指定 URL
@@ -68,12 +70,12 @@ class BasePage:
         """
         try:
             logger.info(f"Navigating to URL: {url}")
-            
+
             with AllureHelper.step(f"Navigate to {url}"):
                 self.page.goto(url, wait_until=wait_until, timeout=Settings.PAGE_LOAD_TIMEOUT)
-            
+
             logger.info(f"Successfully navigated to: {url}")
-            
+
         except PlaywrightTimeoutError as e:
             logger.error(f"Timeout while navigating to {url}: {e}")
             self._capture_failure_screenshot(f"navigation_timeout_{self._get_timestamp()}")
@@ -82,12 +84,12 @@ class BasePage:
             logger.error(f"Failed to navigate to {url}: {e}")
             self._capture_failure_screenshot(f"navigation_error_{self._get_timestamp()}")
             raise
-    
+
     def wait_for_element(
-        self, 
-        selector: str, 
-        timeout: Optional[int] = None,
-        state: str = PlaywrightElementState.VISIBLE
+            self,
+            selector: str,
+            timeout: Optional[int] = None,
+            state: str = PlaywrightElementState.VISIBLE
     ) -> Locator:
         """
         等待元素出现并返回定位器
@@ -112,16 +114,16 @@ class BasePage:
         """
         if timeout is None:
             timeout = Settings.BROWSER_TIMEOUT
-        
+
         try:
             logger.debug(f"Waiting for element: {selector} (state: {state}, timeout: {timeout}ms)")
-            
+
             locator = self.page.locator(selector)
             locator.wait_for(state=state, timeout=timeout)
-            
+
             logger.debug(f"Element found: {selector}")
             return locator
-            
+
         except PlaywrightTimeoutError as e:
             logger.error(f"Timeout waiting for element: {selector} (state: {state})")
             self._capture_failure_screenshot(f"element_timeout_{self._get_timestamp()}")
@@ -130,13 +132,13 @@ class BasePage:
             logger.error(f"Error waiting for element {selector}: {e}")
             self._capture_failure_screenshot(f"element_error_{self._get_timestamp()}")
             raise
-    
+
     def click(
-        self, 
-        selector: str, 
-        timeout: Optional[int] = None,
-        force: bool = False,
-        wait_before_click: bool = True
+            self,
+            selector: str,
+            timeout: Optional[int] = None,
+            force: bool = False,
+            wait_before_click: bool = True
     ) -> None:
         """
         点击元素
@@ -153,17 +155,17 @@ class BasePage:
         """
         try:
             logger.info(f"Clicking element: {selector}")
-            
+
             with AllureHelper.step(f"Click element: {selector}"):
                 if wait_before_click:
                     locator = self.wait_for_element(selector, timeout=timeout)
                 else:
                     locator = self.page.locator(selector)
-                
+
                 locator.click(force=force, timeout=timeout or Settings.BROWSER_TIMEOUT)
-            
+
             logger.info(f"Successfully clicked: {selector}")
-            
+
         except PlaywrightTimeoutError as e:
             logger.error(f"Timeout while clicking element: {selector}")
             self._capture_failure_screenshot(f"click_timeout_{self._get_timestamp()}")
@@ -172,13 +174,13 @@ class BasePage:
             logger.error(f"Failed to click element {selector}: {e}")
             self._capture_failure_screenshot(f"click_error_{self._get_timestamp()}")
             raise
-    
+
     def fill(
-        self, 
-        selector: str, 
-        text: str, 
-        timeout: Optional[int] = None,
-        clear_first: bool = True
+            self,
+            selector: str,
+            text: str,
+            timeout: Optional[int] = None,
+            clear_first: bool = True
     ) -> None:
         """
         填充文本到输入框
@@ -195,17 +197,17 @@ class BasePage:
         """
         try:
             logger.info(f"Filling element {selector} with text: {text}")
-            
+
             with AllureHelper.step(f"Fill '{selector}' with '{text}'"):
                 locator = self.wait_for_element(selector, timeout=timeout)
-                
+
                 if clear_first:
                     locator.clear(timeout=timeout or Settings.BROWSER_TIMEOUT)
-                
+
                 locator.fill(text, timeout=timeout or Settings.BROWSER_TIMEOUT)
-            
+
             logger.info(f"Successfully filled {selector}")
-            
+
         except PlaywrightTimeoutError as e:
             logger.error(f"Timeout while filling element: {selector}")
             self._capture_failure_screenshot(f"fill_timeout_{self._get_timestamp()}")
@@ -214,11 +216,11 @@ class BasePage:
             logger.error(f"Failed to fill element {selector}: {e}")
             self._capture_failure_screenshot(f"fill_error_{self._get_timestamp()}")
             raise
-    
+
     def get_text(
-        self, 
-        selector: str, 
-        timeout: Optional[int] = None
+            self,
+            selector: str,
+            timeout: Optional[int] = None
     ) -> str:
         """
         获取元素的文本内容
@@ -236,13 +238,13 @@ class BasePage:
         """
         try:
             logger.debug(f"Getting text from element: {selector}")
-            
+
             locator = self.wait_for_element(selector, timeout=timeout)
             text = locator.inner_text(timeout=timeout or Settings.BROWSER_TIMEOUT)
-            
+
             logger.debug(f"Got text from {selector}: {text}")
             return text
-            
+
         except PlaywrightTimeoutError as e:
             logger.error(f"Timeout while getting text from element: {selector}")
             self._capture_failure_screenshot(f"get_text_timeout_{self._get_timestamp()}")
@@ -251,12 +253,12 @@ class BasePage:
             logger.error(f"Failed to get text from element {selector}: {e}")
             self._capture_failure_screenshot(f"get_text_error_{self._get_timestamp()}")
             raise
-    
+
     def get_attribute(
-        self, 
-        selector: str, 
-        attribute: str,
-        timeout: Optional[int] = None
+            self,
+            selector: str,
+            attribute: str,
+            timeout: Optional[int] = None
     ) -> Optional[str]:
         """
         获取元素的属性值
@@ -275,18 +277,18 @@ class BasePage:
         """
         try:
             logger.debug(f"Getting attribute '{attribute}' from element: {selector}")
-            
+
             locator = self.wait_for_element(selector, timeout=timeout)
             value = locator.get_attribute(attribute, timeout=timeout or Settings.BROWSER_TIMEOUT)
-            
+
             logger.debug(f"Got attribute '{attribute}' from {selector}: {value}")
             return value
-            
+
         except Exception as e:
             logger.error(f"Failed to get attribute '{attribute}' from {selector}: {e}")
             self._capture_failure_screenshot(f"get_attribute_error_{self._get_timestamp()}")
             raise
-    
+
     def is_visible(self, selector: str, timeout: int = 1000) -> bool:
         """
         检查元素是否可见
@@ -307,7 +309,7 @@ class BasePage:
             return locator.is_visible(timeout=timeout)
         except Exception:
             return False
-    
+
     def is_enabled(self, selector: str, timeout: Optional[int] = None) -> bool:
         """
         检查元素是否启用
@@ -328,11 +330,11 @@ class BasePage:
             return locator.is_enabled(timeout=timeout or Settings.BROWSER_TIMEOUT)
         except Exception:
             return False
-    
+
     def wait_for_url(
-        self, 
-        url_pattern: Union[str, object], 
-        timeout: Optional[int] = None
+            self,
+            url_pattern: Union[str, object],
+            timeout: Optional[int] = None
     ) -> None:
         """
         等待 URL 匹配指定模式
@@ -353,12 +355,12 @@ class BasePage:
             logger.error(f"Timeout waiting for URL pattern: {url_pattern}")
             self._capture_failure_screenshot(f"url_timeout_{self._get_timestamp()}")
             raise
-    
+
     def take_screenshot(
-        self, 
-        name: Optional[str] = None,
-        full_page: bool = False,
-        attach_to_allure: bool = True
+            self,
+            name: Optional[str] = None,
+            full_page: bool = False,
+            attach_to_allure: bool = True
     ) -> bytes:
         """
         截取当前页面的截图
@@ -379,37 +381,37 @@ class BasePage:
             # 生成截图名称
             if name is None:
                 name = f"screenshot_{self._get_timestamp()}"
-            
+
             logger.info(f"Taking screenshot: {name}")
-            
+
             # 截取截图
             screenshot_bytes = self.page.screenshot(
                 full_page=full_page,
                 type=Settings.SCREENSHOT_FORMAT
             )
-            
+
             # 保存到文件
             screenshot_dir = Path(Settings.SCREENSHOT_DIR)
             screenshot_dir.mkdir(parents=True, exist_ok=True)
-            
+
             screenshot_filename = f"{name}.{Settings.SCREENSHOT_FORMAT}"
             screenshot_path = screenshot_dir / screenshot_filename
-            
+
             with open(screenshot_path, 'wb') as f:
                 f.write(screenshot_bytes)
-            
+
             logger.info(f"Screenshot saved: {screenshot_path}")
-            
+
             # 附加到 Allure 报告
             if attach_to_allure:
                 AllureHelper.attach_screenshot(screenshot_bytes, name)
-            
+
             return screenshot_bytes
-            
+
         except Exception as e:
             logger.error(f"Failed to take screenshot: {e}")
             raise
-    
+
     def scroll_to_element(self, selector: str, timeout: Optional[int] = None) -> None:
         """
         滚动到指定元素
@@ -429,14 +431,14 @@ class BasePage:
         except Exception as e:
             logger.error(f"Failed to scroll to element {selector}: {e}")
             raise
-    
+
     def select_option(
-        self, 
-        selector: str, 
-        value: Optional[str] = None,
-        label: Optional[str] = None,
-        index: Optional[int] = None,
-        timeout: Optional[int] = None
+            self,
+            selector: str,
+            value: Optional[str] = None,
+            label: Optional[str] = None,
+            index: Optional[int] = None,
+            timeout: Optional[int] = None
     ) -> None:
         """
         从下拉列表中选择选项
@@ -458,7 +460,7 @@ class BasePage:
         try:
             logger.info(f"Selecting option from {selector}")
             locator = self.wait_for_element(selector, timeout=timeout)
-            
+
             if value is not None:
                 locator.select_option(value=value, timeout=timeout or Settings.BROWSER_TIMEOUT)
             elif label is not None:
@@ -467,13 +469,13 @@ class BasePage:
                 locator.select_option(index=index, timeout=timeout or Settings.BROWSER_TIMEOUT)
             else:
                 raise ValueError("Must provide value, label, or index")
-            
+
             logger.info(f"Successfully selected option from {selector}")
         except Exception as e:
             logger.error(f"Failed to select option from {selector}: {e}")
             self._capture_failure_screenshot(f"select_error_{self._get_timestamp()}")
             raise
-    
+
     def check(self, selector: str, timeout: Optional[int] = None) -> None:
         """
         勾选复选框或单选按钮
@@ -494,7 +496,7 @@ class BasePage:
             logger.error(f"Failed to check element {selector}: {e}")
             self._capture_failure_screenshot(f"check_error_{self._get_timestamp()}")
             raise
-    
+
     def uncheck(self, selector: str, timeout: Optional[int] = None) -> None:
         """
         取消勾选复选框
@@ -515,7 +517,7 @@ class BasePage:
             logger.error(f"Failed to uncheck element {selector}: {e}")
             self._capture_failure_screenshot(f"uncheck_error_{self._get_timestamp()}")
             raise
-    
+
     def get_current_url(self) -> str:
         """
         获取当前页面 URL
@@ -529,7 +531,7 @@ class BasePage:
         url = self.page.url
         logger.debug(f"Current URL: {url}")
         return url
-    
+
     def get_title(self) -> str:
         """
         获取当前页面标题
@@ -543,7 +545,7 @@ class BasePage:
         title = self.page.title()
         logger.debug(f"Page title: {title}")
         return title
-    
+
     def reload(self, timeout: Optional[int] = None) -> None:
         """
         重新加载当前页面
@@ -561,7 +563,7 @@ class BasePage:
         except Exception as e:
             logger.error(f"Failed to reload page: {e}")
             raise
-    
+
     def go_back(self, timeout: Optional[int] = None) -> None:
         """
         返回上一页
@@ -579,7 +581,7 @@ class BasePage:
         except Exception as e:
             logger.error(f"Failed to go back: {e}")
             raise
-    
+
     def go_forward(self, timeout: Optional[int] = None) -> None:
         """
         前进到下一页
@@ -597,11 +599,11 @@ class BasePage:
         except Exception as e:
             logger.error(f"Failed to go forward: {e}")
             raise
-    
+
     def wait_for_load_state(
-        self, 
-        state: str = PlaywrightLoadState.LOAD,
-        timeout: Optional[int] = None
+            self,
+            state: str = PlaywrightLoadState.LOAD,
+            timeout: Optional[int] = None
     ) -> None:
         """
         等待页面加载到指定状态
@@ -622,10 +624,20 @@ class BasePage:
             logger.error(f"Timeout waiting for load state {state}: {e}")
             raise
 
+    def wait_frame_ready(self, timeout_ms: int = 10000) -> None:
+        """等待 iframe 内页面加载完成（通过 main 元素可见判断）"""
+        try:
+            expect(self.page.locator("iframe").first.content_frame.get_by_role("main").first).to_be_visible(
+                timeout=timeout_ms)
+        except Exception:
+            self.page.wait_for_timeout(3000)
+        logger.info("iframe页面加载完成")
+
     def post_add_locator_handler(self, selector):
         """
         添加元素定位器处理器,selector是定位器，用于关闭系统中随意弹出的弹窗
         """
+
         def handler(locator):
             logger.info(f"Element locator handler closes the popup and locates the element: {locator}")
             locator.click()
@@ -633,18 +645,18 @@ class BasePage:
         self.page.add_locator_handler(selector, handler)
 
     # ==================== 多级菜单导航 ====================
-    
+
     def open_menu(
-        self,
-        first_level: str,
-        second_level: str = None,
-        third_level: str = None,
-        fourth_level: str = None,
-        first_level_index: int = 0,
-        second_level_index: int = 0,
-        third_level_index: int = 0,
-        fourth_level_index: int = 0,
-        wait_after_click: bool = True
+            self,
+            first_level: str,
+            second_level: str = None,
+            third_level: str = None,
+            fourth_level: str = None,
+            first_level_index: int = 0,
+            second_level_index: int = 0,
+            third_level_index: int = 0,
+            fourth_level_index: int = 0,
+            wait_after_click: bool = True
     ) -> None:
         """
         打开多级菜单导航
@@ -681,7 +693,7 @@ class BasePage:
         """
         menu_path = ' > '.join(filter(None, [first_level, second_level, third_level, fourth_level]))
         logger.info(f"Opening menu: {menu_path}")
-        
+
         try:
             with AllureHelper.step(f"Navigate menu: {menu_path}"):
                 levels = [
@@ -690,16 +702,16 @@ class BasePage:
                     (third_level, third_level_index),
                     (fourth_level, fourth_level_index),
                 ]
-                
+
                 for i, (level_name, level_index) in enumerate(levels):
                     if level_name is None:
                         break
-                    
+
                     locator = self.page.get_by_text(level_name, exact=True).nth(level_index)
-                    
+
                     # 智能判断：如果下一级菜单已可见，跳过当前级的点击
                     next_level = levels[i + 1][0] if i + 1 < len(levels) else None
-                    
+
                     if next_level is not None:
                         next_locator = self.page.get_by_text(next_level, exact=True).nth(levels[i + 1][1])
                         try:
@@ -708,14 +720,14 @@ class BasePage:
                                 continue
                         except Exception:
                             pass
-                    
+
                     locator.click()
                     if wait_after_click:
                         self.page.wait_for_load_state(state=PlaywrightLoadState.LOAD)
                     logger.debug(f"Clicked menu: {level_name}")
-                
+
                 logger.info("Menu navigation completed")
-                
+
         except PlaywrightTimeoutError as e:
             logger.error(f"Timeout while navigating menu: {e}")
             self._capture_failure_screenshot(f"menu_timeout_{self._get_timestamp()}")
@@ -726,12 +738,12 @@ class BasePage:
             raise
 
     # ==================== 文件上传 ====================
-    
+
     def upload_file_by_input(
-        self,
-        locator: Locator,
-        file_path: str,
-        description: str = "Upload"
+            self,
+            locator: Locator,
+            file_path: str,
+            description: str = "Upload"
     ) -> None:
         """
         通过 input[type=file] 标签上传文件
@@ -756,7 +768,7 @@ class BasePage:
         """
         resolved_path = self._resolve_file_path(file_path)
         logger.info(f"{description}: uploading file via input - {resolved_path}")
-        
+
         try:
             with AllureHelper.step(f"{description}: {Path(resolved_path).name}"):
                 locator.set_input_files(resolved_path)
@@ -765,12 +777,12 @@ class BasePage:
             logger.error(f"{description}: file upload failed - {e}")
             self._capture_failure_screenshot(f"upload_input_error_{self._get_timestamp()}")
             raise
-    
+
     def upload_file_by_chooser(
-        self,
-        trigger_locator: Locator,
-        file_path: str,
-        description: str = "Upload"
+            self,
+            trigger_locator: Locator,
+            file_path: str,
+            description: str = "Upload"
     ) -> None:
         """
         通过文件选择器对话框上传文件
@@ -791,7 +803,7 @@ class BasePage:
         """
         resolved_path = self._resolve_file_path(file_path)
         logger.info(f"{description}: uploading file via chooser - {resolved_path}")
-        
+
         try:
             with AllureHelper.step(f"{description}: {Path(resolved_path).name}"):
                 with self.page.expect_file_chooser() as fc_info:
@@ -805,12 +817,12 @@ class BasePage:
             raise
 
     # ==================== 文件下载 ====================
-    
+
     def download_file(
-        self,
-        trigger_locator: Locator,
-        save_dir: str = None,
-        description: str = "Download"
+            self,
+            trigger_locator: Locator,
+            save_dir: str = None,
+            description: str = "Download"
     ) -> str:
         """
         下载文件
@@ -831,10 +843,10 @@ class BasePage:
         """
         if save_dir is None:
             save_dir = str(Settings.PROJECT_ROOT / "data")
-        
+
         Path(save_dir).mkdir(parents=True, exist_ok=True)
         logger.info(f"{description}: starting file download to {save_dir}")
-        
+
         try:
             with AllureHelper.step(f"{description}"):
                 with self.page.expect_download() as download_info:
@@ -842,7 +854,7 @@ class BasePage:
                 download = download_info.value
                 save_path = str(Path(save_dir) / download.suggested_filename)
                 download.save_as(save_path)
-                
+
             logger.info(f"{description}: file saved - {save_path} (from {download.url})")
             return save_path
         except Exception as e:
@@ -851,12 +863,12 @@ class BasePage:
             raise
 
     # ==================== Dialog 弹窗处理 ====================
-    
+
     def handle_dialog(
-        self,
-        action: str = "accept",
-        dialog_type: str = None,
-        prompt_text: str = None
+            self,
+            action: str = "accept",
+            dialog_type: str = None,
+            prompt_text: str = None
     ) -> None:
         """
         注册原生弹窗（alert/confirm/prompt）处理器
@@ -891,14 +903,14 @@ class BasePage:
             page.page.locator("#rename-btn").click()
         """
         self.dialog_text = None
-        
+
         def _handler(dialog):
             if dialog_type and dialog.type != dialog_type:
                 dialog.accept()
                 return
-            
+
             logger.info(f"Dialog detected: type={dialog.type}, message={dialog.message}")
-            
+
             if action == "text":
                 self.dialog_text = dialog.message
                 dialog.accept()
@@ -909,19 +921,19 @@ class BasePage:
                     dialog.accept(prompt_text)
                 else:
                     dialog.accept()
-            
+
             logger.info(f"Dialog handled: action={action}")
-        
+
         self.page.once("dialog", _handler)
         logger.info(f"Dialog handler registered: action={action}, type_filter={dialog_type}")
 
     # ==================== Tab/窗口切换 ====================
-    
+
     def switch_to_tab(
-        self,
-        tab_index: int = -1,
-        wait_timeout: int = 3000,
-        description: str = "Switch tab"
+            self,
+            tab_index: int = -1,
+            wait_timeout: int = 3000,
+            description: str = "Switch tab"
     ) -> 'Page':
         """
         切换到指定标签页
@@ -942,36 +954,36 @@ class BasePage:
             page.switch_to_tab(0)
         """
         context = self.page.context
-        
+
         try:
             self.page.wait_for_timeout(wait_timeout)
             pages = context.pages
-            
+
             if abs(tab_index) > len(pages):
                 raise IndexError(
                     f"Tab index {tab_index} out of range. "
                     f"Available tabs: {len(pages)} (index 0-{len(pages) - 1})"
                 )
-            
+
             target_page = pages[tab_index]
             target_page.bring_to_front()
             target_page.wait_for_load_state(PlaywrightLoadState.LOAD, timeout=Settings.PAGE_LOAD_TIMEOUT)
-            
+
             logger.info(
                 f"{description}: switched to tab[{tab_index}], "
                 f"total: {len(pages)}, title: {target_page.title()}"
             )
-            
+
             self.page = target_page
             return target_page
-            
+
         except IndexError:
             raise
         except Exception as e:
             logger.error(f"{description}: tab switch failed - {e}")
             self._capture_failure_screenshot(f"tab_switch_error_{self._get_timestamp()}")
             raise
-    
+
     def wait_for_new_tab(self, trigger_action, timeout: int = 10000) -> 'Page':
         """
         等待新标签页打开并返回新页面对象
@@ -990,47 +1002,22 @@ class BasePage:
             print(f"New page: {new_page.title()}")
         """
         context = self.page.context
-        
+
         try:
             with context.expect_page(timeout=timeout) as new_page_info:
                 trigger_action()
-            
+
             new_page = new_page_info.value
             new_page.wait_for_load_state(PlaywrightLoadState.LOAD, timeout=Settings.PAGE_LOAD_TIMEOUT)
-            
+
             logger.info(f"New tab opened: {new_page.title()}")
             return new_page
         except Exception as e:
             logger.error(f"Failed to wait for new tab: {e}")
             raise
 
-    # ==================== 定制化方法
-    def switch_top_menu(self, menu_name: SystemMenu):
-        """
-        沙箱切换顶部导航菜单（首页/沙箱/AI可观测）
-        Args:
-            menu_name: 菜单名称
-
-        Returns:
-
-        """
-        top_menu_items = self.page.locator("div.layout-top-menu > div.top-menu-item")
-        top_menu_active_item = self.page.locator("div.layout-top-menu > div.top-menu-item.is-active")
-        if top_menu_active_item.count() > 0:
-            current_name = top_menu_active_item.first.text_content()
-            if current_name and menu_name in current_name:
-                logger.info(f"当前已处于【{menu_name}】菜单，无须切换")
-                return
-
-        target = top_menu_items.filter(has_text=re.compile(rf"^{re.escape(menu_name)}$")).first
-        expect(target).to_be_visible(timeout=120000)
-        target.click()
-        self.page.wait_for_load_state(state="load")
-        self.page.wait_for_timeout(1000)
-        logger.info(f"切换顶部导航菜单到【{menu_name}】完成")
-
     # ==================== 内部辅助方法 ====================
-    
+
     def _resolve_file_path(self, file_path: str) -> str:
         """
         解析文件路径，支持绝对路径和相对路径（相对于 data 目录）
@@ -1045,15 +1032,15 @@ class BasePage:
             FileNotFoundError: 文件不存在
         """
         path = Path(file_path)
-        
+
         if path.is_absolute():
             resolved = str(path)
         else:
             resolved = str(Settings.PROJECT_ROOT / "data" / file_path)
-        
+
         if not Path(resolved).exists():
             raise FileNotFoundError(f"File not found: {resolved}")
-        
+
         return resolved
 
     def execute_script(self, script: str, *args) -> Any:
@@ -1079,7 +1066,7 @@ class BasePage:
         except Exception as e:
             logger.error(f"Failed to execute script: {e}")
             raise
-    
+
     def _capture_failure_screenshot(self, name: str) -> None:
         """
         捕获失败时的截图（内部方法）
@@ -1091,7 +1078,7 @@ class BasePage:
             self.take_screenshot(name, full_page=False, attach_to_allure=True)
         except Exception as e:
             logger.warning(f"Failed to capture failure screenshot: {e}")
-    
+
     @staticmethod
     def _get_timestamp() -> str:
         """
