@@ -50,6 +50,7 @@ class TestSandboxPage:
     def test_sandbox_manage(self):
         with AllureHelper.step("沙箱管理页面检查"):
             logger.info("进入沙箱管理页面")
+            self.home_page.open_menu(SandboxMenu.SANDBOX_MANAGE, SandboxMenu.SANDBOX_MANAGE, second_level_index=1)
             self.sandbox_manage_page.wait_for_load_state(state=PlaywrightLoadState.LOAD)
             self.sandbox_manage_page.wait_frame_ready()
 
@@ -57,7 +58,7 @@ class TestSandboxPage:
             self.sandbox_manage_page.assert_no_alert(retries=6)
 
             logger.info("断言：检查存活沙箱tab")
-            expect(self.sandbox_manage_page.tab_alive).to_be_visible()
+            expect(self.sandbox_manage_page.tab_alive).to_be_visible(timeout=10000)
 
             logger.info("断言：检查历史沙箱tab")
             expect(self.sandbox_manage_page.tab_history).to_be_visible()

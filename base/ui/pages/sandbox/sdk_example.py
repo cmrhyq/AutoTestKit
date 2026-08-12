@@ -16,7 +16,7 @@ from playwright.sync_api import Page, expect
 from base.ui.pages.base import BasePage
 from core import get_logger
 from core.constants import UITimeout
-from core.constants.bussiness import SandboxFramePath
+from core.constants.bussiness import SandboxFramePath, SandboxType
 
 logger = get_logger(__name__)
 
@@ -66,9 +66,11 @@ class SdkExamplePage(BasePage):
         self.col_example = self.frame.get_by_role("columnheader", name="示例")
 
         # ==================== 示例代码弹窗 ====================
-        self.dialog_example_code = self.frame.locator(
-            ".el-overlay-dialog"
-        ).filter(has_text="示例代码")
+        self.dialog_base = self.frame.get_by_role("heading", name="基础沙箱示例 / base-v1")
+        self.dialog_code = self.frame.get_by_role("heading", name="代码沙箱示例 / code-interpreter-v1")
+        self.dialog_desktop = self.frame.get_by_role("heading", name="桌面沙箱示例 / desktop-v1")
+        self.dialog_browser = self.frame.get_by_role("heading", name="浏览器沙箱示例 / browser-playwright-v1")
+        self.btn_close_dialog = self.frame.get_by_role("button", name="关闭", exact=True)
 
     # ==================== 导航 ====================
 
@@ -85,7 +87,7 @@ class SdkExamplePage(BasePage):
 
     # ==================== 操作方法 ====================
 
-    def click_view_example(self, scenario: str) -> None:
+    def click_view_example(self, scenario: SandboxType) -> None:
         """点击指定场景行的"查看示例"按钮。
 
         Args:

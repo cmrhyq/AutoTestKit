@@ -166,3 +166,14 @@ class SandboxType(str, Enum):
     BASE = "基础沙箱"
     DESKTOP = "桌面沙箱"
     BROWSER = "浏览器沙箱"
+
+
+@dataclass
+class SandboxSystemTemplate(str, Enum):
+    """
+    沙箱的系统模板名称
+    """
+    CODE = "code-interpreter-v1"
+    BASE = "base-v1"
+    DESKTOP = "desktop-v1"
+    BROWSER = "browser-playwright-v1"
