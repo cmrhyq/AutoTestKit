@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from base.ui.pages.base import BasePage
 from core import DataCache, get_logger
 from core.config import Settings, env_manager
 
@@ -25,7 +26,18 @@ def pytest_runtest_makereport(item, call):
     """
     outcome = yield
     rep = outcome.get_result()
-    setattr(item, f"rep_{rep.when}", rep)
+    if rep.when in ('setup', 'call') and rep.failed and Settings.SCREENSHOT_ON_FAILURE:
+        if hasattr(item.instance, 'page'):
+            error_type = '前置条件错误' if rep.when == 'setup' else '断言错误'
+            page = item.instance.page
+            test_name = item.originalname
+
+            try:
+                BasePage(page=page).take_screenshot(f'错误截图_{error_type}_{test_name}', True)
+            except Exception as error:
+                logger.error(f"截图失败:\n【错误信息】:{error}")
+        else:
+            logger.error(rep)
 
 
 # ==================== Pytest Hooks for Parallel Execution ====================
