@@ -2,6 +2,7 @@ from enum import Enum
 
 from attr import dataclass
 
+
 # ================== 菜单枚举 ==================
 @dataclass
 class SystemMenu(str, Enum):
@@ -11,6 +12,7 @@ class SystemMenu(str, Enum):
     INDEX = "首页"
     SANDBOX = "沙箱"
     OBSERVABLE = "AI可观测"
+
 
 @dataclass
 class SandboxMenu(str, Enum):
@@ -39,6 +41,7 @@ class SandboxMenu(str, Enum):
     BUILD_RECORD = "构建记录"
     SDK_EXAMPLE = "SDK使用示例"
 
+
 # ================== 页面Frame 枚举 ==================
 @dataclass
 class SandboxFramePath(str, Enum):
@@ -57,6 +60,7 @@ class SandboxFramePath(str, Enum):
     TEMPLATE_MANAGE = "/iframe/sandbox-web/admin/templateManage"
     BUILD_RECORD = "/iframe/sandbox-web/templates/builds1"
     SDK_EXAMPLE = "/iframe/sandbox-web/sdk/examples1"
+
 
 # ================== 模板构建状态 枚举 ==================
 @dataclass
@@ -113,3 +117,52 @@ class SandboxTemplateStatus(str, Enum):
             ``txt in valid_values`` 的成员判断。
         """
         return tuple(item.value for item in cls)
+
+
+@dataclass
+class BuildRecordStatus(str, Enum):
+    """
+    构建记录页面下拉框状态枚举。
+    """
+
+    #: 构建中（非终态，轮询时应继续等待）
+    BUILDING = "构建中"
+    #: 构建成功（终态）
+    SUCCESS = "成功"
+    #: 构建失败（终态）
+    FAILED = "失败"
+
+
+@dataclass
+class PageSize(str, Enum):
+    """
+    页面表格的每页显示条数枚举
+    """
+    PAGE_10 = "10条/页"
+    PAGE_20 = "20条/页"
+    PAGE_50 = "50条/页"
+    PAGE_100 = "100条/页"
+
+
+@dataclass
+class SandboxNodeStatus(str, Enum):
+    """
+    沙箱节点管理的节点状态
+    """
+    ALL = "全部状态"
+    READY = "就绪"
+    OFFLINE = "离线"
+    ABNORMAL = "异常"
+    OFFLINING = "下线中"
+    CONNECTING = "连接中"
+
+
+@dataclass
+class SandboxType(str, Enum):
+    """
+    沙箱类型
+    """
+    CODE = "代码沙箱"
+    BASE = "基础沙箱"
+    DESKTOP = "桌面沙箱"
+    BROWSER = "浏览器沙箱"

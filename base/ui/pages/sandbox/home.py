@@ -90,7 +90,7 @@ class HomePage(BasePage):
         if top_menu_active_item.count() > 0:
             current_name = top_menu_active_item.first.text_content()
             if current_name and menu_name in current_name:
-                logger.info(f"当前已处于【{menu_name}】菜单，无须切换")
+                logger.info(f"当前已处于【{menu_name.value}】菜单，无须切换")
                 return
 
         # 使用锚定正则精确匹配文本，防止 "沙箱" 命中 "沙箱管理"
@@ -103,7 +103,7 @@ class HomePage(BasePage):
         # 等待路由完成 + 顶部菜单切换后侧边栏动画的短稳定
         self.page.wait_for_load_state(state="load")
         self.page.wait_for_timeout(UITimeout.STABILIZE)
-        logger.info(f"切换顶部导航菜单到【{menu_name}】完成")
+        logger.info(f"切换顶部导航菜单到【{menu_name.value}】完成")
 
     # ==================== 用户菜单 ====================
 

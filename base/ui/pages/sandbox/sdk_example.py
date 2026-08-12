@@ -2,14 +2,14 @@
 SDK 使用示例 Page Object（沙箱 -> SDK 使用示例）。
 
 页面结构：
-    - 页面标题: "SDK 使用示例"
-    - 章节标题: "一、SDK 安装" 等
-    - 下载 PDF 按钮
-    - 使用示例表格（各语言 SDK 的示例代码等）
+    - 页头: "SDK使用示例" 标题 + "下载SDK使用pdf" 按钮
+    - 章节一: "一、SDK安装" — PyPi虚拟库配置 + SDK下载命令（代码块）
+    - 章节二: "二、环境配置" — 环境变量配置（代码块）
+    - 章节三: "三、使用示例" — 表格（场景、模板ID、集成、备注、示例）
+    - 示例代码弹窗: 点击"查看示例"后弹出
 
-关键约定：
-    - **iframe 定位**：主内容在 iframe 内，通过 ``page.locator("iframe").first.content_frame``
-      获取 FrameLocator。
+iframe src: /sandbox-web/sdk/examples
+UI 框架: Element Plus (el- 前缀) + CodeMirror 代码编辑器
 """
 from playwright.sync_api import Page, expect
 
@@ -22,10 +22,7 @@ logger = get_logger(__name__)
 
 
 class SdkExamplePage(BasePage):
-    """SDK 使用示例 Page Object。
-
-    当前仅提供页面导航与元素定位，具体下载/展开交互按需扩展。
-    """
+    """SDK 使用示例 Page Object。"""
 
     def __init__(self, page: Page):
         """初始化 SDK 使用示例页元素定位器。
@@ -39,23 +36,44 @@ class SdkExamplePage(BasePage):
         # 沙箱主内容 iframe
         self.frame = page.locator("iframe").first.content_frame
 
-        # 页面标题（.first 避免命中侧边栏菜单同名文本）
-        self.title_sdk_example = self.frame.get_by_text("SDK使用示例").first
-
-        # 首个章节标题："一、SDK 安装"
-        self.title_sdk_install = self.frame.get_by_text("一、SDK安装").first
-
-        # 下载 PDF 按钮
+        # ==================== 页头 ====================
+        self.title_sdk_example = self.frame.locator(".page-header").get_by_text("SDK使用示例")
         self.btn_download_pdf = self.frame.get_by_role("button", name="下载SDK使用pdf")
 
-        # 使用示例表格（页面结构较简单，第 1 个 table 即示例表）
-        self.table_example = self.frame.get_by_role("table").first
+        # ==================== 章节标题 ====================
+        self.title_sdk_install = self.frame.locator(".section-title").filter(has_text="一、SDK安装")
+        self.title_env_config = self.frame.locator(".section-title").filter(has_text="二、环境配置")
+        self.title_usage_example = self.frame.locator(".section-title").filter(has_text="三、使用示例")
+
+        # ==================== 代码块（CodeMirror） ====================
+        # 3个代码块：PyPi配置、SDK下载、环境变量
+        self.code_blocks = self.frame.locator(".code-mirror-wrapper")
+        self.code_block_pypi = self.code_blocks.nth(0)
+        self.code_block_install = self.code_blocks.nth(1)
+        self.code_block_env = self.code_blocks.nth(2)
+
+        # 代码块复制按钮
+        self.btn_copy_buttons = self.frame.locator(".copy-button")
+
+        # ==================== 使用示例表格 ====================
+        self.table_example = self.frame.get_by_role("table").nth(1)  # 第2个table是数据行
+
+        # 表头列
+        self.col_scenario = self.frame.get_by_role("columnheader", name="场景")
+        self.col_template_id = self.frame.get_by_role("columnheader", name="模板ID")
+        self.col_integration = self.frame.get_by_role("columnheader", name="集成")
+        self.col_remark = self.frame.get_by_role("columnheader", name="备注")
+        self.col_example = self.frame.get_by_role("columnheader", name="示例")
+
+        # ==================== 示例代码弹窗 ====================
+        self.dialog_example_code = self.frame.locator(
+            ".el-overlay-dialog"
+        ).filter(has_text="示例代码")
+
+    # ==================== 导航 ====================
 
     def navigate_to(self, base_url: str) -> None:
         """通过 URL 直接导航进入 SDK 使用示例页面。
-
-        菜单点击有时不刷新 iframe，稳定性要求高的用例应优先使用本方法。
-        末尾通过页面标题可见性判定渲染完成。
 
         Args:
             base_url: 站点根 URL（``http[s]://host[:port]``），不含 iframe 路径。
@@ -64,3 +82,26 @@ class SdkExamplePage(BasePage):
         self.page.goto(base_url + SandboxFramePath.SDK_EXAMPLE, timeout=UITimeout.NAVIGATION_TIMEOUT)
         self.page.wait_for_load_state(state="load")
         expect(self.title_sdk_example).to_be_visible(timeout=UITimeout.ELEMENT_VISIBLE_TIMEOUT)
+
+    # ==================== 操作方法 ====================
+
+    def click_view_example(self, scenario: str) -> None:
+        """点击指定场景行的"查看示例"按钮。
+
+        Args:
+            scenario: 场景名称，如 "代码沙箱"、"桌面沙箱"、"浏览器沙箱"、"基础沙箱"
+        """
+        logger.info(f"查看示例：{scenario}")
+        row = self.frame.get_by_role("row").filter(has_text=scenario)
+        row.get_by_role("button", name="查看示例").click()
+        self.page.wait_for_timeout(UITimeout.SHORT)
+
+    def copy_code_block(self, index: int = 0) -> None:
+        """点击指定代码块的复制按钮。
+
+        Args:
+            index: 代码块索引（0=PyPi配置, 1=SDK下载, 2=环境变量）
+        """
+        logger.info(f"复制第 {index + 1} 个代码块")
+        self.btn_copy_buttons.nth(index).click()
+        self.page.wait_for_timeout(UITimeout.ANIMATION)

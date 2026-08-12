@@ -12,6 +12,22 @@ from core.config import Settings, env_manager
 logger = get_logger(__name__)
 
 
+# ==================== Pytest Hooks ====================
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    将测试结果附加到测试项，以便 fixture teardown 阶段可以访问。
+
+    在 setup / call / teardown 三个阶段分别把 report 对象挂载到 test item 上，
+    命名为 rep_setup / rep_call / rep_teardown。
+    典型用途：UI 测试失败时自动截图。
+    """
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)
+
+
 # ==================== Pytest Hooks for Parallel Execution ====================
 
 def pytest_configure(config):
