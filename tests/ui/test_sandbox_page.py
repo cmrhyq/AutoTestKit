@@ -18,9 +18,8 @@ logger = get_logger(__name__)
 
 
 @pytest.mark.ui
-@allure.epic("Sandbox UI自动化测试")
-@allure.feature("Sandbox 平台页面走查")
-@allure.story("沙箱管理")
+@allure.epic("沙箱UI自动化测试")
+@allure.feature("页面检查")
 class TestSandboxPage:
 
     @pytest.fixture(autouse=True)
@@ -43,8 +42,8 @@ class TestSandboxPage:
         logger.info("------------单条测试用执行结束--------------")
         self.home_page.wait_alert_hidden()
 
-    @pytest.mark.dependency()
-    @allure.title("沙箱管理 - 沙箱管理")
+    @allure.story("沙箱管理")
+    @allure.title("检查沙箱管理页面元素")
     @allure.description("""检查页面元素（iframe内）：存活沙箱tab、历史沙箱tab、租户名称搜索框、查询按钮""")
     @allure.severity(allure.severity_level.NORMAL)
     def test_sandbox_manage(self):
@@ -72,12 +71,12 @@ class TestSandboxPage:
             self.sandbox_manage_page.assert_no_alert()
             self.sandbox_manage_page.take_screenshot("沙箱-沙箱管理-沙箱管理", True)
 
-    @pytest.mark.dependency()
-    @allure.title("沙箱集群 - 节点管理")
+    @allure.story("节点管理")
+    @allure.title("检查节点管理页面元素")
     @allure.description("""检查页面元素（iframe内）：节点ID搜索框、全部状态下拉、集群选择下拉、查询按钮、刷新按钮""")
     @allure.severity(allure.severity_level.NORMAL)
     def test_node_manage(self):
-        with AllureHelper.step("沙箱管理页面检查"):
+        with AllureHelper.step("节点管理页面检查"):
             logger.info("进入节点管理页面")
             self.home_page.open_menu(SandboxMenu.SANDBOX_CLUSTER, SandboxMenu.NODE_MANAGE)
             self.home_page.wait_frame_ready()
@@ -97,12 +96,12 @@ class TestSandboxPage:
             self.node_manage_page.assert_no_alert()
             self.node_manage_page.take_screenshot("沙箱-沙箱集群-节点管理", True)
 
-    @pytest.mark.dependency()
-    @allure.title("镜像管理 - 镜像库管理")
+    @allure.story("镜像库管理")
+    @allure.title("检查镜像库管理页面元素")
     @allure.description("""检查页面元素（iframe内）：系统镜像tab、自定义镜像tab、镜像名称搜索框、查询按钮""")
     @allure.severity(allure.severity_level.NORMAL)
     def test_image_repo(self):
-        with AllureHelper.step("页面检查"):
+        with AllureHelper.step("镜像库管理页面检查"):
             logger.info("进入【镜像管理 - 镜像库管理】页面")
             self.home_page.open_menu(SandboxMenu.IMAGE_MANAGE, SandboxMenu.IMAGE_LIBRARY_MANAGE)
             self.home_page.wait_frame_ready()
@@ -125,12 +124,12 @@ class TestSandboxPage:
             self.image_library_page.assert_no_alert()
             self.home_page.take_screenshot("沙箱-镜像管理-镜像库管理", True)
 
-    @pytest.mark.dependency()
-    @allure.title("模板管理 - 模板管理")
+    @allure.story("模板管理")
+    @allure.title("检查模板管理页面元素")
     @allure.description("""检查页面元素（iframe内）：系统模板tab、自定义模板tab、模板名称搜索框、查询按钮""")
     @allure.severity(allure.severity_level.NORMAL)
     def test_template_manage(self):
-        with allure.step("页面检查"):
+        with allure.step("模板管理页面检查"):
             logger.info("进入【模板管理 - 模板管理】页面")
             self.home_page.open_menu(SandboxMenu.TEMPLATE_MANAGE, SandboxMenu.TEMPLATE_MANAGE, second_level_index=1)
             self.home_page.wait_frame_ready()
@@ -153,12 +152,12 @@ class TestSandboxPage:
             self.template_manage_page.assert_no_alert()
             self.home_page.take_screenshot("沙箱-模板管理-模板管理", True)
 
-    @pytest.mark.dependency()
-    @allure.title("模板管理 - 构建记录")
+    @allure.story("构建记录")
+    @allure.title("检查构建记录页面元素")
     @allure.description("""检查页面元素（iframe内）：构建状态下拉、模板名称或ID搜索框、查询按钮、构建记录列表表格""")
     @allure.severity(allure.severity_level.NORMAL)
     def test_build_record(self) -> None:
-        with allure.step("页面检查"):
+        with allure.step("构建记录页面检查"):
             logger.info("进入【模板管理 - 构建记录】页面")
             self.home_page.open_menu(SandboxMenu.TEMPLATE_MANAGE, SandboxMenu.BUILD_RECORD)
             self.home_page.wait_frame_ready()
@@ -178,12 +177,12 @@ class TestSandboxPage:
             self.build_record_page.assert_no_alert()
             self.build_record_page.take_screenshot("沙箱-模板管理-构建记录", True)
 
-    @pytest.mark.dependency()
-    @allure.title("SDK使用示例")
+    @allure.story("SDK使用示例")
+    @allure.title("检查SDK使用示例页面元素")
     @allure.description("""检查页面元素（iframe内）：SDK使用示例标题、下载SDK使用pdf按钮、SDK安装章节标题、使用示例表格""")
     @allure.severity(allure.severity_level.NORMAL)
     def test_sdk_example(self) -> None:
-        with allure.step("页面检查"):
+        with allure.step("SDK使用示例页面检查"):
             logger.info("进入【SDK使用示例】页面")
             self.home_page.open_menu(SandboxMenu.SDK_EXAMPLE, SandboxMenu.SDK_EXAMPLE, second_level_index=1)
             self.home_page.wait_frame_ready()

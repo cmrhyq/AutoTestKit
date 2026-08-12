@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 
 
 @pytest.mark.ui
-@allure.epic("Sandbox UI自动化测试")
+@allure.epic("沙箱UI自动化测试")
 @allure.feature("节点管理")
 class TestNodeManage:
     """沙箱集群 - 节点管理 功能测试"""
@@ -150,7 +150,7 @@ class TestNodeManage:
 
 
 @pytest.mark.ui
-@allure.epic("Sandbox UI自动化测试")
+@allure.epic("沙箱UI自动化测试")
 @allure.feature("构建记录")
 class TestBuildRecord:
     """模板管理 - 构建记录 功能测试"""
@@ -229,7 +229,7 @@ class TestBuildRecord:
 
 
 @pytest.mark.ui
-@allure.epic("Sandbox UI自动化测试")
+@allure.epic("沙箱UI自动化测试")
 @allure.feature("SDK使用示例")
 class TestSdkExample:
     """SDK使用示例 功能测试"""
@@ -307,7 +307,7 @@ class TestSdkExample:
 
 
 @pytest.mark.ui
-@allure.epic("Sandbox UI自动化测试")
+@allure.epic("沙箱UI自动化测试")
 @allure.feature("沙箱管理")
 class TestSandboxManage:
     """沙箱管理 功能测试"""
@@ -358,7 +358,7 @@ class TestSandboxManage:
 
 
 @pytest.mark.ui
-@allure.epic("Sandbox UI自动化测试")
+@allure.epic("沙箱UI自动化测试")
 @allure.feature("镜像管理")
 class TestImageLibrary:
     """镜像管理 - 镜像库管理 功能测试"""
