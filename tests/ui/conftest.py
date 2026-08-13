@@ -49,9 +49,5 @@ def login_context(browser, test_env, username: str = None, password: str = None)
         logger.debug(f"Current Username: {username}, Password: {password}")
         login_page.login(username, password)
 
-    with AllureHelper.step("截取页面截图"):
-        login_page.take_screenshot("sandbox_login_page")
-        logger.info("Screenshot captured")
-
     yield context, page
     context.close()
