@@ -7,7 +7,7 @@ UI 测试专用的 conftest 配置
 
 from base.ui.fixtures import *  # noqa: F401,F403
 from base.ui.fixtures import _build_context_options
-from base.ui.pages.sandbox.login import LoginPage
+from base.ui.pages.login import LoginPage
 
 
 @pytest.fixture(scope="session")

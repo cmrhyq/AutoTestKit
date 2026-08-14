@@ -13,7 +13,7 @@ import pytest
 from playwright.sync_api import expect
 
 from base.ui.pages.sandbox.build_record import BuildRecordPage
-from base.ui.pages.sandbox.home import HomePage
+from base.ui.pages.home import HomePage
 from base.ui.pages.sandbox.image_library import ImageLibraryPage
 from base.ui.pages.sandbox.node_manage import NodeManagePage
 from base.ui.pages.sandbox.sandbox_manage import SandboxManagePage
