@@ -15,6 +15,27 @@ class SystemMenu(str, Enum):
 
 
 @dataclass
+class AiosMenu(str, Enum):
+    """
+    AIOS 左侧菜单（AIOS 顶部菜单下的各功能页面）：
+    权限管理
+        - 角色管理：角色层级、赋权与用户绑定
+        - 租户管理：租户层级、用户关联与集群管理
+        - 用户管理：用户账号、状态与租户/角色关联
+    消费者应用：管理消费者应用及其 API 订阅
+
+    Note:
+        若实际环境的左侧菜单为分组结构（如“权限管理管理 > 消费者应用”），
+        在测试中调用 :meth:`BasePage.open_menu` 时补充对应层级参数即可。
+    """
+    PERMISSION_MANAGE = "权限管理"
+    ROLE_MANAGE = "角色管理"
+    TENANT_MANAGE = "租户管理"
+    USER_MANAGE = "用户管理"
+    CONSUMER_APP = "消费者应用"
+
+
+@dataclass
 class SandboxMenu(str, Enum):
     """
     沙箱管理：
