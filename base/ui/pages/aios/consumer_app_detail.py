@@ -51,12 +51,8 @@ class ConsumerAppDetailPage(BasePage):
         # ==================== 已订阅API搜索区 ====================
         self.input_api_name = page.get_by_placeholder("API名称关键字")
         self.input_url = page.get_by_placeholder("URL关键字")
-        self.dropdown_product = page.locator(
-            ".ep-form-item:has-text('所属产品') .ep-select__wrapper"
-        ).first
-        self.dropdown_product_module = page.locator(
-            ".ep-form-item:has-text('产品模块') .ep-select__wrapper"
-        ).first
+        self.dropdown_product = page.locator("div").filter(has_text=re.compile(r"^请选择所属产品$")).nth(1)
+        self.dropdown_product_module = page.locator("div").filter(has_text=re.compile(r"^请选择产品模块$")).nth(1)
         self.btn_search_api = page.get_by_role("button", name="查询")
 
         # ==================== 操作按钮 ====================

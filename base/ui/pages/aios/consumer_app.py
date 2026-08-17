@@ -39,9 +39,7 @@ class ConsumerAppPage(BasePage):
         logger.info("Consumer App Page Initialized")
 
         # ==================== 搜索区 ====================
-        self.dropdown_tenant = page.locator(
-            ".ep-form-item:has-text('所属租户') .ep-select__wrapper"
-        ).first
+        self.dropdown_tenant = page.locator("div").filter(has_text=re.compile(r"^请选择租户$")).nth(1)
         self.input_app_name = page.get_by_placeholder("应用名称关键字")
         self.btn_search = page.get_by_role("button", name="查询")
         self.btn_refresh_cache = page.get_by_role("button", name="刷新缓存")
